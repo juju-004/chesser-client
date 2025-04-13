@@ -1,13 +1,12 @@
 "use client";
 
-import { SessionContext } from "@/context/session";
-import { Session } from "@/types";
+import { useSession } from "@/context/SessionProvider";
 import { useRouter } from "next/navigation";
-import React, { useContext } from "react";
+import React from "react";
 import type { ReactNode } from "react";
 
 function Layout({ children }: { children: ReactNode }) {
-  const session: Session = useContext(SessionContext);
+  const session = useSession();
   const { replace } = useRouter();
 
   if (!session?.user) {

@@ -85,5 +85,5 @@ export interface Message {
 }
 
 export interface Session {
-  user: User;
+  user: User | null;
 }

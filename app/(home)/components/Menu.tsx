@@ -1,65 +1,74 @@
-import { SessionContext } from "@/context/session";
-import { Session } from "@/types";
-import { IconCoin, IconPalette, IconPower, IconUser } from "@tabler/icons-react";
-import { IconArrowCapsule, IconAt, IconCashBanknote, IconHome2 } from "@tabler/icons-react";
-import React, { useContext } from "react";
+import { useSession } from "@/context/SessionProvider";
+import {
+  IconCoin,
+  IconPalette,
+  IconPower,
+  IconUser,
+} from "@tabler/icons-react";
+import {
+  IconArrowCapsule,
+  IconAt,
+  IconCashBanknote,
+  IconHome2,
+} from "@tabler/icons-react";
+import React from "react";
 
 function Menu({ className }: { className?: string }) {
-  const session: Session = useContext(SessionContext);
+  const session = useSession();
 
   const items = [
     {
       text: "Home",
       icon: <IconHome2 className="size-4" />,
-      color: "bg-fuchsia-600"
+      color: "bg-fuchsia-600",
     },
     {
       text: "Players",
       icon: <IconAt className="size-4" />,
-      color: "bg-cyan-500"
+      color: "bg-cyan-500",
     },
     {
       text: "Theme",
       icon: <IconPalette className="size-4" />,
-      color: "bg-red-600"
-    }
+      color: "bg-red-600",
+    },
   ];
   const userItems = [
     {
       text: "Profile",
-      icon: <IconUser className="size-4" />
+      icon: <IconUser className="size-4" />,
     },
     {
       text: "Logout",
-      icon: <IconPower className="size-4 text-red-600" />
-    }
+      icon: <IconPower className="size-4 text-red-600" />,
+    },
   ];
 
   const paymentItems = [
     {
       text: "Deposit",
-      icon: <IconCashBanknote className="size-4" />
+      icon: <IconCashBanknote className="size-4" />,
     },
     {
       text: "Withdraw",
-      icon: <IconCoin className="size-4" />
+      icon: <IconCoin className="size-4" />,
     },
     {
       text: "Transaction History",
-      icon: <IconArrowCapsule className="size-4" />
-    }
+      icon: <IconArrowCapsule className="size-4" />,
+    },
   ];
 
   const customerItems = [
     {
-      text: "Make Complaint"
+      text: "Make Complaint",
     },
     {
-      text: "Support"
+      text: "Support",
     },
     {
-      text: "Terms & conditions"
-    }
+      text: "Terms & conditions",
+    },
   ];
 
   return (
@@ -83,7 +92,9 @@ function Menu({ className }: { className?: string }) {
             {userItems.map((item, key) => (
               <li className="" key={key}>
                 <a className="">
-                  <span className={`bg-base-100 size-6 rotate-6 rounded-lg px-1.5 text-white/70`}>
+                  <span
+                    className={`bg-base-100 size-6 rotate-6 rounded-lg px-1.5 text-white/70`}
+                  >
                     {item.icon}
                   </span>
                   <span className="opacity-60">{item.text}</span>
@@ -98,7 +109,9 @@ function Menu({ className }: { className?: string }) {
           {items.map((item, key) => (
             <li className="" key={key}>
               <a className="">
-                <span className={`size-6 rotate-6 rounded-lg px-1.5 ${item.color}`}>
+                <span
+                  className={`size-6 rotate-6 rounded-lg px-1.5 ${item.color}`}
+                >
                   {item.icon}
                 </span>
                 {item.text}{" "}
@@ -138,7 +151,9 @@ function Menu({ className }: { className?: string }) {
           </li>
         </ul>
       </div>
-      <div className="py-1.5 text-center text-sm opacity-25">&copy;2025 Chesser</div>
+      <div className="py-1.5 text-center text-sm opacity-25">
+        &copy;2025 Chesser
+      </div>
     </div>
   );
 }

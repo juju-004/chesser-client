@@ -18,8 +18,8 @@ const post = async (url: string, body: Body) => {
       body: JSON.stringify(body),
     });
     if (res.status === 200) {
-      const user: User = await res.json();
-      return user;
+      const data = await res.json();
+      return data;
     } else if (res.status === 404 || res.status === 401 || res.status === 500) {
       const { message } = await res.json();
       return message as string;

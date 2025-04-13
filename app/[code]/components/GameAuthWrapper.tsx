@@ -1,18 +1,16 @@
 "use client";
 
-import { SessionContext } from "@/context/session";
 import type { Game } from "@/types";
-import { useContext } from "react";
 
 import GamePage from "./GamePage";
-import { Session } from "@/types";
+import { useSession } from "@/context/SessionProvider";
 
 export default function GameAuthWrapper({
   initialLobby,
 }: {
   initialLobby: Game;
 }) {
-  const session: Session = useContext(SessionContext);
+  const session = useSession();
 
   if (!session?.user || !session.user?.id) {
     return (

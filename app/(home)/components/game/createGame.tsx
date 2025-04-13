@@ -1,15 +1,15 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useContext, useState } from "react";
+import { useState } from "react";
 
-import { SessionContext } from "@/context/session";
 import { createGame } from "@/lib/game";
 import Button from "./button";
 import { useToast } from "@/context/ToastContext";
+import { useSession } from "@/context/SessionProvider";
 
 export default function CreateGame() {
-  const session = useContext(SessionContext);
+  const session = useSession();
   const [disabled, setDisabled] = useState(false);
   const { toast } = useToast();
 
@@ -18,7 +18,9 @@ export default function CreateGame() {
   async function submitCreateGame(formdata: any) {
     if (!session?.user?.id) return;
 
-    const timeControl = parseFloat(`${formdata.get("minutes")}.${formdata.get("seconds")}`);
+    const timeControl = parseFloat(
+      `${formdata.get("minutes")}.${formdata.get("seconds")}`
+    );
     const amount = formdata.get("amount");
     const side = formdata.get("side");
 
@@ -32,7 +34,7 @@ export default function CreateGame() {
       if (typeof game === "string") {
         setDisabled(false);
         toast(game, "error");
-      } else {
+      } else if (game) {
         router.push(`/${game.code}`);
         // TODO: Show error message
       }

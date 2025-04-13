@@ -1,18 +1,18 @@
 "use client";
 
-import React, { useContext, useState } from "react";
+import React, { useState } from "react";
 import Logo from "./components/Logo";
 import FormInput from "./components/form-input";
 import FormButton from "./components/form-button";
-import { SessionContext } from "@/context/session";
 import { login, register } from "@/lib/auth";
 import { useRouter } from "next/navigation";
 import Mailsend from "./components/mailsend";
 import { useToast } from "@/context/ToastContext";
 import ForgotPass from "./components/ForgotPass";
+import { useSession } from "@/context/SessionProvider";
 
 function Login() {
-  const session = useContext(SessionContext);
+  const session = useSession();
   const { toast } = useToast();
   const { push } = useRouter();
   const [disabled, setDisabled] = useState(false);
@@ -78,7 +78,11 @@ function Login() {
                 <FormButton text={"Sign in"} disabled={disabled} />
                 <div className="mt-4 px-5 text-center opacity-70">
                   Forgotten password?{" "}
-                  <label htmlFor="my_modal_7" onClick={() => setChecked(true)} className="text-c1">
+                  <label
+                    htmlFor="my_modal_7"
+                    onClick={() => setChecked(true)}
+                    className="text-c1"
+                  >
                     Reset
                   </label>
                 </div>
@@ -98,7 +102,9 @@ function Login() {
                 <FormInput name={"email"} placeholder={"Your email"} />
                 <FormInput name={"password"} placeholder={"Your pasword"} />
                 <span className="mb-6 text-center">
-                  <span className="opacity-70">By signing up you do consent to or</span>{" "}
+                  <span className="opacity-70">
+                    By signing up you do consent to or
+                  </span>{" "}
                   <span className="text-c1">terms of service</span>{" "}
                   <span className="opacity-70">and</span>{" "}
                   <span className="text-c1">privacy policy</span>

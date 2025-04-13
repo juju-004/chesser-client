@@ -1,15 +1,15 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useContext, useState } from "react";
+import { useState } from "react";
 
-import { SessionContext } from "@/context/session";
 import { fetchActiveGame } from "@/lib/game";
 import { useToast } from "@/context/ToastContext";
 import Button from "./button";
+import { useSession } from "@/context/SessionProvider";
 
 export default function JoinGame() {
-  const session = useContext(SessionContext);
+  const session = useSession();
   const [disabled, setDisabled] = useState(false);
   const { toast } = useToast();
 
@@ -47,7 +47,12 @@ export default function JoinGame() {
       <div className="flex flex-1 flex-col gap-5 pt-5">
         <div className="mt-5 flex flex-col gap-1">
           <header className="opacity-60">Game Code</header>
-          <input type="text" className="input w-full" name="code" placeholder={"https://"} />
+          <input
+            type="text"
+            className="input w-full"
+            name="code"
+            placeholder={"https://"}
+          />
         </div>
       </div>
 

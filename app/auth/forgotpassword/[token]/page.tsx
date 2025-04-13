@@ -19,7 +19,7 @@ function ForgotPassVerifyToken() {
 
       if (typeof data === "string") {
         setStatus("error");
-      } else if (data?.message) {
+      } else if (data && data?.message) {
         setStatus("success");
       }
     };
@@ -44,8 +44,13 @@ function ForgotPassVerifyToken() {
           <span className="bg-success/5 fx mb-3 size-20 rounded-full">
             <IconMailCheck size={40} className="text-success" />
           </span>
-          <h3 className="text-succe mb-3 text-lg">Password Changed Successfully</h3>
-          <Link className="btn rounded-xl font-light text-white/55" href={"/auth"}>
+          <h3 className="text-succe mb-3 text-lg">
+            Password Changed Successfully
+          </h3>
+          <Link
+            className="btn rounded-xl font-light text-white/55"
+            href={"/auth"}
+          >
             back to login
           </Link>
         </>

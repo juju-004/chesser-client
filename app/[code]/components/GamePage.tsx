@@ -5,16 +5,9 @@ import { IconChevronLeft, IconChevronRight } from "@tabler/icons-react";
 
 import type { FormEvent } from "react";
 
-import { SessionContext } from "@/context/session";
-import React, {
-  useContext,
-  useEffect,
-  useReducer,
-  useRef,
-  useState,
-} from "react";
+import React, { useEffect, useReducer, useRef, useState } from "react";
 
-import type { Message, Session } from "@/types";
+import type { Message } from "@/types";
 import type { Game } from "@/types";
 
 import type { Move, Square } from "chess.js";
@@ -37,6 +30,7 @@ import { getWallet } from "@/lib/user";
 import MenuOptions, { MenuAlert } from "./MenuOptions";
 import MenuDrawer from "./MenuDrawer";
 import { useChessSounds } from "./SoundManager";
+import { useSession } from "@/context/SessionProvider";
 
 export interface GameTimerStarted {
   whiteTime: number; // in milliseconds
@@ -49,7 +43,7 @@ export interface GameTimerStarted {
 const socket = io(API_URL, { withCredentials: true, autoConnect: false });
 
 export default function GamePage({ initialLobby }: { initialLobby: Game }) {
-  const session: Session = useContext(SessionContext);
+  const session = useSession();
 
   const [lobby, updateLobby] = useReducer(lobbyReducer, {
     ...initialLobby,
@@ -731,7 +725,7 @@ export default function GamePage({ initialLobby }: { initialLobby: Game }) {
             )}
 
             <div className="dock dock-sm z-30">
-              <MenuOptions lobby={lobby} session={session} socket={socket} />
+              <MenuOptions lobby={lobby} socket={socket} />
 
               <button
                 className={

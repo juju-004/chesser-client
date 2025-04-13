@@ -11,6 +11,7 @@ function VerifyToken() {
   const [status, setStatus] = useState<"success" | "error" | null>(null);
 
   useEffect(() => {
+    if (status) return;
     const split = pathName.split("/");
     const token = split[2].trim();
 
@@ -44,8 +45,13 @@ function VerifyToken() {
           <span className="bg-success/5 fx mb-3 size-20 rounded-full">
             <IconMailCheck size={40} className="text-success" />
           </span>
-          <h3 className="text-succe mb-3 text-lg">Email verified Successfully</h3>
-          <Link className="btn rounded-xl font-light text-white/55" href={"/auth"}>
+          <h3 className="text-succe mb-3 text-lg">
+            Email verified Successfully
+          </h3>
+          <Link
+            className="btn rounded-xl font-light text-white/55"
+            href={"/auth"}
+          >
             back to login
           </Link>
         </>
