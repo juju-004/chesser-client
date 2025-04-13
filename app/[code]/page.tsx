@@ -2,7 +2,11 @@ import GameAuthWrapper from "./components/GameAuthWrapper";
 import { fetchActiveGame } from "@/lib/game";
 import { notFound } from "next/navigation";
 
-export async function generateMetadata({ params }: { params: { code: string } }) {
+export async function generateMetadata({
+  params,
+}: {
+  params: { code: string };
+}) {
   const game = await fetchActiveGame(params.code);
   if (!game) {
     return {
@@ -11,27 +15,48 @@ export async function generateMetadata({ params }: { params: { code: string } })
         index: false,
         follow: false,
         nocache: true,
-        noarchive: true
-      }
+        noarchive: true,
+      },
     };
   }
-  return {
-    description: `Play or watch a game with ${game.host?.name}`,
-    openGraph: {
-      title: "chesser",
+
+  if (game.endReason) {
+    return {
+      description: `Play chess Online`,
+      openGraph: {
+        title: "chesser",
+        description: `Play or watch a game with ${game.host?.name}`,
+        url: `https://chesser/${game.code}`,
+        siteName: "chesser",
+        locale: "en_US",
+        type: "website",
+      },
+      robots: {
+        index: false,
+        follow: false,
+        nocache: true,
+        noarchive: true,
+      },
+    };
+  } else {
+    return {
       description: `Play or watch a game with ${game.host?.name}`,
-      url: `https://chesser/${game.code}`,
-      siteName: "chesser",
-      locale: "en_US",
-      type: "website"
-    },
-    robots: {
-      index: false,
-      follow: false,
-      nocache: true,
-      noarchive: true
-    }
-  };
+      openGraph: {
+        title: "chesser",
+        description: `Play or watch a game with ${game.host?.name} | ${game.timeControl} mins - ₦${game.stake}`,
+        url: `https://chesser/${game.code}`,
+        siteName: "chesser",
+        locale: "en_US",
+        type: "website",
+      },
+      robots: {
+        index: false,
+        follow: false,
+        nocache: true,
+        noarchive: true,
+      },
+    };
+  }
 }
 
 export default async function Game({ params }: { params: { code: string } }) {

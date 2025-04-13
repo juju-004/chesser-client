@@ -43,6 +43,20 @@ export const fetchActiveGame = async (code: string) => {
     console.error(err);
   }
 };
+export const fetchGame = async (code: string) => {
+  try {
+    const res = await fetch(`${API_URL}/v1/games/${code}`, {
+      cache: "no-store",
+    });
+
+    if (res && res.status === 200) {
+      const game: Game = await res.json();
+      return game;
+    }
+  } catch (err) {
+    console.error(err);
+  }
+};
 
 export const fetchPublicGames = async () => {
   try {

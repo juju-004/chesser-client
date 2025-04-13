@@ -15,7 +15,7 @@ import { Chess } from "chess.js";
 import type { ClearPremoves } from "react-chessboard";
 import { Chessboard } from "react-chessboard";
 
-import { API_URL } from "@/config";
+import { API_URL, CLIENT_URL } from "@/config";
 import { io } from "socket.io-client";
 
 import { lobbyReducer, squareReducer } from "./reducers";
@@ -598,7 +598,7 @@ export default function GamePage({ initialLobby }: { initialLobby: Game }) {
       <div className="drawer drawer-end">
         <input id="my-drawer-4" type="checkbox" className="drawer-toggle" />
         <div className="drawer-content">
-          <div className="relative mt-9 flex min-h-[calc(100vh-90px)] w-full flex-col justify-center gap-3 py-4 lg:gap-10 2xl:gap-16">
+          <div className="relative flex h-screen  w-full flex-col justify-center gap-3 py-4 lg:gap-10 2xl:gap-16">
             {getPlayerHtml("top")}
             <div className="relative">
               {/* overlay */}
@@ -626,7 +626,7 @@ export default function GamePage({ initialLobby }: { initialLobby: Game }) {
                         {!lobby.endReason && (
                           <CopyLinkButton
                             className="bg-base-300 text-base-content fx h-8 gap-2 rounded-2xl px-3 font-mono text-xs active:opacity-60 sm:h-5 sm:text-sm"
-                            link={`localhost:3000/${initialLobby.code}`}
+                            link={`${CLIENT_URL}/${initialLobby.code}`}
                           />
                         )}
                       </>
@@ -714,7 +714,7 @@ export default function GamePage({ initialLobby }: { initialLobby: Game }) {
             </>
 
             {lobby.endReason && (
-              <div className="fixed inset-x-0 top-2 text-center text-3xl opacity-15">
+              <div className="fixed inset-x-0 top-5 text-center text-4xl opacity-15">
                 {lobby?.endReason === "resigned" ||
                 lobby?.endReason === "timeout"
                   ? `${lobby.winner === "white" ? "black" : "white"} ${

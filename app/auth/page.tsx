@@ -5,7 +5,7 @@ import Logo from "./components/Logo";
 import FormInput from "./components/form-input";
 import FormButton from "./components/form-button";
 import { login, register } from "@/lib/auth";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Mailsend from "./components/mailsend";
 import { useToast } from "@/context/ToastContext";
 import ForgotPass from "./components/ForgotPass";
@@ -15,6 +15,7 @@ function Login() {
   const session = useSession();
   const { toast } = useToast();
   const { push } = useRouter();
+  const searchParams = useSearchParams();
   const [disabled, setDisabled] = useState(false);
   const [mail, setMail] = useState<string | null>(null);
   const [checked, setChecked] = useState(false);
@@ -32,7 +33,11 @@ function Login() {
       } else if (user?.id) {
         session?.setUser(user);
 
-        push("/");
+        setTimeout(() => {
+          const callback = searchParams.get("callback");
+
+          callback ? push(callback) : push("/");
+        }, 200);
       }
     }, 700);
   };
@@ -96,18 +101,16 @@ function Login() {
               aria-label="Register"
               disabled={disabled}
             />
-            <div className="tab-content bg-base-100 border-base-300 rounded-3xl px-6 pb-6">
+            <div className="tab-content bg-base-100  border-base-300 rounded-3xl px-6 pb-6">
               <form action={signup} className="flex w-full flex-col pt-8">
                 <FormInput name={"username"} placeholder={"Your username"} />
                 <FormInput name={"email"} placeholder={"Your email"} />
                 <FormInput name={"password"} placeholder={"Your pasword"} />
                 <span className="mb-6 text-center">
                   <span className="opacity-70">
-                    By signing up you do consent to or
+                    By signing up you do consent to our
                   </span>{" "}
                   <span className="text-c1">terms of service</span>{" "}
-                  <span className="opacity-70">and</span>{" "}
-                  <span className="text-c1">privacy policy</span>
                 </span>
                 <FormButton disabled={disabled} text={"Register"} />
               </form>
