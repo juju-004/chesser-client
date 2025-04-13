@@ -1,0 +1,81 @@
+@import "tailwindcss";
+@plugin "daisyui" {
+  themes: dark --default;
+}
+
+@theme {
+  --font-jose-reg: "JoseR";
+  --font-jose-bold: "JoseB";
+  --color-c1: oklch(0.792 0.209 151.711);
+}
+
+@font-face {
+  font-family: "JoseR";
+  src: url("../fonts/JosefinSans-Regular.ttf");
+}
+@font-face {
+  font-family: "JoseB";
+  src: url("../fonts/JosefinSans-SemiBold.ttf");
+}
+button {
+  @apply font-light;
+}
+
+* {
+  scrollbar-width: thin;
+  font-family: "JoseR";
+}
+.grad1 {
+  @apply bg-gradient-to-r from-green-500 to-sky-600;
+}
+
+.input:focus,
+.select:focus {
+  @apply border-sky-600 outline-0;
+}
+
+*::-webkit-scrollbar {
+  width: 4px;
+}
+
+*::-webkit-scrollbar-thumb {
+  @apply bg-slate-500;
+  border-radius: 2px;
+}
+
+.fx {
+  @apply flex items-center justify-center;
+}
+/* styles/Timer.module.css */
+.timer {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  font-size: 1.25rem;
+  transition: all 0.3s ease;
+  @apply bg-base-300;
+}
+
+.timer.active {
+  @apply bg-success/15;
+}
+
+.timer.low-time {
+  @apply bg-error/15;
+}
+.time-display {
+  min-width: 4rem;
+  text-align: center;
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+  100% {
+    opacity: 1;
+  }
+}
