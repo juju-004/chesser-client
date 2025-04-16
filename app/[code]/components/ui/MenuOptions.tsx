@@ -53,6 +53,26 @@ export function MenuAlert({ socket, lobby, draw, setDraw }: Menu) {
   );
 }
 
+export function EndReason({
+  reason,
+  winner,
+}: {
+  reason: Lobby["endReason"];
+  winner: Lobby["winner"];
+}) {
+  return (
+    <>
+      {reason && (
+        <div className="fixed inset-x-0 top-12 text-center text-4xl opacity-15">
+          {reason === "resigned" || reason === "timeout"
+            ? `${winner === "white" ? "black" : "white"} ${reason}`
+            : reason}
+        </div>
+      )}
+    </>
+  );
+}
+
 function MenuOptions({ lobby, socket }: Menu) {
   const [resign, setResign] = useState("");
   const { toast } = useToast();

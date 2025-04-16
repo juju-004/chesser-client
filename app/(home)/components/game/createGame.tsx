@@ -38,7 +38,7 @@ export default function CreateGame() {
   }
 
   return (
-    <form action={submitCreateGame} className="flex flex-1 flex-col">
+    <form action={submitCreateGame} className="flex flex-1 pb-8 flex-col">
       <div className="flex flex-1 flex-col gap-5 pt-5">
         <div className="flex items-center justify-between">
           <label className="label" htmlFor="createStartingSide">

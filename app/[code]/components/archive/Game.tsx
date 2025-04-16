@@ -19,13 +19,17 @@ import { IconChevronLeft } from "@tabler/icons-react";
 import Link from "next/link";
 import { CopyLinkButton } from "../CopyLink";
 import Chat from "../ui/Chat";
+import { EndReason } from "../ui/MenuOptions";
+import Dock from "../ui/Dock";
 
 export default function ArchivedGame({
   game,
   chatMessages,
+  chatMessagesCount,
 }: {
   game: Game;
   chatMessages?: Message[];
+  chatMessagesCount: number | null;
 }) {
   const session = useSession();
   const [boardWidth, setBoardWidth] = useState(480);
@@ -211,16 +215,15 @@ export default function ArchivedGame({
             </div>
             {getPlayerHtml(perspective)}
 
-            {game.endReason && (
-              <div className="fixed inset-x-0 top-12 text-center text-4xl opacity-15">
-                {game?.endReason === "resigned" || game?.endReason === "timeout"
-                  ? `${game.winner === "white" ? "black" : "white"} ${
-                      game?.endReason
-                    }`
-                  : game?.endReason}
-              </div>
-            )}
-            <div className="dock dock-sm z-30">
+            <EndReason reason={game.endReason} winner={game.winner} />
+
+            <Dock
+              actualGame={actualGame}
+              navIndex={navIndex}
+              perspective={perspective}
+              navigateMove={(m: number | null | "prev") => navigateMove(m)}
+              setPerspective={(m: "black" | "white") => setPerspective(m)}
+            >
               <div className="fx h-auto">
                 <div className="dropdown dropdown-top">
                   <div tabIndex={0} role="button" className="m-2">
@@ -248,36 +251,7 @@ export default function ArchivedGame({
                   </ul>
                 </div>
               </div>
-              <button
-                className={
-                  navIndex === 0 || actualGame.history().length <= 1
-                    ? "btn-disabled disabled:opacity-50"
-                    : ""
-                }
-                onClick={() =>
-                  navigateMove(navIndex === null ? "prev" : navIndex - 1)
-                }
-              >
-                <IconChevronLeft size={18} />
-              </button>
-              <button
-                className={
-                  navIndex === null ? "btn-disabled disabled:opacity-50" : ""
-                }
-                onClick={() =>
-                  navigateMove(navIndex === null ? null : navIndex + 1)
-                }
-              >
-                <IconChevronRight size={18} />
-              </button>
-              <button
-                onClick={() =>
-                  setPerspective((p) => (p === "white" ? "black" : "white"))
-                }
-              >
-                <IconRotateRectangle />
-              </button>
-            </div>
+            </Dock>
           </div>
         </div>
         <div>{chatMessages && <Chat chatMessages={chatMessages} />}</div>

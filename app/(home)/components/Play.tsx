@@ -10,13 +10,15 @@ function Play() {
       for: "my_modal_3",
       icon: (size = "size-[15vw]") => (
         <IconChessBishopFilled className={`${size} text-fuchsia-600`} />
-      )
+      ),
     },
     {
       text: "Join game",
       for: "my_modal_2",
-      icon: (size = "size-[15vw]") => <IconChessKing className={`${size} text-cyan-500`} />
-    }
+      icon: (size = "size-[15vw]") => (
+        <IconChessKing className={`${size} text-cyan-500`} />
+      ),
+    },
   ];
 
   return (
@@ -25,7 +27,9 @@ function Play() {
         <React.Fragment key={key}>
           <label htmlFor={item.for} className="fx row-span-1">
             <div className="active:bg-base-200/40 hover:bg-base-200/40 fx flex-col gap-4 rounded-2xl px-[5vw] py-2.5 duration-200">
-              <div className="bg-base-300 fx size-[25vw] rounded-xl">{item.icon()}</div>
+              <div className="bg-base-300 fx size-[25vw] rounded-xl">
+                {item.icon()}
+              </div>
               <span className="whitespace-nowrap">{item.text}</span>
             </div>
           </label>
@@ -33,9 +37,10 @@ function Play() {
           <>
             <input type="checkbox" id={item.for} className="modal-toggle" />
             <div className="modal modal-bottom" role="dialog">
-              <div className="modal-box flex !h-[calc(100vh-300px)] flex-col">
+              <div className="modal-box flex !h-[calc(100vh-250px)] flex-col">
                 <header className="bg-base-300 flex items-center py-1">
-                  {item.icon("size-[10vw]")} <span className="text-xl">{item.text}</span>
+                  {item.icon("size-[10vw]")}{" "}
+                  <span className="text-xl">{item.text}</span>
                 </header>
                 {key ? <JoinGame /> : <CreateGame />}
               </div>

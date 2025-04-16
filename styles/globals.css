@@ -42,11 +42,12 @@ button {
   @apply bg-slate-500;
   border-radius: 2px;
 }
-.no-bar::-webkit-scrollbar {
-  @apply h-0;
+.no-bar {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
 }
-.no-bar::-webkit-scrollbar-thumb {
-  @apply h-0;
+.no-bar::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, and Opera */
 }
 
 .fx {

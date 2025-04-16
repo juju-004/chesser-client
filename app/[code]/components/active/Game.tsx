@@ -1,7 +1,11 @@
 "use client";
 // TODO: restructure, i could use some help with this :>
 
-import { IconChevronLeft, IconChevronRight } from "@tabler/icons-react";
+import {
+  IconChevronLeft,
+  IconChevronRight,
+  IconRotateRectangle,
+} from "@tabler/icons-react";
 
 import type { FormEvent } from "react";
 
@@ -27,12 +31,13 @@ import { ActiveChessTimer, ChessTimer } from "../ui/Timer";
 import Chat from "../ui/Chat";
 import { useToast } from "@/context/ToastContext";
 import { getWallet } from "@/lib/user";
-import MenuOptions, { MenuAlert } from "../ui/MenuOptions";
+import MenuOptions, { EndReason, MenuAlert } from "../ui/MenuOptions";
 import MenuDrawer from "../ui/MenuDrawer";
 import { useChessSounds } from "../ui/SoundManager";
 import { useSession } from "@/context/SessionProvider";
 import ArchivedGame from "../archive/Game";
 import GameOver from "../ui/GameOver";
+import Dock from "../ui/Dock";
 
 export interface GameTimerStarted {
   whiteTime: number; // in milliseconds
@@ -75,6 +80,7 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
   const [whiteTime, setWhiteTime] = useState<number>(
     initialLobby.timeControl * 60 * 1000
   ); // default init minutes
+  const [perspective, setPerspective] = useState(false);
   const [blackTime, setBlackTime] = useState<number>(
     initialLobby.timeControl * 60 * 1000
   );
@@ -248,7 +254,7 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
     setChatMessages((prev) => [...prev, message]);
 
     if (chatMessagesCount) {
-      setchatMessagesCount((prev) => prev && prev++);
+      setchatMessagesCount(chatMessagesCount + 1);
     } else {
       setchatMessagesCount(1);
     }
@@ -461,7 +467,7 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
     }
   }
 
-  function getPlayerHtml(side: "top" | "bottom") {
+  function getPlayerHtml(side: "top" | "bottom", perspective: boolean) {
     const blackHtml = (
       <div className="relative ml-3 flex items-center justify-between gap-4">
         <div className="flex w-full flex-col justify-center">
@@ -545,9 +551,21 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
     );
 
     if (lobby.black?.id === session?.user?.id) {
-      return side === "top" ? whiteHtml : blackHtml;
+      return side === "top"
+        ? perspective
+          ? blackHtml
+          : whiteHtml
+        : perspective
+        ? whiteHtml
+        : blackHtml;
     } else {
-      return side === "top" ? blackHtml : whiteHtml;
+      return side === "top"
+        ? perspective
+          ? whiteHtml
+          : blackHtml
+        : perspective
+        ? blackHtml
+        : whiteHtml;
     }
   }
 
@@ -610,7 +628,11 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
       </dialog>
 
       {game ? (
-        <ArchivedGame game={game} chatMessages={chatMessages} />
+        <ArchivedGame
+          game={game}
+          chatMessages={chatMessages}
+          chatMessagesCount={chatMessagesCount}
+        />
       ) : (
         <MenuDrawer
           actualGame={lobby.actualGame}
@@ -621,7 +643,7 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
             <input id="my-drawer-4" type="checkbox" className="drawer-toggle" />
             <div className="drawer-content">
               <div className="relative flex h-screen  w-full flex-col justify-center gap-3 py-4 lg:gap-10 2xl:gap-16">
-                {getPlayerHtml("top")}
+                {getPlayerHtml("top", perspective)}
                 <div className="relative">
                   {/* overlay */}
                   {(!lobby.white?.id || !lobby.black?.id) && (
@@ -663,7 +685,15 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
                     customDarkSquareStyle={{ backgroundColor: "#4b7399" }}
                     customLightSquareStyle={{ backgroundColor: "#eae9d2" }}
                     position={navFen || lobby.actualGame.fen()}
-                    boardOrientation={lobby.side === "b" ? "black" : "white"}
+                    boardOrientation={
+                      lobby.side === "b"
+                        ? perspective
+                          ? "white"
+                          : "black"
+                        : perspective
+                        ? "black"
+                        : "white"
+                    }
                     isDraggablePiece={isDraggablePiece}
                     onPieceDragBegin={onPieceDragBegin}
                     animationDuration={1}
@@ -683,7 +713,7 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
                     ref={chessboardRef}
                   />
                 </div>
-                {getPlayerHtml("bottom")}
+                {getPlayerHtml("bottom", perspective)}
 
                 <MenuAlert
                   lobby={lobby}
@@ -736,61 +766,22 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
                   )}
                 </>
 
-                {lobby.endReason && (
-                  <div className="fixed inset-x-0 top-5 text-center text-4xl opacity-15">
-                    {lobby?.endReason === "resigned" ||
-                    lobby?.endReason === "timeout"
-                      ? `${lobby.winner === "white" ? "black" : "white"} ${
-                          lobby?.endReason
-                        }`
-                      : lobby?.endReason}
-                  </div>
-                )}
+                <EndReason reason={lobby.endReason} winner={lobby.winner} />
 
-                <div className="dock dock-sm z-30">
+                <Dock
+                  chat={true}
+                  actualGame={lobby.actualGame}
+                  navIndex={navIndex}
+                  perspective={perspective}
+                  chatMessagesCount={chatMessagesCount}
+                  navigateMove={(m: number | null | "prev") => navigateMove(m)}
+                  setPerspective={(m: boolean) => setPerspective(m)}
+                  setchatMessagesCount={(m: number | null) =>
+                    setchatMessagesCount(m)
+                  }
+                >
                   <MenuOptions lobby={lobby} socket={socket} />
-
-                  <button
-                    className={
-                      navIndex === 0 || lobby.actualGame.history().length <= 1
-                        ? "btn-disabled disabled:opacity-50"
-                        : ""
-                    }
-                    onClick={() =>
-                      navigateMove(navIndex === null ? "prev" : navIndex - 1)
-                    }
-                  >
-                    <IconChevronLeft size={18} />
-                  </button>
-                  <button
-                    className={
-                      navIndex === null
-                        ? "btn-disabled disabled:opacity-50"
-                        : ""
-                    }
-                    onClick={() =>
-                      navigateMove(navIndex === null ? null : navIndex + 1)
-                    }
-                  >
-                    <IconChevronRight size={18} />
-                  </button>
-                  <button>
-                    <div className="indicator">
-                      {chatMessagesCount && (
-                        <span className="indicator-item badge-xs badge badge-info text-white">
-                          {chatMessagesCount}
-                        </span>
-                      )}
-                      <label
-                        onClick={() => setchatMessagesCount(null)}
-                        htmlFor="my-drawer-4"
-                        className="drawer-button"
-                      >
-                        <IconMessage2 />
-                      </label>
-                    </div>
-                  </button>
-                </div>
+                </Dock>
               </div>
             </div>
             <Chat

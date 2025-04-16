@@ -1,6 +1,6 @@
 "use client";
 
-import { IconUser } from "@tabler/icons-react";
+import { IconMoon, IconMoon2, IconUser } from "@tabler/icons-react";
 import { IconMenuDeep } from "@tabler/icons-react";
 import React from "react";
 
@@ -40,7 +40,7 @@ function Nav({ clicked }: { clicked: () => void }) {
       </div>
       <div className="navbar-end">
         <button className="btn btn-ghost btn-circle">
-          <IconUser />
+          <IconMoon />
         </button>
       </div>
     </div>

@@ -43,7 +43,7 @@ export default function JoinGame() {
   }
 
   return (
-    <form action={submitJoinGame} className="flex flex-1 flex-col">
+    <form action={submitJoinGame} className="flex flex-1 pb-8 flex-col">
       <div className="flex flex-1 flex-col gap-5 pt-5">
         <div className="mt-5 flex flex-col gap-1">
           <header className="opacity-60">Game Code</header>
