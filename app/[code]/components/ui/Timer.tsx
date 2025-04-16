@@ -1,14 +1,13 @@
 "use client";
 
-// components/ChessTimer.tsx
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useChessSounds } from "./SoundManager";
 
 interface ChessTimerProps {
   color: "white" | "black";
-  initialTime: number;
+  initialTime?: number;
   active: boolean;
-  timerStarted: boolean;
+  timerStarted?: boolean;
   lowTimeThreshold?: number;
 }
 
@@ -16,9 +15,34 @@ export const ChessTimer = ({
   color,
   initialTime,
   active,
-  timerStarted,
-  lowTimeThreshold = 30000
+  lowTimeThreshold = 30000,
 }: ChessTimerProps) => {
+  if (!initialTime) return;
+  const totalSeconds = Math.ceil(initialTime / 1000);
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+
+  return (
+    <div
+      className={`timer ${color} ${active ? "active" : ""} ${
+        initialTime <= lowTimeThreshold ? "low-time" : ""
+      }`}
+    >
+      <div className="time-display">{`${minutes}:${seconds
+        .toString()
+        .padStart(2, "0")}`}</div>
+    </div>
+  );
+};
+
+export const ActiveChessTimer = ({
+  color,
+  initialTime,
+  active,
+  timerStarted,
+  lowTimeThreshold = 30000,
+}: ChessTimerProps) => {
+  if (!initialTime) return;
   const [time, setTime] = useState(initialTime);
   const [displayTime, setDisplayTime] = useState("5:00");
   const { playSound } = useChessSounds();
@@ -99,7 +123,9 @@ export const ChessTimer = ({
 
   return (
     <div
-      className={`timer ${color} ${active && timerStarted ? "active" : ""} ${time <= lowTimeThreshold ? "low-time" : ""}`}
+      className={`timer ${color} ${active && timerStarted ? "active" : ""} ${
+        time <= lowTimeThreshold ? "low-time" : ""
+      }`}
     >
       <div className="time-display">{displayTime}</div>
     </div>

@@ -42,6 +42,12 @@ button {
   @apply bg-slate-500;
   border-radius: 2px;
 }
+.no-bar::-webkit-scrollbar {
+  @apply h-0;
+}
+.no-bar::-webkit-scrollbar-thumb {
+  @apply h-0;
+}
 
 .fx {
   @apply flex items-center justify-center;

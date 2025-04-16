@@ -1,54 +1,47 @@
 "use client";
 
-import React, { useEffect, useRef } from "react";
+import { useEffect, useState } from "react";
 import Nav from "./components/Nav";
 import Wallet from "./components/Wallet";
 import Header from "./components/Header";
 import Menu from "./components/Menu";
 import Play from "./components/Play";
 
-export default function HomePage() {
-  const state = useRef<Number>(0);
+export default function Home() {
+  const [isOpen, setIsOpen] = useState(true);
 
   useEffect(() => {
-    document.getElementById("main-container")?.scrollTo(1000, 0);
-    state.current = 1000;
+    setIsOpen(false);
   }, []);
 
-  const clicked = () => {
-    if (!state.current) {
-      document.getElementById("main-container")?.scrollTo(1000, 0);
-      state.current = 1000;
-    } else {
-      document.getElementById("main-container")?.scrollTo(0, 0);
-      state.current = 0;
-    }
-  };
-
-  const clickedMain = () => {
-    state.current === 0 && document.getElementById("main-container")?.scrollTo(1000, 0);
-    state.current = 1000;
-  };
-
   return (
-    <div
-      id="main-container"
-      className="flex h-screen w-screen overflow-x-hidden overflow-y-hidden scroll-smooth"
-    >
-      <div className="flex h-screen w-[180vw]">
-        <div className="bg-base-300 flex h-screen w-[80vw] flex-col">
+    <div className="relative h-screen w-full overflow-hidden ">
+      {/* ===== SIDEBAR MENU ===== */}
+      <aside
+        className={`fixed left-0 top-0 z-30 h-full w-[80vw] bg-base-300 shadow-2xl transition-all duration-200 ease-out ${
+          isOpen ? "translate-x-0 shadow-black/60" : "-translate-x-full"
+        }`}
+      >
+        <div className=" flex h-screen flex-col">
           <Menu />
         </div>
-        <div onClick={clickedMain} className="relative flex h-screen w-[100vw] flex-col">
-          <Nav clicked={clicked} />
-          <div className="flex h-screen w-[100vw] flex-col gap-4 overflow-x-hidden overflow-y-scroll">
-            <Header text="Wallet" />
-            <Wallet />
-            <Header text="Play" />
-            <Play />
-          </div>
+      </aside>
+
+      {/* ===== MAIN CONTENT (Pushes on menu open) ===== */}
+      <main
+        className={`h-full w-full transition-transform duration-250 ease-out ${
+          isOpen ? "translate-x-[80vw]" : "translate-x-0"
+        }`}
+        onClick={() => setIsOpen(false)}
+      >
+        <Nav clicked={() => setIsOpen(!isOpen)} />
+        <div className="flex h-screen w-[100vw] flex-col gap-4 overflow-x-hidden overflow-y-scroll">
+          <Header text="Wallet" />
+          <Wallet />
+          <Header text="Play" />
+          <Play />
         </div>
-      </div>
+      </main>
     </div>
   );
 }

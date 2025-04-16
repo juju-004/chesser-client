@@ -2,9 +2,9 @@
 
 import type { Game } from "@/types";
 
-import GamePage from "./GamePage";
 import { useSession } from "@/context/SessionProvider";
 import { usePathname, useRouter } from "next/navigation";
+import ActiveGame from "./active/Game";
 
 export default function GameAuthWrapper({
   initialLobby,
@@ -18,6 +18,6 @@ export default function GameAuthWrapper({
     push(`/auth?callback=${pathName}`);
     return;
   } else {
-    return <GamePage initialLobby={initialLobby} />;
+    return <ActiveGame initialLobby={initialLobby} />;
   }
 }

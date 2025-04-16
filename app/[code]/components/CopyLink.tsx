@@ -7,9 +7,15 @@ interface CopyLinkButtonProps {
   link: string;
   className?: string;
   iconSize?: number;
+  text?: string;
 }
 
-export const CopyLinkButton = ({ link, className = "", iconSize = 16 }: CopyLinkButtonProps) => {
+export const CopyLinkButton = ({
+  link,
+  text,
+  className = "",
+  iconSize = 16,
+}: CopyLinkButtonProps) => {
   const [copied, setCopied] = useState(false);
 
   const copyToClipboard = () => {
@@ -37,11 +43,11 @@ export const CopyLinkButton = ({ link, className = "", iconSize = 16 }: CopyLink
     <button
       onClick={copyToClipboard}
       className={`${className}`}
-      aria-label="Copy link"
-      title="Copy link"
+      aria-label="Copy"
+      title="Copy"
     >
       {copied ? <IconChecks size={iconSize} /> : <IconCopy size={iconSize} />}
-      {link}
+      {text || link}
     </button>
   );
 };

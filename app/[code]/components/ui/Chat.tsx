@@ -6,14 +6,20 @@ import type { Lobby, Message, Session } from "@/types";
 import type { Socket } from "socket.io-client";
 
 interface ChatInterface {
-  lobby: Lobby;
-  session: Session;
-  socket: Socket;
-  addMessage: Function;
+  lobby?: Lobby;
+  session?: Session;
+  socket?: Socket;
+  addMessage?: Function;
   chatMessages: Message[];
 }
 
-function Chat({ lobby, session, socket, addMessage, chatMessages }: ChatInterface) {
+function Chat({
+  lobby,
+  session,
+  socket,
+  addMessage,
+  chatMessages,
+}: ChatInterface) {
   const chatListRef = useRef<HTMLUListElement>(null);
 
   useEffect(() => {
@@ -23,13 +29,14 @@ function Chat({ lobby, session, socket, addMessage, chatMessages }: ChatInterfac
   }, [chatMessages]);
 
   function sendChat(message: string) {
-    if (!session?.user) return;
+    if (!session?.user || !socket || !addMessage) return;
 
     socket.emit("chat", message);
     addMessage({ author: session.user, message });
   }
 
   function chatKeyUp(e: KeyboardEvent<HTMLInputElement>) {
+    if (!socket) return;
     e.preventDefault();
     if (e.key === "Enter") {
       const input = e.target as HTMLInputElement;
@@ -40,6 +47,7 @@ function Chat({ lobby, session, socket, addMessage, chatMessages }: ChatInterfac
   }
 
   function chatClickSend(e: FormEvent<HTMLFormElement>) {
+    if (!socket) return;
     e.preventDefault();
 
     const target = e.target as HTMLFormElement;
@@ -50,7 +58,11 @@ function Chat({ lobby, session, socket, addMessage, chatMessages }: ChatInterfac
   }
   return (
     <div className="drawer-side z-50">
-      <label htmlFor="my-drawer-4" aria-label="close sidebar" className="drawer-overlay"></label>
+      <label
+        htmlFor="my-drawer-4"
+        aria-label="close sidebar"
+        className="drawer-overlay"
+      ></label>
 
       {/* ! Chat */}
       <div className="bg-base-200 text-base-content flex min-h-full w-[90%] flex-col p-4">
@@ -83,7 +95,9 @@ function Chat({ lobby, session, socket, addMessage, chatMessages }: ChatInterfac
                             : " cursor-default")
                         }
                         href={
-                          typeof m.author.id === "number" ? `/user/${m.author.name}` : undefined
+                          typeof m.author.id === "number"
+                            ? `/user/${m.author.name}`
+                            : undefined
                         }
                         target="_blank"
                         rel="noopener noreferrer"
@@ -99,7 +113,7 @@ function Chat({ lobby, session, socket, addMessage, chatMessages }: ChatInterfac
             ))}
           </ul>
         </div>
-        {lobby.observers && lobby.observers.length > 0 && (
+        {lobby && lobby.observers && lobby.observers.length > 0 && (
           <div className="w-full px-2 text-xs md:px-0">
             Spectators: {lobby.observers?.map((o) => o.name).join(", ")}
           </div>
@@ -114,7 +128,10 @@ function Chat({ lobby, session, socket, addMessage, chatMessages }: ChatInterfac
             onKeyUp={chatKeyUp}
             required
           />
-          <button className="btn btn-square ml-1 rounded-2xl bg-sky-600" type="submit">
+          <button
+            className="btn btn-square ml-1 rounded-2xl bg-sky-600"
+            type="submit"
+          >
             <IconSend2 />
           </button>
         </form>

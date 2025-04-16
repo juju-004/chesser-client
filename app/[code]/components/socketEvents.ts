@@ -4,7 +4,7 @@ import type { Dispatch, SetStateAction } from "react";
 import type { Socket } from "socket.io-client";
 
 import { syncPgn, syncSide } from "./utils";
-import { GameTimerStarted } from "./GamePage";
+import { GameTimerStarted } from "./active/Game";
 
 export function initSocket(
   user: User,
@@ -20,6 +20,7 @@ export function initSocket(
     setNavFen: Dispatch<SetStateAction<string | null>>;
     setNavIndex: Dispatch<SetStateAction<number | null>>;
     playSound: Function;
+    gameOver: Function;
   }
 ) {
   socket.on("connect", () => {
@@ -82,12 +83,12 @@ export function initSocket(
       reason,
       winnerName,
       winnerSide,
-      id,
+      result,
     }: {
       reason: Game["endReason"];
       winnerName?: string;
       winnerSide?: "white" | "black" | "draw";
-      id: number;
+      result: Game;
     }) => {
       actions.playSound("notify");
       const m = {
@@ -119,9 +120,14 @@ export function initSocket(
       }
       actions.updateLobby({
         type: "updateLobby",
-        payload: { endReason: reason, winner: winnerSide || "draw", id },
+        payload: {
+          endReason: reason,
+          winner: winnerSide || "draw",
+          id: result.id,
+        },
       });
       actions.addMessage(m);
+      actions.gameOver(result);
     }
   );
 }

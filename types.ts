@@ -35,6 +35,7 @@ export interface Game {
   timer?: GameTimer;
   timeControl: number; // in minutes
   stake: number;
+  chat?: Message[];
 }
 
 export interface User {

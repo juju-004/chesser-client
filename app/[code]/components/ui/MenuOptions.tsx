@@ -1,7 +1,7 @@
 "use client";
 
 import { useToast } from "@/context/ToastContext";
-import { Lobby, Session } from "@/types";
+import { Lobby } from "@/types";
 import { IconCirclePlus, IconHome } from "@tabler/icons-react";
 import { IconProgressX } from "@tabler/icons-react";
 import { IconFlag2 } from "@tabler/icons-react";
@@ -37,7 +37,10 @@ export function MenuAlert({ socket, lobby, draw, setDraw }: Menu) {
         <div role="alert" className="alert alert-vertical">
           <span className="pt-3">Your opponent offers a draw</span>
           <div className="flex gap-3">
-            <button onClick={acceptDrawOffer} className="btn btn-sm btn-success btn-soft">
+            <button
+              onClick={acceptDrawOffer}
+              className="btn btn-sm btn-success btn-soft"
+            >
               Accept
             </button>
             <button className="btn btn-sm" onClick={declineDrawOffer}>

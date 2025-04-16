@@ -1,6 +1,7 @@
 import GameAuthWrapper from "./components/GameAuthWrapper";
 import { fetchActiveGame } from "@/lib/game";
 import { notFound } from "next/navigation";
+import ArchivedGame from "./components/archive/Game";
 
 export async function generateMetadata({
   params,
@@ -61,9 +62,14 @@ export async function generateMetadata({
 
 export default async function Game({ params }: { params: { code: string } }) {
   const game = await fetchActiveGame(params.code);
+
   if (!game) {
     notFound();
   }
 
-  return <GameAuthWrapper initialLobby={game} />;
+  return game.endReason ? (
+    <ArchivedGame game={game} />
+  ) : (
+    <GameAuthWrapper initialLobby={game} />
+  );
 }
