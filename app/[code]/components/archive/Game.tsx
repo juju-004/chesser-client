@@ -219,6 +219,8 @@ export default function ArchivedGame({
 
             <Dock
               actualGame={actualGame}
+              chatMessagesCount={chatMessagesCount}
+              chat={chatMessagesCount ? true : false}
               navIndex={navIndex}
               perspective={perspective}
               navigateMove={(m: number | null | "prev") => navigateMove(m)}

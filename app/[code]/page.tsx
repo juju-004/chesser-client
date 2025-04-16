@@ -68,7 +68,7 @@ export default async function Game({ params }: { params: { code: string } }) {
   }
 
   return game.endReason ? (
-    <ArchivedGame game={game} />
+    <ArchivedGame game={game} chatMessagesCount={null} />
   ) : (
     <GameAuthWrapper initialLobby={game} />
   );
