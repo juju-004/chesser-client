@@ -48,7 +48,7 @@ export interface User {
   verified?: boolean;
 
   // mainly for players, not spectators
-  wallet?: string;
+  wallet?: number;
   connected?: boolean;
   disconnectedOn?: number;
   offersDraw?: number;

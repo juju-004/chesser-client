@@ -32,7 +32,7 @@ export function MenuAlert({ socket, lobby, draw, setDraw }: Menu) {
   }
 
   return (
-    <div className="fixed inset-x-0 top-0">
+    <div className="fixed inset-x-0 z-[93] top-0">
       {draw && (
         <div role="alert" className="alert alert-vertical">
           <span className="pt-3">Your opponent offers a draw</span>

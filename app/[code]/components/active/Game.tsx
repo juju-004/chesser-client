@@ -11,7 +11,7 @@ import type { FormEvent } from "react";
 
 import React, { useEffect, useReducer, useRef, useState } from "react";
 
-import type { Message } from "@/types";
+import type { Lobby, Message } from "@/types";
 import type { Game } from "@/types";
 
 import type { Move, Square } from "chess.js";
@@ -68,7 +68,6 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
   const [moveFrom, setMoveFrom] = useState<string | Square | null>(null);
   const [boardWidth, setBoardWidth] = useState(480);
   const chessboardRef = useRef<ClearPremoves>(null);
-  const [game, setGame] = useState<Game | null>(null);
 
   const [navFen, setNavFen] = useState<string | null>(null);
   const [navIndex, setNavIndex] = useState<number | null>(null);
@@ -161,7 +160,6 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
       setNavIndex,
       setTimer,
       playSound,
-      gameOver,
     });
 
     // socket.on("disconnect", () => {
@@ -204,14 +202,14 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
 
   useEffect(() => {
     updateTurnTitle();
+
+    if (lobby.endReason) {
+      console.log(lobby);
+
+      (document.getElementById("my_modal_1") as HTMLDialogElement)?.showModal();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lobby]);
-
-  function gameOver(result: Game) {
-    (document.getElementById("my_modal_1") as HTMLDialogElement)?.showModal();
-
-    setGame(result);
-  }
 
   function updateTurnTitle() {
     if (lobby.side === "s" || !lobby.white?.id || !lobby.black?.id) return;
@@ -460,7 +458,7 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
         return;
       }
 
-      socket.emit("joinAsPlayer");
+      socket.emit("joinAsPlayer", data.wallet);
     } catch (error) {
       toast("Something went wrong", "error");
       setPlayBtnLoading(false);
@@ -620,16 +618,37 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
     }
     socket.emit("claimAbandoned", type);
   }
+  const currentSide = (lobby: Lobby) => {
+    if (lobby.white?.id === session.user?.id) {
+      return lobby.white;
+    } else if (lobby.black?.id === session.user?.id) {
+      return lobby.black;
+    } else return null;
+  };
 
   return (
     <>
-      <dialog id="my_modal_1" className="modal">
-        <GameOver isWinner={true} />
-      </dialog>
+      {currentSide(lobby) && (
+        <dialog id="my_modal_1" className="modal">
+          {lobby.winner && (
+            <GameOver
+              stake={lobby.stake}
+              countStart={currentSide(lobby)?.wallet as number}
+              isWinner={
+                lobby.winner === "draw"
+                  ? "draw"
+                  : lobby[lobby.winner]?.id === session.user?.id
+                  ? true
+                  : false
+              }
+            />
+          )}
+        </dialog>
+      )}
 
-      {game ? (
+      {lobby.endReason ? (
         <ArchivedGame
-          game={game}
+          game={lobby}
           chatMessages={chatMessages}
           chatMessagesCount={chatMessagesCount}
         />
@@ -715,25 +734,19 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
                 </div>
                 {getPlayerHtml("bottom", perspective)}
 
-                <MenuAlert
-                  lobby={lobby}
-                  draw={draw}
-                  socket={socket}
-                  setDraw={(v: boolean) => setDraw(v)}
-                />
                 <>
-                  {((lobby.pgn &&
+                  {(lobby.pgn &&
                     lobby.white &&
                     session?.user?.id === lobby.white?.id &&
                     lobby.black &&
                     !lobby.black?.connected) ||
-                    (lobby.pgn &&
-                      lobby.black &&
-                      session?.user?.id === lobby.black?.id &&
-                      lobby.white &&
-                      !lobby.white?.connected)) && (
+                  (lobby.pgn &&
+                    lobby.black &&
+                    session?.user?.id === lobby.black?.id &&
+                    lobby.white &&
+                    !lobby.white?.connected) ? (
                     <>
-                      <div className="fixed inset-x-4 top-3">
+                      <div className="fixed z-[99] rounded-xl inset-x-4 top-3">
                         <div role="alert" className="alert alert-vertical">
                           {abandonSeconds > 0 ? (
                             `Your opponent has disconnected. You can claim the win or draw in ${abandonSeconds} second${
@@ -763,6 +776,13 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
                         </div>
                       </div>
                     </>
+                  ) : (
+                    <MenuAlert
+                      lobby={lobby}
+                      draw={draw}
+                      socket={socket}
+                      setDraw={(v: boolean) => setDraw(v)}
+                    />
                   )}
                 </>
 

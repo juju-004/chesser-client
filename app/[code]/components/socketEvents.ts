@@ -20,7 +20,6 @@ export function initSocket(
     setNavFen: Dispatch<SetStateAction<string | null>>;
     setNavIndex: Dispatch<SetStateAction<number | null>>;
     playSound: Function;
-    gameOver: Function;
   }
 ) {
   socket.on("connect", () => {
@@ -121,13 +120,22 @@ export function initSocket(
       actions.updateLobby({
         type: "updateLobby",
         payload: {
+          id: result.id,
           endReason: reason,
           winner: winnerSide || "draw",
-          id: result.id,
+          white: {
+            id: result.white?.id,
+            wallet: result.white?.wallet,
+            name: result.white?.name,
+          },
+          black: {
+            id: result.black?.id,
+            wallet: result.black?.wallet,
+            name: result.black?.name,
+          },
         },
       });
       actions.addMessage(m);
-      actions.gameOver(result);
     }
   );
 }

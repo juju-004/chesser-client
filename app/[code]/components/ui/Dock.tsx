@@ -54,7 +54,15 @@ function Dock({
           perspective ? "rotate-180" : "rotate-0"
         } transition-all duration-300 
         `}
-        onClick={() => setPerspective(!perspective)}
+        onClick={() =>
+          setPerspective(
+            typeof perspective === "boolean"
+              ? !perspective
+              : perspective === "white"
+              ? "black"
+              : "white"
+          )
+        }
       >
         <IconRotateRectangle />
       </button>
