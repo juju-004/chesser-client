@@ -1,21 +1,15 @@
 "use client";
 
-import type { CustomSquares, Message } from "@/types";
+import type { CustomSquares, Lobby } from "@/types";
 import { Game } from "@/types";
 import type { Square } from "chess.js";
 import { Chess } from "chess.js";
-import { useEffect, useReducer, useState } from "react";
+import { ReactNode, useEffect, useReducer, useState } from "react";
 import { Chessboard } from "react-chessboard";
 import MenuDrawer from "../ui/MenuDrawer";
 import { ChessTimer } from "../ui/Timer";
 import { useSession } from "@/context/SessionProvider";
-import {
-  IconChevronRight,
-  IconHome,
-  IconMenu,
-  IconRotateRectangle,
-} from "@tabler/icons-react";
-import { IconChevronLeft } from "@tabler/icons-react";
+import { IconHome, IconMenu } from "@tabler/icons-react";
 import Link from "next/link";
 import { CopyLinkButton } from "../CopyLink";
 import Chat from "../ui/Chat";
@@ -24,12 +18,12 @@ import Dock from "../ui/Dock";
 
 export default function ArchivedGame({
   game,
-  chatMessages,
-  chatMessagesCount,
+  chatDot,
+  children,
 }: {
   game: Game;
-  chatMessages?: Message[];
-  chatMessagesCount: number | null;
+  chatDot: boolean;
+  children?: ReactNode;
 }) {
   const session = useSession();
   const [boardWidth, setBoardWidth] = useState(480);
@@ -40,6 +34,7 @@ export default function ArchivedGame({
   const [perspective, setPerspective] = useState<"black" | "white">(
     session.user?.name === game.black?.name ? "black" : "white"
   );
+  const [chatDotArchive, setchatDotArchive] = useState<boolean>(chatDot);
 
   useEffect(() => {
     setBoardWidth(window.innerWidth);
@@ -189,6 +184,7 @@ export default function ArchivedGame({
   return (
     <MenuDrawer
       actualGame={actualGame}
+      lobby={game as Lobby}
       navIndex={navIndex}
       navigateMove={(m: number | null | "prev") => navigateMove(m)}
     >
@@ -197,6 +193,7 @@ export default function ArchivedGame({
         <div className="drawer-content">
           <div className="relative flex h-screen  w-full flex-col justify-center gap-3 py-4 lg:gap-10 2xl:gap-16">
             {getPlayerHtml(perspective === "white" ? "black" : "white")}
+
             <div className="h-min">
               <Chessboard
                 boardWidth={boardWidth}
@@ -219,10 +216,11 @@ export default function ArchivedGame({
 
             <Dock
               actualGame={actualGame}
-              chatMessagesCount={chatMessagesCount}
-              chat={chatMessagesCount ? true : false}
               navIndex={navIndex}
+              chatDot={chatDotArchive}
+              setchatDot={() => setchatDotArchive(false)}
               perspective={perspective}
+              htmlFor="my-drawer-4"
               navigateMove={(m: number | null | "prev") => navigateMove(m)}
               setPerspective={(m: "black" | "white") => setPerspective(m)}
             >
@@ -256,7 +254,11 @@ export default function ArchivedGame({
             </Dock>
           </div>
         </div>
-        <div>{chatMessages && <Chat chatMessages={chatMessages} />}</div>
+        {children ? (
+          <>{children}</>
+        ) : (
+          <Chat id="my-drawer-4" chatMessages={game.chat ? game.chat : []} />
+        )}
       </div>
     </MenuDrawer>
   );

@@ -26,7 +26,7 @@ import { lobbyReducer, squareReducer } from "../reducers";
 import { initSocket } from "../socketEvents";
 import { syncPgn, syncSide } from "../utils";
 import { IconMessage2 } from "@tabler/icons-react";
-import { CopyLinkButton } from "../CopyLink";
+import { CopyLinkButton, ShareButton } from "../CopyLink";
 import { ActiveChessTimer, ChessTimer } from "../ui/Timer";
 import Chat from "../ui/Chat";
 import { useToast } from "@/context/ToastContext";
@@ -85,9 +85,7 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
   );
   const [activeColor, setActiveColor] = useState<"white" | "black">("white");
   const [timerStarted, setTimerStarted] = useState(false);
-  const [chatMessagesCount, setchatMessagesCount] = useState<number | null>(
-    null
-  );
+  const [chatDot, setchatDot] = useState<boolean>(false);
   const { playSound } = useChessSounds();
 
   const [draw, setDraw] = useState<boolean>(false);
@@ -251,11 +249,7 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
   function addMessage(message: Message) {
     setChatMessages((prev) => [...prev, message]);
 
-    if (chatMessagesCount) {
-      setchatMessagesCount(chatMessagesCount + 1);
-    } else {
-      setchatMessagesCount(1);
-    }
+    !chatDot && setchatDot(true);
   }
 
   function makeMove(
@@ -647,19 +641,29 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
       )}
 
       {lobby.endReason ? (
-        <ArchivedGame
-          game={lobby}
-          chatMessages={chatMessages}
-          chatMessagesCount={chatMessagesCount}
-        />
+        <ArchivedGame game={lobby} chatDot={chatDot}>
+          <Chat
+            id="my-drawer-4"
+            addMessage={addMessage}
+            chatMessages={chatMessages}
+            lobby={lobby}
+            session={session}
+            socket={socket}
+          />
+        </ArchivedGame>
       ) : (
         <MenuDrawer
           actualGame={lobby.actualGame}
           navIndex={navIndex}
+          lobby={lobby}
           navigateMove={(m: number | null | "prev") => navigateMove(m)}
         >
           <div className="drawer drawer-end">
-            <input id="my-drawer-4" type="checkbox" className="drawer-toggle" />
+            <input
+              id="my-drawer-45"
+              type="checkbox"
+              className="drawer-toggle"
+            />
             <div className="drawer-content">
               <div className="relative flex h-screen  w-full flex-col justify-center gap-3 py-4 lg:gap-10 2xl:gap-16">
                 {getPlayerHtml("top", perspective)}
@@ -670,28 +674,33 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
                       <div className="bg-base-200 flex w-full flex-col items-center justify-center gap-2 px-2 py-4">
                         {session?.user?.id !== lobby.white?.id &&
                         session?.user?.id !== lobby.black?.id ? (
-                          <button
-                            className={
-                              "btn grad1" +
-                              (playBtnLoading ? " btn-disabled" : "")
-                            }
-                            onClick={clickPlay}
-                          >
-                            Play as {lobby.white?.id ? "black" : "white"}{" "}
-                            {playBtnLoading && (
-                              <span className="loading-spinner loading loading-xs"></span>
-                            )}
-                          </button>
+                          <>
+                            <button
+                              className={
+                                "btn grad1" +
+                                (playBtnLoading ? " btn-disabled" : "")
+                              }
+                              onClick={clickPlay}
+                            >
+                              Play as {lobby.white?.id ? "black" : "white"}{" "}
+                              {playBtnLoading && (
+                                <span className="loading-spinner loading loading-xs"></span>
+                              )}
+                            </button>
+                          </>
                         ) : (
                           <>
                             <span className="opacity-80">
                               Waiting for opponent...
                             </span>
                             {!lobby.endReason && (
-                              <CopyLinkButton
-                                className="bg-base-300 text-base-content fx h-8 gap-2 rounded-2xl px-3 font-mono text-xs active:opacity-60 sm:h-5 sm:text-sm"
-                                link={`${CLIENT_URL}/${initialLobby.code}`}
-                              />
+                              <div className="bg-base-300 fx text-base-content h-8 gap-2 rounded-2xl pl-3 pr-1 text-xs active:opacity-60 sm:h-5 sm:text-sm">
+                                <CopyLinkButton
+                                  className="fx gap-2 "
+                                  link={`${CLIENT_URL}/${initialLobby.code}`}
+                                />
+                                <ShareButton />
+                              </div>
                             )}
                           </>
                         )}
@@ -715,7 +724,6 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
                     }
                     isDraggablePiece={isDraggablePiece}
                     onPieceDragBegin={onPieceDragBegin}
-                    animationDuration={1}
                     onPieceDragEnd={onPieceDragEnd}
                     onPieceDrop={onDrop}
                     onSquareClick={onSquareClick}
@@ -789,22 +797,21 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
                 <EndReason reason={lobby.endReason} winner={lobby.winner} />
 
                 <Dock
-                  chat={true}
                   actualGame={lobby.actualGame}
                   navIndex={navIndex}
                   perspective={perspective}
-                  chatMessagesCount={chatMessagesCount}
+                  chatDot={chatDot}
+                  htmlFor="my-drawer-45"
                   navigateMove={(m: number | null | "prev") => navigateMove(m)}
                   setPerspective={(m: boolean) => setPerspective(m)}
-                  setchatMessagesCount={(m: number | null) =>
-                    setchatMessagesCount(m)
-                  }
+                  setchatDot={() => setchatDot(false)}
                 >
                   <MenuOptions lobby={lobby} socket={socket} />
                 </Dock>
               </div>
             </div>
             <Chat
+              id="my-drawer-45"
               addMessage={addMessage}
               chatMessages={chatMessages}
               lobby={lobby}

@@ -26,7 +26,7 @@ export async function generateMetadata({
       description: `Play chess Online`,
       openGraph: {
         title: "chesser",
-        description: `Play or watch a game with ${game.host?.name}`,
+        description: `Game played between ${game.white?.name}(white) and ${game.black?.name}(black)`,
         url: `https://chesser/${game.code}`,
         siteName: "chesser",
         locale: "en_US",
@@ -35,8 +35,8 @@ export async function generateMetadata({
       robots: {
         index: false,
         follow: false,
-        nocache: true,
-        noarchive: true,
+        nocache: false,
+        noarchive: false,
       },
     };
   } else {
@@ -44,7 +44,7 @@ export async function generateMetadata({
       description: `Play or watch a game with ${game.host?.name}`,
       openGraph: {
         title: "chesser",
-        description: `Play or watch a game with ${game.host?.name} | ${game.timeControl} mins - ₦${game.stake}`,
+        description: `Challenge from ${game.host?.name} | ${game.timeControl} mins - ₦${game.stake}`,
         url: `https://chesser/${game.code}`,
         siteName: "chesser",
         locale: "en_US",
@@ -53,8 +53,8 @@ export async function generateMetadata({
       robots: {
         index: false,
         follow: false,
-        nocache: true,
-        noarchive: true,
+        nocache: false,
+        noarchive: false,
       },
     };
   }
@@ -68,7 +68,7 @@ export default async function Game({ params }: { params: { code: string } }) {
   }
 
   return game.endReason ? (
-    <ArchivedGame game={game} chatMessagesCount={null} />
+    <ArchivedGame game={game} chatDot={game.chat?.length ? true : false} />
   ) : (
     <GameAuthWrapper initialLobby={game} />
   );

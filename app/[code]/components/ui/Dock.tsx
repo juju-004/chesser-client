@@ -1,5 +1,6 @@
-import { Lobby } from "@/types";
-import React, { ReactNode } from "react";
+"use client";
+
+import React, { ReactNode, useEffect } from "react";
 import { IconChevronRight, IconMessage2 } from "@tabler/icons-react";
 import { IconChevronLeft } from "@tabler/icons-react";
 import { IconRotateRectangle } from "@tabler/icons-react";
@@ -9,46 +10,43 @@ interface DockType {
   actualGame: Chess;
   perspective: boolean | "white" | "black";
   setPerspective: Function;
-  chatMessagesCount?: number | null;
-  setchatMessagesCount?: Function;
+  chatDot: boolean;
+  setchatDot: Function;
   navIndex: number | null;
   navigateMove: Function;
-  chat?: boolean;
   children: ReactNode;
+  htmlFor: string;
 }
 
 function Dock({
   actualGame,
-  chatMessagesCount,
   perspective,
   setPerspective,
-  setchatMessagesCount,
+  setchatDot,
   navIndex,
+  chatDot,
   navigateMove,
-  chat,
   children,
+  htmlFor,
 }: DockType) {
   return (
     <div className="dock dock-sm z-30">
       {children}
-      {chat && (
-        <button>
-          <div className="indicator">
-            {chatMessagesCount && (
-              <span className="indicator-item badge-xs badge badge-info text-white">
-                {chatMessagesCount}
-              </span>
-            )}
-            <label
-              onClick={() => setchatMessagesCount && setchatMessagesCount(null)}
-              htmlFor="my-drawer-4"
-              className="drawer-button"
-            >
-              <IconMessage2 />
-            </label>
-          </div>
-        </button>
-      )}
+
+      <button>
+        <div className="indicator">
+          {chatDot && (
+            <span className="indicator-item badge-xs badge badge-info text-white"></span>
+          )}
+          <label
+            onClick={() => setchatDot()}
+            htmlFor={htmlFor}
+            className="drawer-button"
+          >
+            <IconMessage2 />
+          </label>
+        </div>
+      </button>
       <button
         className={`${
           perspective ? "rotate-180" : "rotate-0"

@@ -90,14 +90,21 @@ function MenuDrawer({
           >
             <IconMenu2 className="size-6" />
           </label>
-          <div
-            ref={moveListRef}
-            className=" flex-1 overflow-x-scroll no-bar h-full"
-          >
-            <div className="flex pl-4" id="scrollable">
-              {getMoveListHtml()}
+          {lobby?.pgn?.length ? (
+            <div
+              ref={moveListRef}
+              className=" flex-1 overflow-x-scroll no-bar h-full"
+            >
+              <div className="flex pl-4" id="scrollable">
+                {getMoveListHtml()}
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className="opacity-75">
+              {lobby?.timeControl}mins <span className="opacity-55">∘</span> ₦
+              {lobby?.stake}
+            </div>
+          )}
         </div>
         {/* Page content here */}
         {children}

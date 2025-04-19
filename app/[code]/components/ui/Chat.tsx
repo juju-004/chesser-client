@@ -1,3 +1,5 @@
+"use client";
+
 import { IconMessage2, IconSend2 } from "@tabler/icons-react";
 import React, { useEffect, useRef } from "react";
 import type { FormEvent, KeyboardEvent } from "react";
@@ -11,9 +13,11 @@ interface ChatInterface {
   socket?: Socket;
   addMessage?: Function;
   chatMessages: Message[];
+  id: string;
 }
 
 function Chat({
+  id,
   lobby,
   session,
   socket,
@@ -59,7 +63,7 @@ function Chat({
   return (
     <div className="drawer-side z-50">
       <label
-        htmlFor="my-drawer-4"
+        htmlFor={id}
         aria-label="close sidebar"
         className="drawer-overlay"
       ></label>
@@ -75,41 +79,29 @@ function Chat({
             ref={chatListRef}
           >
             {chatMessages.map((m, i) => (
-              <li
-                className={
-                  "max-w-[30rem]" +
-                  (!m.author.id && m.author.name === "server"
-                    ? " bg-base-content text-base-300 p-2"
-                    : "")
-                }
-                key={i}
-              >
-                <span>
-                  {m.author.id && (
-                    <span>
-                      <a
-                        className={
-                          "font-bold" +
-                          (typeof m.author.id === "number"
-                            ? " text-primary link-hover"
-                            : " cursor-default")
-                        }
-                        href={
-                          typeof m.author.id === "number"
-                            ? `/user/${m.author.name}`
-                            : undefined
-                        }
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        {m.author.name}
-                      </a>
-                      :{" "}
-                    </span>
-                  )}
-                  <span>{m.message}</span>
-                </span>
-              </li>
+              <React.Fragment key={i}>
+                {m.author.name === "server" ? (
+                  <div className="mb-3 opacity-25 italic">{m.message}</div>
+                ) : (
+                  <div
+                    className={`chat  ${
+                      m.author.name === session?.user?.name
+                        ? "chat-start "
+                        : "chat-end"
+                    }`}
+                  >
+                    <div
+                      className={`chat-bubble ${
+                        m.author.name === session?.user?.name
+                          ? "chat-bubble-primary "
+                          : "chat-bubble-secondary"
+                      }`}
+                    >
+                      {m.message}
+                    </div>
+                  </div>
+                )}
+              </React.Fragment>
             ))}
           </ul>
         </div>
@@ -118,23 +110,25 @@ function Chat({
             Spectators: {lobby.observers?.map((o) => o.name).join(", ")}
           </div>
         )}
-        <form className="mt-5 flex px-1" onSubmit={chatClickSend}>
-          <input
-            type="text"
-            placeholder="Chat here..."
-            className="input input-bordered flex-grow rounded-2xl"
-            name="chatInput"
-            id="chatInput"
-            onKeyUp={chatKeyUp}
-            required
-          />
-          <button
-            className="btn btn-square ml-1 rounded-2xl bg-sky-600"
-            type="submit"
-          >
-            <IconSend2 />
-          </button>
-        </form>
+        {socket && (
+          <form className="mt-5 flex px-1" onSubmit={chatClickSend}>
+            <input
+              type="text"
+              placeholder="Chat here..."
+              className="input input-bordered flex-grow rounded-2xl"
+              name="chatInput"
+              id="chatInput"
+              onKeyUp={chatKeyUp}
+              required
+            />
+            <button
+              className="btn btn-square ml-1 rounded-2xl bg-sky-600"
+              type="submit"
+            >
+              <IconSend2 />
+            </button>
+          </form>
+        )}
       </div>
     </div>
   );
