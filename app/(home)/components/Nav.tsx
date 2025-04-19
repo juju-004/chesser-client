@@ -1,7 +1,6 @@
 "use client";
 
-import { IconMoon, IconMoon2, IconUser } from "@tabler/icons-react";
-import { IconMenuDeep } from "@tabler/icons-react";
+import { IconSun, IconMoon, IconMenuDeep } from "@tabler/icons-react";
 import React from "react";
 
 function Nav({ clicked }: { clicked: () => void }) {
@@ -40,7 +39,17 @@ function Nav({ clicked }: { clicked: () => void }) {
       </div>
       <div className="navbar-end">
         <button className="btn btn-ghost btn-circle">
-          <IconMoon />
+          <label className="swap swap-rotate">
+            {/* this hidden checkbox controls the state */}
+            <input
+              type="checkbox"
+              className="theme-controller"
+              value="synthwave"
+            />
+
+            <IconSun className="swap-off " />
+            <IconMoon className="swap-on" />
+          </label>
         </button>
       </div>
     </div>

@@ -1,5 +1,6 @@
 "use client";
 
+import { useSession } from "@/context/SessionProvider";
 import { useToast } from "@/context/ToastContext";
 import { Lobby } from "@/types";
 import { IconCirclePlus, IconHome } from "@tabler/icons-react";
@@ -8,31 +9,33 @@ import { IconFlag2 } from "@tabler/icons-react";
 import { IconMath1Divide2 } from "@tabler/icons-react";
 import { IconMenu } from "@tabler/icons-react";
 import Link from "next/link";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Socket } from "socket.io-client";
 
 interface Menu {
   lobby: Lobby;
   socket: Socket;
+}
+interface MenuAlert {
+  socket: Socket;
   draw?: boolean;
   setDraw?: Function;
 }
 
-export function MenuAlert({ socket, lobby, draw, setDraw }: Menu) {
+export function MenuAlert({ socket, draw, setDraw }: MenuAlert) {
+  const session = useSession();
   function declineDrawOffer() {
-    const side = lobby.side === "b" ? "black" : "white";
-    socket.emit("chat", `${side} declines draw`, true);
+    socket.emit("chat", `${session.user?.name} declines draw offer`, true);
     setDraw && setDraw(false);
   }
 
   function acceptDrawOffer() {
-    const side = lobby.side === "b" ? "black" : "white";
-    socket.emit("drawoffer", lobby.code, side, true);
+    socket.emit("acceptDraw");
     setDraw && setDraw(false);
   }
 
   return (
-    <div className="fixed inset-x-0 z-[93] top-0">
+    <div className="fixed inset-x-4 z-[93] top-3">
       {draw && (
         <div role="alert" className="alert alert-vertical">
           <span className="pt-3">Your opponent offers a draw</span>
@@ -43,7 +46,7 @@ export function MenuAlert({ socket, lobby, draw, setDraw }: Menu) {
             >
               Accept
             </button>
-            <button className="btn btn-sm" onClick={declineDrawOffer}>
+            <button className="btn btn-sm btn-soft" onClick={declineDrawOffer}>
               Decline
             </button>
           </div>
@@ -63,9 +66,11 @@ export function EndReason({
   return (
     <>
       {reason && (
-        <div className="fixed inset-x-0 top-12 text-center text-4xl opacity-15">
+        <div className="fixed inset-x-0 top-14 text-center text-4xl opacity-15">
           {reason === "resigned" || reason === "timeout"
             ? `${winner === "white" ? "black" : "white"} ${reason}`
+            : reason === "abandoned"
+            ? `${winner === "white" ? "black" : "white"} left`
             : reason}
         </div>
       )}
@@ -74,27 +79,16 @@ export function EndReason({
 }
 
 function MenuOptions({ lobby, socket }: Menu) {
-  const [resign, setResign] = useState("");
   const { toast } = useToast();
 
-  function abortGame(type?: string) {
-    socket.emit("abort", lobby.code, type);
+  function abort() {
+    socket.emit("abort");
   }
 
   function sendDrawOffer() {
-    const side = lobby.side === "b" ? "black" : "white";
-    socket.emit("drawoffer", lobby.code, side, false);
+    socket.emit("offerDraw");
 
     toast("Draw offer sent", "info");
-  }
-
-  function resignClick() {
-    if (resign.length) {
-      setResign("");
-      abortGame("r");
-    } else {
-      setResign("???");
-    }
   }
 
   return (
@@ -114,13 +108,6 @@ function MenuOptions({ lobby, socket }: Menu) {
                 Home
               </Link>
             </li>
-            {lobby.endReason && (
-              <li>
-                <a className="text-success/80">
-                  <IconCirclePlus className="size-4" /> New game
-                </a>
-              </li>
-            )}
             {lobby.status === "inPlay" && !lobby.endReason && (
               <>
                 <li>
@@ -128,16 +115,26 @@ function MenuOptions({ lobby, socket }: Menu) {
                     <IconMath1Divide2 className="size-4" /> Offer Draw
                   </a>
                 </li>
+
                 <li>
-                  <a onClick={resignClick} className="text-error">
-                    <IconFlag2 className="size-4" /> Resign {resign}
+                  <a
+                    onClick={() =>
+                      (
+                        document.getElementById(
+                          "resignModal"
+                        ) as HTMLDialogElement
+                      ).showModal()
+                    }
+                    className="text-error"
+                  >
+                    <IconFlag2 className="size-4" /> Resign
                   </a>
                 </li>
               </>
             )}
             {lobby.status === "started" && !lobby.endReason && (
               <li>
-                <a onClick={() => abortGame("l")} className="text-white/50">
+                <a onClick={abort} className="text-white/50">
                   <IconProgressX className="size-4" /> Abort
                 </a>
               </li>
@@ -145,6 +142,7 @@ function MenuOptions({ lobby, socket }: Menu) {
           </ul>
         </div>
       </div>
+      {/* Open the modal using document.getElementById('ID').showModal() method */}
     </>
   );
 }

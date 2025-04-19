@@ -1,12 +1,6 @@
 "use client";
 // TODO: restructure, i could use some help with this :>
 
-import {
-  IconChevronLeft,
-  IconChevronRight,
-  IconRotateRectangle,
-} from "@tabler/icons-react";
-
 import type { FormEvent } from "react";
 
 import React, { useEffect, useReducer, useRef, useState } from "react";
@@ -25,9 +19,8 @@ import { io } from "socket.io-client";
 import { lobbyReducer, squareReducer } from "../reducers";
 import { initSocket } from "../socketEvents";
 import { syncPgn, syncSide } from "../utils";
-import { IconMessage2 } from "@tabler/icons-react";
 import { CopyLinkButton, ShareButton } from "../CopyLink";
-import { ActiveChessTimer, ChessTimer } from "../ui/Timer";
+import { ActiveChessTimer } from "../ui/Timer";
 import Chat from "../ui/Chat";
 import { useToast } from "@/context/ToastContext";
 import { getWallet } from "@/lib/user";
@@ -90,7 +83,7 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
 
   const [draw, setDraw] = useState<boolean>(false);
 
-  const [abandonSeconds, setAbandonSeconds] = useState(60);
+  const [abandonSeconds, setAbandonSeconds] = useState(30);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -108,7 +101,7 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
 
     let interval: number;
     if (!lobby.white?.connected || !lobby.black?.connected) {
-      setAbandonSeconds(60);
+      setAbandonSeconds(30);
       interval = Number(
         setInterval(() => {
           if (
@@ -201,10 +194,10 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
   useEffect(() => {
     updateTurnTitle();
 
-    if (lobby.endReason) {
-      console.log(lobby);
-
-      (document.getElementById("my_modal_1") as HTMLDialogElement)?.showModal();
+    if (lobby.endReason && lobby.endReason !== "aborted") {
+      (
+        document.getElementById("gameOverModal") as HTMLDialogElement
+      )?.showModal();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lobby]);
@@ -260,8 +253,6 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
       const result = lobby.actualGame.move(m);
 
       if (result) {
-        console.log(result);
-
         setActiveColor(result.color === "w" ? "black" : "white");
 
         if (result.captured) {
@@ -619,11 +610,14 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
       return lobby.black;
     } else return null;
   };
+  const resign = () => {
+    socket.emit("resign");
+  };
 
   return (
     <>
       {currentSide(lobby) && (
-        <dialog id="my_modal_1" className="modal">
+        <dialog id="gameOverModal" className="modal">
           {lobby.winner && (
             <GameOver
               stake={lobby.stake}
@@ -639,6 +633,24 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
           )}
         </dialog>
       )}
+      <dialog id="resignModal" className="modal">
+        <div className="modal-box flex flex-col items-center gap-5">
+          <h3 className="text-lg">Resign??</h3>
+
+          <form method="dialog" className="flex gap-4">
+            {/* if there is a button in form, it will close the modal */}
+            <button className="btn w-16 rounded-2xl btn-soft btn-success">
+              No
+            </button>
+            <button
+              onClick={resign}
+              className="btn w-16 rounded-2xl btn-error btn-soft "
+            >
+              Yes
+            </button>
+          </form>
+        </div>
+      </dialog>
 
       {lobby.endReason ? (
         <ArchivedGame game={lobby} chatDot={chatDot}>
@@ -690,18 +702,16 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
                           </>
                         ) : (
                           <>
-                            <span className="opacity-80">
+                            <span className="opacity-50">
                               Waiting for opponent...
                             </span>
-                            {!lobby.endReason && (
-                              <div className="bg-base-300 fx text-base-content h-8 gap-2 rounded-2xl pl-3 pr-1 text-xs active:opacity-60 sm:h-5 sm:text-sm">
-                                <CopyLinkButton
-                                  className="fx gap-2 "
-                                  link={`${CLIENT_URL}/${initialLobby.code}`}
-                                />
-                                <ShareButton />
-                              </div>
-                            )}
+                            <div className="bg-base-300 fx text-base-content h-8 gap-2 rounded-2xl pl-3 pr-1 text-xs active:opacity-60 sm:h-5 sm:text-sm">
+                              <CopyLinkButton
+                                className="fx gap-2 "
+                                link={`${CLIENT_URL}/${initialLobby.code}`}
+                              />
+                              <ShareButton />
+                            </div>
                           </>
                         )}
                       </div>
@@ -786,7 +796,6 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
                     </>
                   ) : (
                     <MenuAlert
-                      lobby={lobby}
                       draw={draw}
                       socket={socket}
                       setDraw={(v: boolean) => setDraw(v)}
