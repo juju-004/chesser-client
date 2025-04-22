@@ -257,7 +257,11 @@ export default function ArchivedGame({
         {children ? (
           <>{children}</>
         ) : (
-          <Chat id="my-drawer-4" chatMessages={game.chat ? game.chat : []} />
+          <Chat
+            setChatDot={() => setchatDotArchive(false)}
+            id="my-drawer-4"
+            chatMessages={game.chat ? game.chat : []}
+          />
         )}
       </div>
     </MenuDrawer>

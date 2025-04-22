@@ -39,7 +39,9 @@ export const syncPgn = (
     }, "");
     kingSquare = {
       [kingPos]: {
-        background: "radial-gradient(red, rgba(255,0,0,.4), transparent 70%)",
+        background:
+          "radial-gradient(circle, rgba(255, 0, 0, 0.2) 40%, transparent 80%)",
+        boxShadow: "0 0 8px 4px rgba(255, 0, 0, 0.3)",
         borderRadius: "50%",
       },
     };

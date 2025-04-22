@@ -67,7 +67,6 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
   const [chatMessages, setChatMessages] = useState<Message[]>([]);
 
   const [playBtnLoading, setPlayBtnLoading] = useState(false);
-  const moveListRef = useRef<HTMLDivElement>(null);
   // Add this near your other state declarations
   const [whiteTime, setWhiteTime] = useState<number>(
     initialLobby.timeControl * 60 * 1000
@@ -183,14 +182,6 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // auto scroll for moves
-  useEffect(() => {
-    const activeMoveEl = document.getElementById("activeNavMove");
-    const moveList = moveListRef.current;
-    if (!activeMoveEl || !moveList) return;
-    moveList.scrollTop = activeMoveEl.offsetTop;
-  });
-
   useEffect(() => {
     updateTurnTitle();
 
@@ -286,7 +277,8 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
           kingSquare = {
             [kingPos]: {
               background:
-                "radial-gradient(red, rgba(255,0,0,.4), transparent 70%)",
+                "radial-gradient(circle, rgba(255, 0, 0, 0.2) 40%, transparent 80%)",
+              boxShadow: "0 0 8px 4px rgba(255, 0, 0, 0.3)",
               borderRadius: "50%",
             },
           };
@@ -443,9 +435,9 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
         return;
       }
 
-      socket.emit("joinAsPlayer", data.wallet);
+      socket.emit("joinAsPlayer");
     } catch (error) {
-      toast("Something went wrong", "error");
+      toast("Insufficient funds", "error");
       setPlayBtnLoading(false);
     }
   }
@@ -659,8 +651,8 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
             addMessage={addMessage}
             chatMessages={chatMessages}
             lobby={lobby}
-            session={session}
             socket={socket}
+            setChatDot={() => setchatDot(false)}
           />
         </ArchivedGame>
       ) : (
@@ -821,10 +813,10 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
             </div>
             <Chat
               id="my-drawer-45"
+              setChatDot={() => setchatDot(false)}
               addMessage={addMessage}
               chatMessages={chatMessages}
               lobby={lobby}
-              session={session}
               socket={socket}
             />
           </div>

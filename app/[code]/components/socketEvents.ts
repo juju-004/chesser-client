@@ -51,8 +51,17 @@ export function initSocket(
     syncSide(user, latestGame, lobby, actions);
   });
 
-  socket.on("timeUpdate", (timer: GameTimerStarted) => {
+  socket.on("timeUpdate", (timer: GameTimerStarted, inPlay?: boolean) => {
     actions.setTimer(timer);
+
+    if (inPlay) {
+      actions.updateLobby({
+        type: "updateLobby",
+        payload: {
+          status: "inPlay",
+        },
+      });
+    }
   });
 
   socket.on(
@@ -79,12 +88,10 @@ export function initSocket(
   socket.on(
     "gameOver",
     ({
-      reason,
       winnerName,
       winnerSide,
       result,
     }: {
-      reason: Game["endReason"];
       winnerName?: string;
       winnerSide?: "white" | "black" | "draw";
       result: Game;
@@ -93,6 +100,8 @@ export function initSocket(
       const m = {
         author: { name: "server" },
       } as Message;
+
+      const reason: Game["endReason"] = result.endReason;
 
       if (reason === "abandoned") {
         if (!winnerSide) {

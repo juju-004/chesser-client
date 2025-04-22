@@ -33,13 +33,18 @@ function Wallet() {
           <span>
             {see ? (
               <>
-                <span className="text-sm opacity-70">₦</span> {balance}
+                <span className="text-sm opacity-70">₦</span>{" "}
+                {balance.toLocaleString()}
               </>
             ) : (
               "⁎⁎⁎⁎"
             )}
           </span>
-          {see ? <IconEye className="opacity-40" /> : <IconEyeCancel className="opacity-40" />}
+          {see ? (
+            <IconEye className="opacity-40" />
+          ) : (
+            <IconEyeCancel className="opacity-40" />
+          )}
         </button>
       )}
       <div className="flex w-full justify-end">

@@ -6,24 +6,26 @@ import type { FormEvent, KeyboardEvent } from "react";
 
 import type { Lobby, Message, Session } from "@/types";
 import type { Socket } from "socket.io-client";
+import { useSession } from "@/context/SessionProvider";
 
 interface ChatInterface {
   lobby?: Lobby;
-  session?: Session;
   socket?: Socket;
   addMessage?: Function;
   chatMessages: Message[];
   id: string;
+  setChatDot: Function;
 }
 
 function Chat({
   id,
   lobby,
-  session,
   socket,
   addMessage,
   chatMessages,
+  setChatDot,
 }: ChatInterface) {
+  const session = useSession();
   const chatListRef = useRef<HTMLUListElement>(null);
 
   useEffect(() => {
@@ -64,6 +66,7 @@ function Chat({
     <div className="drawer-side z-50">
       <label
         htmlFor={id}
+        onClick={setChatDot && setChatDot()}
         aria-label="close sidebar"
         className="drawer-overlay"
       ></label>
@@ -78,31 +81,35 @@ function Chat({
             className="mb-4 flex h-full flex-col gap-1 overflow-y-scroll break-words"
             ref={chatListRef}
           >
-            {chatMessages.map((m, i) => (
-              <React.Fragment key={i}>
-                {m.author.name === "server" ? (
-                  <div className="mb-3 opacity-25 italic">{m.message}</div>
-                ) : (
-                  <div
-                    className={`chat  ${
-                      m.author.name === session?.user?.name
-                        ? "chat-start "
-                        : "chat-end"
-                    }`}
-                  >
+            {chatMessages.map((m, i) => {
+              console.log(m.author.name, session?.user?.name);
+
+              return (
+                <React.Fragment key={i}>
+                  {m.author.name === "server" ? (
+                    <div className="mb-3 opacity-25 italic">{m.message}</div>
+                  ) : (
                     <div
-                      className={`chat-bubble ${
+                      className={`chat  ${
                         m.author.name === session?.user?.name
-                          ? "chat-bubble-primary "
-                          : "chat-bubble-secondary"
+                          ? "chat-start "
+                          : "chat-end"
                       }`}
                     >
-                      {m.message}
+                      <div
+                        className={`chat-bubble ${
+                          m.author.name === session?.user?.name
+                            ? "chat-bubble-primary "
+                            : "chat-bubble-secondary"
+                        }`}
+                      >
+                        {m.message}
+                      </div>
                     </div>
-                  </div>
-                )}
-              </React.Fragment>
-            ))}
+                  )}
+                </React.Fragment>
+              );
+            })}
           </ul>
         </div>
         {lobby && lobby.observers && lobby.observers.length > 0 && (
