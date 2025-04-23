@@ -1,9 +1,9 @@
-// components/CopyLinkButton.tsx
-import { useState } from "react";
+"use client";
+
+import React, { ReactNode, useState } from "react";
 import { IconCopy } from "@tabler/icons-react";
 import { IconChecks } from "@tabler/icons-react";
 import {
-  IconShare,
   IconX,
   IconBrandTwitter,
   IconBrandFacebook,
@@ -15,10 +15,16 @@ interface CopyLinkButtonProps {
   link: string;
   className?: string;
   iconSize?: number;
-  text?: string;
+  children?: ReactNode;
 }
 
-export function ShareButton() {
+export function ShareButton({
+  children,
+  className,
+}: {
+  children?: ReactNode;
+  className?: string;
+}) {
   const [isOpen, setIsOpen] = useState(false);
 
   const handleNativeShare = async () => {
@@ -81,9 +87,9 @@ export function ShareButton() {
     <>
       <button
         onClick={handleNativeShare}
-        className="grad1 px-2.5 py-1 rounded-2xl"
+        className={`grad1 px-2.5 py-1 rounded-2xl ${className}`}
       >
-        share
+        {children || "share"}
       </button>
 
       {/* Overlay */}
@@ -132,7 +138,7 @@ export function ShareButton() {
 
 export const CopyLinkButton = ({
   link,
-  text,
+  children,
   className = "",
   iconSize = 16,
 }: CopyLinkButtonProps) => {
@@ -167,7 +173,7 @@ export const CopyLinkButton = ({
       title="Copy"
     >
       {copied ? <IconChecks size={iconSize} /> : <IconCopy size={iconSize} />}
-      {text || link}
+      {children || link}
     </button>
   );
 };

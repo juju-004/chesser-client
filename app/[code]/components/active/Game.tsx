@@ -5,7 +5,7 @@ import type { FormEvent } from "react";
 
 import React, { useEffect, useReducer, useRef, useState } from "react";
 
-import type { Lobby, Message } from "@/types";
+import type { GameTimer, Lobby, Message } from "@/types";
 import type { Game } from "@/types";
 
 import type { Move, Square } from "chess.js";
@@ -20,7 +20,6 @@ import { lobbyReducer, squareReducer } from "../reducers";
 import { initSocket } from "../socketEvents";
 import { syncPgn, syncSide } from "../utils";
 import { CopyLinkButton, ShareButton } from "../CopyLink";
-import { ActiveChessTimer } from "../ui/Timer";
 import Chat from "../ui/Chat";
 import { useToast } from "@/context/ToastContext";
 import { getWallet } from "@/lib/user";
@@ -31,14 +30,7 @@ import { useSession } from "@/context/SessionProvider";
 import ArchivedGame from "../archive/Game";
 import GameOver from "../ui/GameOver";
 import Dock from "../ui/Dock";
-
-export interface GameTimerStarted {
-  whiteTime: number; // in milliseconds
-  blackTime: number; // in milliseconds
-  lastUpdate: number; // timestamp
-  activeColor: "white" | "black";
-  timerStarted: boolean;
-}
+import PlayerHtml from "../ui/PlayerHtml";
 
 const socket = io(API_URL, { withCredentials: true, autoConnect: false });
 
@@ -50,7 +42,6 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
     actualGame: new Chess(),
     side: "s",
   });
-
   const [customSquares, updateCustomSquares] = useReducer(squareReducer, {
     options: {},
     lastMove: {},
@@ -66,24 +57,23 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
   const [navIndex, setNavIndex] = useState<number | null>(null);
   const [chatMessages, setChatMessages] = useState<Message[]>([]);
 
-  const [playBtnLoading, setPlayBtnLoading] = useState(false);
-  // Add this near your other state declarations
-  const [whiteTime, setWhiteTime] = useState<number>(
-    initialLobby.timeControl * 60 * 1000
-  ); // default init minutes
+  const [play, setPlay] = useState(false);
+  const [clock, setClock] = useState<GameTimer>({
+    white: initialLobby.timeControl * 60 * 1000,
+    black: initialLobby.timeControl * 60 * 1000,
+  });
+
   const [perspective, setPerspective] = useState(false);
-  const [blackTime, setBlackTime] = useState<number>(
-    initialLobby.timeControl * 60 * 1000
-  );
-  const [activeColor, setActiveColor] = useState<"white" | "black">("white");
-  const [timerStarted, setTimerStarted] = useState(false);
   const [chatDot, setchatDot] = useState<boolean>(false);
-  const { playSound } = useChessSounds();
-
   const [draw, setDraw] = useState<boolean>(false);
-
   const [abandonSeconds, setAbandonSeconds] = useState(30);
+
+  const { playSound } = useChessSounds();
   const { toast } = useToast();
+
+  const [premove, setPremove] = useState<{ from: Square; to: Square } | null>(
+    null
+  );
 
   useEffect(() => {
     if (
@@ -126,9 +116,6 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
   useEffect(() => {
     if (!session?.user || !session.user?.id) return;
     socket.connect();
-
-    window.addEventListener("resize", handleResize);
-    handleResize();
     setBoardWidth(window.innerWidth);
 
     if (lobby.pgn && lobby.actualGame.pgn() !== lobby.pgn) {
@@ -148,7 +135,7 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
       makeMove,
       setNavFen,
       setNavIndex,
-      setTimer,
+      updateClock,
       playSound,
     });
 
@@ -175,7 +162,6 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
     });
 
     return () => {
-      window.removeEventListener("resize", handleResize);
       socket.removeAllListeners();
       socket.disconnect();
     };
@@ -190,6 +176,7 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
         document.getElementById("gameOverModal") as HTMLDialogElement
       )?.showModal();
     }
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lobby]);
 
@@ -203,31 +190,10 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
     }
   }
 
-  function handleResize() {
-    setBoardWidth(window.innerWidth);
-    // if (window.innerWidth >= 1920) {
-    //   setBoardWidth(580);
-    // } else if (window.innerWidth >= 1536) {
-    //   setBoardWidth(540);
-    // } else if (window.innerWidth >= 768) {
-    //   setBoardWidth(480);
-    // } else {
-    // }
-  }
+  function updateClock(clock: GameTimer) {
+    setClock(clock);
 
-  function setTimer(timer: GameTimerStarted) {
-    if (
-      Math.abs(whiteTime - timer.whiteTime) > 1000 ||
-      Math.abs(blackTime - timer.blackTime) > 1000
-    ) {
-      setWhiteTime(timer.whiteTime);
-      setBlackTime(timer.blackTime);
-    }
-
-    setWhiteTime(timer.whiteTime);
-    setBlackTime(timer.blackTime);
-    setActiveColor(timer.activeColor);
-    setTimerStarted(timer.timerStarted);
+    console.log(clock);
   }
   // Chat
   function addMessage(message: Message) {
@@ -244,8 +210,6 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
       const result = lobby.actualGame.move(m);
 
       if (result) {
-        setActiveColor(result.color === "w" ? "black" : "white");
-
         if (result.captured) {
           playSound("capture");
         } else if (opponent) {
@@ -258,7 +222,11 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
         setNavIndex(null);
         updateLobby({
           type: "updateLobby",
-          payload: { pgn: lobby.actualGame.pgn() },
+          payload: {
+            pgn: lobby.actualGame.pgn(),
+            status:
+              lobby.actualGame.history().length >= 2 ? "inPlay" : "started",
+          },
         });
         updateTurnTitle();
         let kingSquare = undefined;
@@ -311,8 +279,11 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
     if (lobby.side === "s" || navFen || lobby.endReason || lobby.winner)
       return false;
 
-    // premove
-    if (lobby.side !== lobby.actualGame.turn()) return true;
+    // If it's not your turn, set premove
+    if (lobby.side !== lobby.actualGame.turn()) {
+      setPremove({ from: sourceSquare, to: targetSquare });
+      return true;
+    }
 
     const moveDetails = {
       from: sourceSquare,
@@ -321,7 +292,8 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
     };
 
     const move = makeMove(moveDetails);
-    if (!move) return false; // illegal move
+    if (!move) return false;
+
     socket.emit("sendMove", moveDetails);
     return true;
   }
@@ -423,7 +395,7 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
   }
 
   async function clickPlay(e: FormEvent<HTMLButtonElement>) {
-    setPlayBtnLoading(true);
+    setPlay(true);
     e.preventDefault();
 
     try {
@@ -431,98 +403,24 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
 
       if (Math.sign(data.wallet - initialLobby.stake) === -1) {
         toast("Insufficient funds", "error");
-        setPlayBtnLoading(false);
+        setPlay(false);
         return;
       }
 
       socket.emit("joinAsPlayer");
     } catch (error) {
       toast("Insufficient funds", "error");
-      setPlayBtnLoading(false);
+      setPlay(false);
     }
   }
 
   function getPlayerHtml(side: "top" | "bottom", perspective: boolean) {
     const blackHtml = (
-      <div className="relative ml-3 flex items-center justify-between gap-4">
-        <div className="flex w-full flex-col justify-center">
-          <a
-            className={
-              (lobby.black?.name ? "font-bold" : "") +
-              (typeof lobby.black?.id === "number"
-                ? " text-primary link-hover"
-                : " cursor-default")
-            }
-            href={
-              typeof lobby.black?.id === "number"
-                ? `/user/${lobby.black?.name}`
-                : undefined
-            }
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            {lobby.black?.name || "(no one)"}
-          </a>
-          <span className="flex items-center gap-1 text-xs">
-            <span className="opacity-65">black</span>
-            {lobby?.winner && lobby.winner === "black" && (
-              <span className="badge badge-xs badge-success text-white">
-                winner
-              </span>
-            )}
-            {lobby.black?.connected === false && (
-              <span className="badge badge-xs badge-error">disconnected</span>
-            )}
-          </span>
-        </div>
-        <ActiveChessTimer
-          color="black"
-          initialTime={blackTime}
-          active={activeColor === "black"}
-          timerStarted={timerStarted}
-        />
-      </div>
+      <PlayerHtml time={clock.black} color="black" lobby={lobby} />
     );
 
     const whiteHtml = (
-      <div className="relative flex items-center justify-between gap-4">
-        <div className="ml-3 flex w-full flex-col justify-center">
-          <a
-            className={
-              (lobby.white?.name ? "font-bold" : "") +
-              (typeof lobby.white?.id === "number"
-                ? " text-primary link-hover"
-                : " cursor-default")
-            }
-            href={
-              typeof lobby.white?.id === "number"
-                ? `/user/${lobby.white?.name}`
-                : undefined
-            }
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            {lobby.white?.name || "(no one)"}
-          </a>
-          <span className="flex items-center gap-1 text-xs">
-            <span className="opacity-65">white</span>
-            {lobby?.winner && lobby.winner === "white" && (
-              <span className="badge badge-xs badge-success text-white">
-                winner
-              </span>
-            )}
-            {lobby.white?.connected === false && (
-              <span className="badge badge-xs badge-error">disconnected</span>
-            )}
-          </span>
-        </div>
-        <ActiveChessTimer
-          color="white"
-          initialTime={whiteTime}
-          active={activeColor === "white"}
-          timerStarted={timerStarted}
-        />
-      </div>
+      <PlayerHtml time={clock.white} color="white" lobby={lobby} />
     );
 
     if (lobby.black?.id === session?.user?.id) {
@@ -676,22 +574,18 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
                   {(!lobby.white?.id || !lobby.black?.id) && (
                     <div className="absolute bottom-0 right-0 top-0 z-10 flex h-full w-full items-center justify-center bg-black/70">
                       <div className="bg-base-200 flex w-full flex-col items-center justify-center gap-2 px-2 py-4">
-                        {session?.user?.id !== lobby.white?.id &&
-                        session?.user?.id !== lobby.black?.id ? (
-                          <>
-                            <button
-                              className={
-                                "btn grad1" +
-                                (playBtnLoading ? " btn-disabled" : "")
-                              }
-                              onClick={clickPlay}
-                            >
-                              Play as {lobby.white?.id ? "black" : "white"}{" "}
-                              {playBtnLoading && (
-                                <span className="loading-spinner loading loading-xs"></span>
-                              )}
-                            </button>
-                          </>
+                        {!currentSide(lobby) ? (
+                          <button
+                            className={`btn grad1 ${
+                              play ? "btn-disabled" : ""
+                            }`}
+                            onClick={clickPlay}
+                          >
+                            Play as {lobby.white?.id ? "black" : "white"}{" "}
+                            {play && (
+                              <span className="loading-spinner loading loading-xs"></span>
+                            )}
+                          </button>
                         ) : (
                           <>
                             <span className="opacity-50">
@@ -729,8 +623,11 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
                     onPieceDragEnd={onPieceDragEnd}
                     onPieceDrop={onDrop}
                     onSquareClick={onSquareClick}
+                    animationDuration={100}
                     onSquareRightClick={onSquareRightClick}
                     arePremovesAllowed={true}
+                    customPremoveDarkSquareStyle={{ background: "#6ca568" }}
+                    customPremoveLightSquareStyle={{ background: "#b0e57c" }}
                     customSquareStyles={{
                       ...(navIndex === null
                         ? customSquares.lastMove

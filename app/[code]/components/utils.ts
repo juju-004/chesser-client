@@ -69,3 +69,11 @@ export const syncSide = (
     actions.updateLobby({ type: "setSide", payload: "s" });
   }
 };
+
+export const condition = (v: any, items: []) => {
+  items.forEach((i) => {
+    if (i[0] === v) {
+      return i[1] || i[0];
+    }
+  });
+};

@@ -9,12 +9,13 @@ import { Chessboard } from "react-chessboard";
 import MenuDrawer from "../ui/MenuDrawer";
 import { ChessTimer } from "../ui/Timer";
 import { useSession } from "@/context/SessionProvider";
-import { IconHome, IconMenu } from "@tabler/icons-react";
+import { IconHome, IconMenu, IconShare } from "@tabler/icons-react";
 import Link from "next/link";
 import { CopyLinkButton } from "../CopyLink";
 import Chat from "../ui/Chat";
 import { EndReason } from "../ui/MenuOptions";
 import Dock from "../ui/Dock";
+import PlayerHtml from "../ui/PlayerHtml";
 
 export default function ArchivedGame({
   game,
@@ -31,8 +32,14 @@ export default function ArchivedGame({
   const [navIndex, setNavIndex] = useState<number | null>(null);
   const actualGame = new Chess();
   actualGame.loadPgn(game.pgn as string);
+
+  const lobby: Lobby = {
+    side: session.user?.name === game.black?.name ? "b" : "w",
+    actualGame,
+    ...game,
+  };
   const [perspective, setPerspective] = useState<"black" | "white">(
-    session.user?.name === game.black?.name ? "black" : "white"
+    lobby.side === "b" ? "black" : "white"
   );
   const [chatDotArchive, setchatDotArchive] = useState<boolean>(chatDot);
 
@@ -105,79 +112,20 @@ export default function ArchivedGame({
 
   function getPlayerHtml(color: "black" | "white") {
     const blackHtml = (
-      <div className="relative ml-3 flex items-center justify-between gap-4">
-        <div className="flex w-full flex-col justify-center">
-          <a
-            className={
-              (game.black?.name ? "font-bold" : "") +
-              (typeof game.black?.id === "number"
-                ? " text-primary link-hover"
-                : " cursor-default")
-            }
-            href={
-              typeof game.black?.id === "number"
-                ? `/user/${game.black?.name}`
-                : undefined
-            }
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            {game.black?.name || "(no one)"}
-          </a>
-          <span className="flex items-center gap-1 text-xs">
-            <span className="opacity-65">black</span>
-            {game?.winner && game.winner === "black" && (
-              <span className="badge badge-xs badge-success text-white">
-                winner
-              </span>
-            )}
-          </span>
-        </div>
-        <ChessTimer
-          color="black"
-          initialTime={game.timer?.blackTime}
-          active={game.timer?.activeColor === "black"}
-        />
-      </div>
+      <PlayerHtml
+        time={Number(game.timer?.black)}
+        color="black"
+        lobby={lobby}
+      />
     );
 
     const whiteHtml = (
-      <div className="relative flex items-center justify-between gap-4">
-        <div className="ml-3 flex w-full flex-col justify-center">
-          <a
-            className={
-              (game.white?.name ? "font-bold" : "") +
-              (typeof game.white?.id === "number"
-                ? " text-primary link-hover"
-                : " cursor-default")
-            }
-            href={
-              typeof game.white?.id === "number"
-                ? `/user/${game.white?.name}`
-                : undefined
-            }
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            {game.white?.name || "(no one)"}
-          </a>
-          <span className="flex items-center gap-1 text-xs">
-            <span className="opacity-65">white</span>
-            {game?.winner && game.winner === "white" && (
-              <span className="badge badge-xs badge-success text-white">
-                winner
-              </span>
-            )}
-          </span>
-        </div>
-        <ChessTimer
-          color="white"
-          initialTime={game.timer?.whiteTime}
-          active={game.timer?.activeColor === "white"}
-        />
-      </div>
+      <PlayerHtml
+        time={Number(game.timer?.white)}
+        color="white"
+        lobby={lobby}
+      />
     );
-
     return color === "black" ? blackHtml : whiteHtml;
   }
 
@@ -240,13 +188,18 @@ export default function ArchivedGame({
                       </Link>
                     </li>
                     <li>
-                      <Link href={"/"}>
-                        <IconHome className="size-4" />
+                      <a
+                        href=""
+                        className="active:opacity-25 opacity-100 duration-300"
+                      >
+                        <IconShare className="size-4" />
                         Share Game URL
-                      </Link>
+                      </a>
                     </li>
                     <li>
-                      <CopyLinkButton link="Copy Game PGN"></CopyLinkButton>
+                      <CopyLinkButton link={lobby.pgn || ""}>
+                        Copy Game PGN
+                      </CopyLinkButton>
                     </li>
                   </ul>
                 </div>

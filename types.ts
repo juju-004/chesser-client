@@ -1,11 +1,9 @@
 import type { Chess } from "chess.js";
 
 export interface GameTimer {
-  whiteTime: number; // in milliseconds
-  blackTime: number; // in milliseconds
-  lastUpdate: number; // timestamp
-  activeColor: "white" | "black";
-  started: boolean;
+  white: number; // in milliseconds
+  black: number; // in milliseconds
+  lastUpdate?: number; // timestamp
 }
 
 export interface Game {

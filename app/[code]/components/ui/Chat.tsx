@@ -82,8 +82,6 @@ function Chat({
             ref={chatListRef}
           >
             {chatMessages.map((m, i) => {
-              console.log(m.author.name, session?.user?.name);
-
               return (
                 <React.Fragment key={i}>
                   {m.author.name === "server" ? (

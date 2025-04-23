@@ -1,10 +1,9 @@
-import type { Action, CustomSquares, Lobby, Message } from "@/types";
+import type { Action, CustomSquares, GameTimer, Lobby, Message } from "@/types";
 import type { Game, User } from "@/types";
 import type { Dispatch, SetStateAction } from "react";
 import type { Socket } from "socket.io-client";
 
 import { syncPgn, syncSide } from "./utils";
-import { GameTimerStarted } from "./active/Game";
 
 export function initSocket(
   user: User,
@@ -13,7 +12,7 @@ export function initSocket(
   actions: {
     updateLobby: Dispatch<Action>;
     addMessage: Function;
-    setTimer: Function;
+    updateClock: Function;
     onReconnect?: Function;
     updateCustomSquares: Dispatch<Partial<CustomSquares>>;
     makeMove: Function;
@@ -41,27 +40,16 @@ export function initSocket(
     actions.updateLobby({ type: "updateLobby", payload: latestGame });
 
     const timer = {
-      whiteTime: latestGame.timer?.whiteTime,
-      blackTime: latestGame.timer?.blackTime,
-      timerStarted: latestGame.timer?.started,
-      activeColor: latestGame.timer?.activeColor,
+      white: latestGame.timer?.white,
+      black: latestGame.timer?.black,
     };
-    actions.setTimer(timer);
+    actions.updateClock(timer);
 
     syncSide(user, latestGame, lobby, actions);
   });
 
-  socket.on("timeUpdate", (timer: GameTimerStarted, inPlay?: boolean) => {
-    actions.setTimer(timer);
-
-    if (inPlay) {
-      actions.updateLobby({
-        type: "updateLobby",
-        payload: {
-          status: "inPlay",
-        },
-      });
-    }
+  socket.on("timeUpdate", (timer: GameTimer) => {
+    actions.updateClock(timer);
   });
 
   socket.on(
@@ -132,6 +120,10 @@ export function initSocket(
           id: result.id,
           endReason: reason,
           winner: winnerSide || "draw",
+          timer: {
+            white: result.timer?.white || 0,
+            black: result.timer?.black || 0,
+          },
           white: {
             id: result.white?.id,
             wallet: result.white?.wallet,
