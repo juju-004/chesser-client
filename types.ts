@@ -60,7 +60,6 @@ export interface Lobby extends Game {
 export interface CustomSquares {
   options: { [square: string]: { background: string; borderRadius?: string } };
   lastMove: { [square: string]: { background: string } };
-  rightClicked: { [square: string]: { backgroundColor: string } | undefined };
   check: {
     [square: string]: {
       background: string;

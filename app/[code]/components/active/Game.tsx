@@ -3,7 +3,8 @@
 
 import type { FormEvent } from "react";
 
-import React, { useEffect, useReducer, useRef, useState } from "react";
+import React, { useEffect, useMemo, useReducer, useRef, useState } from "react";
+import { clsx } from "clsx";
 
 import type { GameTimer, Lobby, Message } from "@/types";
 import type { Game } from "@/types";
@@ -31,6 +32,7 @@ import ArchivedGame from "../archive/Game";
 import GameOver from "../ui/GameOver";
 import Dock from "../ui/Dock";
 import PlayerHtml from "../ui/PlayerHtml";
+import Disconnect from "../ui/Disconnect";
 
 const socket = io(API_URL, { withCredentials: true, autoConnect: false });
 
@@ -45,7 +47,6 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
   const [customSquares, updateCustomSquares] = useReducer(squareReducer, {
     options: {},
     lastMove: {},
-    rightClicked: {},
     check: {},
   });
 
@@ -64,9 +65,9 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
   });
 
   const [perspective, setPerspective] = useState(false);
+
   const [chatDot, setchatDot] = useState<boolean>(false);
   const [draw, setDraw] = useState<boolean>(false);
-  const [abandonSeconds, setAbandonSeconds] = useState(30);
 
   const { playSound } = useChessSounds();
   const { toast } = useToast();
@@ -74,44 +75,26 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
   const [premove, setPremove] = useState<{ from: Square; to: Square } | null>(
     null
   );
+  const premoveFen = useMemo(() => {
+    if (lobby.side === "s") return lobby.actualGame;
+    const fenParts = lobby.actualGame.fen().split(" ");
+    fenParts[1] = lobby.side; // fake your turn
+    const fakeFen = fenParts.join(" ");
+
+    const game = new Chess();
+    game.load(fakeFen);
+    return game;
+  }, [lobby.actualGame.fen(), lobby.side]);
 
   useEffect(() => {
-    if (
-      lobby.side === "s" ||
-      lobby.endReason ||
-      lobby.winner ||
-      !lobby.pgn ||
-      !lobby.white ||
-      !lobby.black ||
-      (lobby.white.id !== session?.user?.id &&
-        lobby.black.id !== session?.user?.id)
-    )
-      return;
-
-    let interval: number;
-    if (!lobby.white?.connected || !lobby.black?.connected) {
-      setAbandonSeconds(30);
-      interval = Number(
-        setInterval(() => {
-          if (
-            abandonSeconds === 0 ||
-            (lobby.white?.connected && lobby.black?.connected)
-          ) {
-            clearInterval(interval);
-            return;
-          }
-          setAbandonSeconds((s) => s - 1);
-        }, 1000)
-      );
+    if (premove && lobby.side === lobby.actualGame.turn()) {
+      const move = makeMove({ ...premove, promotion: "q" });
+      if (move) {
+        socket.emit("sendMove", { ...premove, promotion: "q" });
+      }
+      setPremove(null); // Clear after attempting
     }
-    return () => clearInterval(interval);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    lobby.black,
-    lobby.white,
-    lobby.black?.disconnectedOn,
-    lobby.white?.disconnectedOn,
-  ]);
+  }, [lobby.actualGame.turn()]);
 
   useEffect(() => {
     if (!session?.user || !session.user?.id) return;
@@ -192,8 +175,6 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
 
   function updateClock(clock: GameTimer) {
     setClock(clock);
-
-    console.log(clock);
   }
   // Chat
   function addMessage(message: Message) {
@@ -204,8 +185,21 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
 
   function makeMove(
     m: { from: string; to: string; promotion?: string },
-    opponent?: boolean
+    opponent?: boolean,
+    isNotTurn?: boolean
   ) {
+    if (isNotTurn) {
+      const legalMoves = premoveFen.moves({
+        square: moveFrom as Square,
+        verbose: true,
+      });
+
+      const isLegal = legalMoves.some(
+        (mo) => mo.from === moveFrom && mo.to === m.to
+      );
+      return isLegal;
+    }
+
     try {
       const result = lobby.actualGame.move(m);
 
@@ -279,27 +273,29 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
     if (lobby.side === "s" || navFen || lobby.endReason || lobby.winner)
       return false;
 
-    // If it's not your turn, set premove
-    if (lobby.side !== lobby.actualGame.turn()) {
-      setPremove({ from: sourceSquare, to: targetSquare });
-      return true;
-    }
-
     const moveDetails = {
       from: sourceSquare,
       to: targetSquare,
       promotion: "q",
     };
 
+    // Not your turn? Set single premove
+    if (lobby.side !== lobby.actualGame.turn()) {
+      setPremove(moveDetails); // overwrites old one
+      return true;
+    }
+
     const move = makeMove(moveDetails);
     if (!move) return false;
 
+    setPremove(null); // Clear premove just in case
     socket.emit("sendMove", moveDetails);
     return true;
   }
 
-  function getMoveOptions(square: Square) {
-    const moves = lobby.actualGame.moves({
+  function getMoveOptions(square: Square, isYourTurn?: boolean) {
+    const mainLobby = isYourTurn ? lobby.actualGame : premoveFen;
+    const moves = mainLobby.moves({
       square,
       verbose: true,
     }) as Move[];
@@ -345,21 +341,31 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
   }
 
   function onSquareClick(square: Square) {
-    updateCustomSquares({ rightClicked: {} });
-    if (
-      lobby.side !== lobby.actualGame.turn() ||
-      navFen ||
-      lobby.endReason ||
-      lobby.winner
-    )
-      return;
+    if (navFen || lobby.endReason || lobby.winner) return;
 
-    function resetFirstMove(square: Square) {
-      setMoveFrom(square);
-      getMoveOptions(square);
+    const isYourTurn = lobby.side === lobby.actualGame.turn();
+
+    function resetFirstMove(square: Square | null) {
+      if (!square) return;
+      const piece = lobby.actualGame.get(square);
+
+      const isOwnPiece = piece && piece.color === lobby.side;
+
+      if (
+        isOwnPiece &&
+        navIndex === null &&
+        !lobby.endReason &&
+        !lobby.winner
+      ) {
+        setMoveFrom(square);
+        getMoveOptions(square, isYourTurn);
+      } else {
+        setPremove(null);
+        updateCustomSquares({ options: {} });
+      }
     }
 
-    // from square
+    // First click
     if (moveFrom === null) {
       resetFirstMove(square);
       return;
@@ -371,27 +377,16 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
       promotion: "q",
     };
 
-    const move = makeMove(moveDetails);
+    const move = makeMove(moveDetails, false, !isYourTurn);
+
     if (!move) {
       resetFirstMove(square);
-    } else {
-      setMoveFrom(null);
-      socket.emit("sendMove", moveDetails);
+      return;
     }
-  }
-
-  function onSquareRightClick(square: Square) {
-    const colour = "rgba(0, 0, 255, 0.4)";
-    updateCustomSquares({
-      rightClicked: {
-        ...customSquares.rightClicked,
-        [square]:
-          customSquares.rightClicked[square] &&
-          customSquares.rightClicked[square]?.backgroundColor === colour
-            ? undefined
-            : { backgroundColor: colour },
-      },
-    });
+    setMoveFrom(null);
+    isYourTurn
+      ? socket.emit("sendMove", moveDetails)
+      : setPremove({ from: moveDetails.from as Square, to: moveDetails.to });
   }
 
   async function clickPlay(e: FormEvent<HTMLButtonElement>) {
@@ -480,28 +475,12 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
     };
   }
 
-  function claimAbandoned(type: "win" | "draw") {
-    if (
-      lobby.side === "s" ||
-      lobby.endReason ||
-      lobby.winner ||
-      !lobby.pgn ||
-      abandonSeconds > 0 ||
-      (lobby.black?.connected && lobby.white?.connected)
-    ) {
-      return;
-    }
-    socket.emit("claimAbandoned", type);
-  }
   const currentSide = (lobby: Lobby) => {
     if (lobby.white?.id === session.user?.id) {
       return lobby.white;
     } else if (lobby.black?.id === session.user?.id) {
       return lobby.black;
     } else return null;
-  };
-  const resign = () => {
-    socket.emit("resign");
   };
 
   return (
@@ -528,12 +507,11 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
           <h3 className="text-lg">Resign??</h3>
 
           <form method="dialog" className="flex gap-4">
-            {/* if there is a button in form, it will close the modal */}
             <button className="btn w-16 rounded-2xl btn-soft btn-success">
               No
             </button>
             <button
-              onClick={resign}
+              onClick={() => socket.emit("resign")}
               className="btn w-16 rounded-2xl btn-error btn-soft "
             >
               Yes
@@ -568,6 +546,19 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
             />
             <div className="drawer-content">
               <div className="relative flex h-screen  w-full flex-col justify-center gap-3 py-4 lg:gap-10 2xl:gap-16">
+                <>
+                  {lobby.status === "inPlay" &&
+                  (!lobby.black?.connected || !lobby.white?.connected) ? (
+                    <Disconnect socket={socket} lobby={lobby} />
+                  ) : (
+                    <MenuAlert
+                      draw={draw}
+                      socket={socket}
+                      setDraw={(v: boolean) => setDraw(v)}
+                    />
+                  )}
+                </>
+
                 {getPlayerHtml("top", perspective)}
                 <div className="relative">
                   {/* overlay */}
@@ -576,9 +567,10 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
                       <div className="bg-base-200 flex w-full flex-col items-center justify-center gap-2 px-2 py-4">
                         {!currentSide(lobby) ? (
                           <button
-                            className={`btn grad1 ${
-                              play ? "btn-disabled" : ""
-                            }`}
+                            className={clsx(
+                              "btn grad1",
+                              play && "btn-disabled"
+                            )}
                             onClick={clickPlay}
                           >
                             Play as {lobby.white?.id ? "black" : "white"}{" "}
@@ -623,74 +615,29 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
                     onPieceDragEnd={onPieceDragEnd}
                     onPieceDrop={onDrop}
                     onSquareClick={onSquareClick}
-                    animationDuration={100}
-                    onSquareRightClick={onSquareRightClick}
-                    arePremovesAllowed={true}
-                    customPremoveDarkSquareStyle={{ background: "#6ca568" }}
-                    customPremoveLightSquareStyle={{ background: "#b0e57c" }}
+                    animationDuration={200}
                     customSquareStyles={{
                       ...(navIndex === null
                         ? customSquares.lastMove
                         : getNavMoveSquares()),
-                      ...(navIndex === null ? customSquares.check : {}),
-                      ...customSquares.rightClicked,
                       ...(navIndex === null ? customSquares.options : {}),
+                      ...(premove
+                        ? {
+                            [premove.from]: {
+                              backgroundColor: "rgba(255, 55, 0, 0.6)",
+                            },
+                            [premove.to]: {
+                              backgroundColor: "rgba(255, 55, 0, 0.6)",
+                            },
+                          }
+                        : {
+                            ...(navIndex === null ? customSquares.check : {}),
+                          }),
                     }}
                     ref={chessboardRef}
                   />
                 </div>
                 {getPlayerHtml("bottom", perspective)}
-
-                <>
-                  {(lobby.pgn &&
-                    lobby.white &&
-                    session?.user?.id === lobby.white?.id &&
-                    lobby.black &&
-                    !lobby.black?.connected) ||
-                  (lobby.pgn &&
-                    lobby.black &&
-                    session?.user?.id === lobby.black?.id &&
-                    lobby.white &&
-                    !lobby.white?.connected) ? (
-                    <>
-                      <div className="fixed z-[99] rounded-xl inset-x-4 top-3">
-                        <div role="alert" className="alert alert-vertical">
-                          {abandonSeconds > 0 ? (
-                            `Your opponent has disconnected. You can claim the win or draw in ${abandonSeconds} second${
-                              abandonSeconds > 1 ? "s" : ""
-                            }.`
-                          ) : (
-                            <>
-                              <span className="pt-3">
-                                Your opponent has disconnected.
-                              </span>
-                              <div className="flex gap-3">
-                                <button
-                                  onClick={() => claimAbandoned("win")}
-                                  className="btn btn-sm btn-success btn-soft"
-                                >
-                                  Claim win
-                                </button>
-                                <button
-                                  onClick={() => claimAbandoned("draw")}
-                                  className="btn btn-sm"
-                                >
-                                  Draw
-                                </button>
-                              </div>
-                            </>
-                          )}
-                        </div>
-                      </div>
-                    </>
-                  ) : (
-                    <MenuAlert
-                      draw={draw}
-                      socket={socket}
-                      setDraw={(v: boolean) => setDraw(v)}
-                    />
-                  )}
-                </>
 
                 <EndReason reason={lobby.endReason} winner={lobby.winner} />
 
