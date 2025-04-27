@@ -3,23 +3,19 @@
 
 import type { FormEvent } from "react";
 
-import React, { useEffect, useMemo, useReducer, useRef, useState } from "react";
+import React, { useEffect, useReducer, useState } from "react";
 import { clsx } from "clsx";
 
-import type { GameTimer, Lobby, Message } from "@/types";
+import type { GameTimer, Lobby, Message, User } from "@/types";
 import type { Game } from "@/types";
 
-import type { Move, Square } from "chess.js";
 import { Chess } from "chess.js";
-import type { ClearPremoves } from "react-chessboard";
-import { Chessboard } from "react-chessboard";
-
 import { API_URL, CLIENT_URL } from "@/config";
 import { io } from "socket.io-client";
 
 import { lobbyReducer, squareReducer } from "../reducers";
 import { initSocket } from "../socketEvents";
-import { syncPgn, syncSide } from "../utils";
+import { syncPgn, syncSide, userWalletCheck } from "../utils";
 import { CopyLinkButton, ShareButton } from "../CopyLink";
 import Chat from "../ui/Chat";
 import { useToast } from "@/context/ToastContext";
@@ -33,26 +29,26 @@ import GameOver from "../ui/GameOver";
 import Dock from "../ui/Dock";
 import PlayerHtml from "../ui/PlayerHtml";
 import Disconnect from "../ui/Disconnect";
+import Board from "./Board";
+import { useRouter } from "next/navigation";
 
 const socket = io(API_URL, { withCredentials: true, autoConnect: false });
 
 export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
   const session = useSession();
+  const router = useRouter();
 
+  const side = currentSide(initialLobby, true);
   const [lobby, updateLobby] = useReducer(lobbyReducer, {
     ...initialLobby,
     actualGame: new Chess(),
-    side: "s",
+    side: typeof side === "string" ? side : "s",
   });
   const [customSquares, updateCustomSquares] = useReducer(squareReducer, {
     options: {},
     lastMove: {},
     check: {},
   });
-
-  const [moveFrom, setMoveFrom] = useState<string | Square | null>(null);
-  const [boardWidth, setBoardWidth] = useState(480);
-  const chessboardRef = useRef<ClearPremoves>(null);
 
   const [navFen, setNavFen] = useState<string | null>(null);
   const [navIndex, setNavIndex] = useState<number | null>(null);
@@ -64,42 +60,18 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
     black: initialLobby.timeControl * 60 * 1000,
   });
 
-  const [perspective, setPerspective] = useState(false);
-
+  const [perspective, setPerspective] = useState<boolean>(false);
   const [chatDot, setchatDot] = useState<boolean>(false);
   const [draw, setDraw] = useState<boolean>(false);
+  const [disabled, setDisabled] = useState<boolean>(false);
+  const [rematchOffer, setRematchOffer] = useState<boolean>(false);
 
   const { playSound } = useChessSounds();
   const { toast } = useToast();
 
-  const [premove, setPremove] = useState<{ from: Square; to: Square } | null>(
-    null
-  );
-  const premoveFen = useMemo(() => {
-    if (lobby.side === "s") return lobby.actualGame;
-    const fenParts = lobby.actualGame.fen().split(" ");
-    fenParts[1] = lobby.side; // fake your turn
-    const fakeFen = fenParts.join(" ");
-
-    const game = new Chess();
-    game.load(fakeFen);
-    return game;
-  }, [lobby.actualGame.fen(), lobby.side]);
-
-  useEffect(() => {
-    if (premove && lobby.side === lobby.actualGame.turn()) {
-      const move = makeMove({ ...premove, promotion: "q" });
-      if (move) {
-        socket.emit("sendMove", { ...premove, promotion: "q" });
-      }
-      setPremove(null); // Clear after attempting
-    }
-  }, [lobby.actualGame.turn()]);
-
   useEffect(() => {
     if (!session?.user || !session.user?.id) return;
     socket.connect();
-    setBoardWidth(window.innerWidth);
 
     if (lobby.pgn && lobby.actualGame.pgn() !== lobby.pgn) {
       syncPgn(lobby.pgn, lobby, {
@@ -120,6 +92,7 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
       setNavIndex,
       updateClock,
       playSound,
+      mainActions,
     });
 
     // socket.on("disconnect", () => {
@@ -136,13 +109,6 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
     //     }
     //   }, 1000);
     // });
-
-    socket.on("offerdraw", () => {
-      setDraw(true);
-      setTimeout(() => {
-        setDraw(false);
-      }, 7000);
-    });
 
     return () => {
       socket.removeAllListeners();
@@ -173,6 +139,17 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
     }
   }
 
+  function mainActions(type: "r" | "d" | "n", code?: string) {
+    if (type === "d") {
+      setDraw(true);
+      setTimeout(() => {
+        setDraw(false);
+      }, 7000);
+    } else if (type === "n") {
+      router.push(code as string);
+    } else setRematchOffer(true);
+  }
+
   function updateClock(clock: GameTimer) {
     setClock(clock);
   }
@@ -185,21 +162,8 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
 
   function makeMove(
     m: { from: string; to: string; promotion?: string },
-    opponent?: boolean,
-    isNotTurn?: boolean
+    opponent?: boolean
   ) {
-    if (isNotTurn) {
-      const legalMoves = premoveFen.moves({
-        square: moveFrom as Square,
-        verbose: true,
-      });
-
-      const isLegal = legalMoves.some(
-        (mo) => mo.from === moveFrom && mo.to === m.to
-      );
-      return isLegal;
-    }
-
     try {
       const result = lobby.actualGame.move(m);
 
@@ -265,148 +229,19 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
     }
   }
 
-  function isDraggablePiece({ piece }: { piece: string }) {
-    return piece.startsWith(lobby.side) && !lobby.endReason && !lobby.winner;
-  }
-
-  function onDrop(sourceSquare: Square, targetSquare: Square) {
-    if (lobby.side === "s" || navFen || lobby.endReason || lobby.winner)
-      return false;
-
-    const moveDetails = {
-      from: sourceSquare,
-      to: targetSquare,
-      promotion: "q",
-    };
-
-    // Not your turn? Set single premove
-    if (lobby.side !== lobby.actualGame.turn()) {
-      setPremove(moveDetails); // overwrites old one
-      return true;
-    }
-
-    const move = makeMove(moveDetails);
-    if (!move) return false;
-
-    setPremove(null); // Clear premove just in case
-    socket.emit("sendMove", moveDetails);
-    return true;
-  }
-
-  function getMoveOptions(square: Square, isYourTurn?: boolean) {
-    const mainLobby = isYourTurn ? lobby.actualGame : premoveFen;
-    const moves = mainLobby.moves({
-      square,
-      verbose: true,
-    }) as Move[];
-    if (moves.length === 0) {
-      return;
-    }
-
-    const newSquares: {
-      [square: string]: { background: string; borderRadius?: string };
-    } = {};
-    moves.map((move) => {
-      newSquares[move.to] = {
-        background:
-          lobby.actualGame.get(move.to as Square) &&
-          lobby.actualGame.get(move.to as Square)?.color !==
-            lobby.actualGame.get(square)?.color
-            ? "radial-gradient(circle, rgba(0,0,0,.1) 85%, transparent 85%)"
-            : "radial-gradient(circle, rgba(0,0,0,.1) 25%, transparent 25%)",
-        borderRadius: "50%",
-      };
-      return move;
-    });
-    newSquares[square] = {
-      background: "rgba(255, 255, 0, 0.4)",
-    };
-    updateCustomSquares({ options: newSquares });
-  }
-
-  function onPieceDragBegin(_piece: string, sourceSquare: Square) {
-    if (
-      lobby.side !== lobby.actualGame.turn() ||
-      navFen ||
-      lobby.endReason ||
-      lobby.winner
-    )
-      return;
-
-    getMoveOptions(sourceSquare);
-  }
-
-  function onPieceDragEnd() {
-    updateCustomSquares({ options: {} });
-  }
-
-  function onSquareClick(square: Square) {
-    if (navFen || lobby.endReason || lobby.winner) return;
-
-    const isYourTurn = lobby.side === lobby.actualGame.turn();
-
-    function resetFirstMove(square: Square | null) {
-      if (!square) return;
-      const piece = lobby.actualGame.get(square);
-
-      const isOwnPiece = piece && piece.color === lobby.side;
-
-      if (
-        isOwnPiece &&
-        navIndex === null &&
-        !lobby.endReason &&
-        !lobby.winner
-      ) {
-        setMoveFrom(square);
-        getMoveOptions(square, isYourTurn);
-      } else {
-        setPremove(null);
-        updateCustomSquares({ options: {} });
-      }
-    }
-
-    // First click
-    if (moveFrom === null) {
-      resetFirstMove(square);
-      return;
-    }
-
-    const moveDetails = {
-      from: moveFrom,
-      to: square,
-      promotion: "q",
-    };
-
-    const move = makeMove(moveDetails, false, !isYourTurn);
-
-    if (!move) {
-      resetFirstMove(square);
-      return;
-    }
-    setMoveFrom(null);
-    isYourTurn
-      ? socket.emit("sendMove", moveDetails)
-      : setPremove({ from: moveDetails.from as Square, to: moveDetails.to });
-  }
-
   async function clickPlay(e: FormEvent<HTMLButtonElement>) {
     setPlay(true);
     e.preventDefault();
 
-    try {
-      const data = await getWallet();
+    const data = await userWalletCheck(initialLobby.stake);
 
-      if (Math.sign(data.wallet - initialLobby.stake) === -1) {
-        toast("Insufficient funds", "error");
-        setPlay(false);
-        return;
-      }
-
-      socket.emit("joinAsPlayer");
-    } catch (error) {
-      toast("Insufficient funds", "error");
+    if (data.type === "e") {
+      toast(data.message as string, "error");
       setPlay(false);
+      return;
     }
+
+    socket.emit("joinAsPlayer");
   }
 
   function getPlayerHtml(side: "top" | "bottom", perspective: boolean) {
@@ -457,40 +292,74 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
       index = 0;
     }
 
-    chessboardRef.current?.clearPremoves(false);
-
     setNavIndex(index);
     setNavFen(history[index].after);
   }
 
-  function getNavMoveSquares() {
-    if (navIndex === null) return;
-    const history = lobby.actualGame.history({ verbose: true });
-
-    if (!history.length) return;
-
-    return {
-      [history[navIndex].from]: { background: "rgba(255, 255, 0, 0.4)" },
-      [history[navIndex].to]: { background: "rgba(255, 255, 0, 0.4)" },
-    };
+  function currentSide(lobby: Lobby | Game, color?: boolean) {
+    if (lobby.white?.id === session.user?.id) {
+      return color ? "w" : lobby.white;
+    } else if (lobby.black?.id === session.user?.id) {
+      return color ? "b" : lobby.black;
+    } else return null;
   }
 
-  const currentSide = (lobby: Lobby) => {
-    if (lobby.white?.id === session.user?.id) {
-      return lobby.white;
-    } else if (lobby.black?.id === session.user?.id) {
-      return lobby.black;
-    } else return null;
-  };
+  async function rematchAccept() {
+    setDisabled(true);
+    const wallet = (currentSide(lobby) as User).wallet || 0;
+
+    if (Math.sign(wallet - lobby.stake) === -1) {
+      toast("Insufficient funds", "error");
+      setDisabled(false);
+      setRematchOffer(false);
+      return;
+    }
+
+    socket.emit("rematch", {
+      stake: lobby.stake,
+      host: lobby.host,
+      timeControl: lobby.timeControl,
+      white: lobby.white,
+      black: lobby.black,
+    } as Game);
+  }
 
   return (
     <>
+      {rematchOffer && (
+        <div className="fixed inset-x-4 z-[93] top-3">
+          <div role="alert" className="alert alert-vertical">
+            <span className="pt-3">Your opponent wants a rematch</span>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setRematchOffer(false)}
+                className="btn btn-sm btn-soft btn-error"
+              >
+                Decline
+              </button>
+              <button
+                onClick={rematchAccept}
+                disabled={disabled}
+                className="btn btn-sm btn-success btn-soft"
+              >
+                Accept{" "}
+                {disabled && (
+                  <span className="loading loading-spinner size-3"></span>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       {currentSide(lobby) && (
         <dialog id="gameOverModal" className="modal">
           {lobby.winner && (
             <GameOver
+              game={lobby as Game}
               stake={lobby.stake}
-              countStart={currentSide(lobby)?.wallet as number}
+              socket={socket}
+              countStart={(currentSide(lobby) as User)?.wallet as number}
+              rematchOffer={rematchOffer}
               isWinner={
                 lobby.winner === "draw"
                   ? "draw"
@@ -505,7 +374,6 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
       <dialog id="resignModal" className="modal">
         <div className="modal-box flex flex-col items-center gap-5">
           <h3 className="text-lg">Resign??</h3>
-
           <form method="dialog" className="flex gap-4">
             <button className="btn w-16 rounded-2xl btn-soft btn-success">
               No
@@ -521,7 +389,7 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
       </dialog>
 
       {lobby.endReason ? (
-        <ArchivedGame game={lobby} chatDot={chatDot}>
+        <ArchivedGame game={lobby} socket={socket} chatDot={chatDot}>
           <Chat
             id="my-drawer-4"
             addMessage={addMessage}
@@ -596,45 +464,15 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
                     </div>
                   )}
 
-                  <Chessboard
-                    boardWidth={boardWidth}
-                    customDarkSquareStyle={{ backgroundColor: "#4b7399" }}
-                    customLightSquareStyle={{ backgroundColor: "#eae9d2" }}
-                    position={navFen || lobby.actualGame.fen()}
-                    boardOrientation={
-                      lobby.side === "b"
-                        ? perspective
-                          ? "white"
-                          : "black"
-                        : perspective
-                        ? "black"
-                        : "white"
-                    }
-                    isDraggablePiece={isDraggablePiece}
-                    onPieceDragBegin={onPieceDragBegin}
-                    onPieceDragEnd={onPieceDragEnd}
-                    onPieceDrop={onDrop}
-                    onSquareClick={onSquareClick}
-                    animationDuration={200}
-                    customSquareStyles={{
-                      ...(navIndex === null
-                        ? customSquares.lastMove
-                        : getNavMoveSquares()),
-                      ...(navIndex === null ? customSquares.options : {}),
-                      ...(premove
-                        ? {
-                            [premove.from]: {
-                              backgroundColor: "rgba(255, 55, 0, 0.6)",
-                            },
-                            [premove.to]: {
-                              backgroundColor: "rgba(255, 55, 0, 0.6)",
-                            },
-                          }
-                        : {
-                            ...(navIndex === null ? customSquares.check : {}),
-                          }),
-                    }}
-                    ref={chessboardRef}
+                  <Board
+                    lobby={lobby}
+                    socket={socket}
+                    customSquares={customSquares}
+                    navIndex={navIndex}
+                    navFen={navFen}
+                    makeMove={makeMove}
+                    perspective={perspective}
+                    updateCustomSquares={updateCustomSquares}
                   />
                 </div>
                 {getPlayerHtml("bottom", perspective)}

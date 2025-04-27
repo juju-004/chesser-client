@@ -4,6 +4,7 @@ import type { Dispatch, SetStateAction } from "react";
 import type { Socket } from "socket.io-client";
 
 import { syncPgn, syncSide } from "./utils";
+import { SoundType } from "./ui/SoundManager";
 
 export function initSocket(
   user: User,
@@ -11,16 +12,31 @@ export function initSocket(
   lobby: Lobby,
   actions: {
     updateLobby: Dispatch<Action>;
-    addMessage: Function;
-    updateClock: Function;
-    onReconnect?: Function;
+    addMessage: (m: Message) => void;
+    updateClock: (c: GameTimer) => void;
     updateCustomSquares: Dispatch<Partial<CustomSquares>>;
-    makeMove: Function;
+    makeMove: (
+      m: { from: string; to: string; promotion?: string },
+      opponent?: boolean
+    ) => boolean;
+    mainActions: (type: "r" | "d" | "n", code?: string) => void;
     setNavFen: Dispatch<SetStateAction<string | null>>;
     setNavIndex: Dispatch<SetStateAction<number | null>>;
-    playSound: Function;
+    playSound: (type: SoundType, isOpponent?: boolean) => void;
   }
 ) {
+  socket.on("offerdraw", () => {
+    actions.mainActions("d");
+  });
+
+  socket.on("rematch", () => {
+    actions.mainActions("r");
+  });
+
+  socket.on("newGameCode", (code: string) => {
+    actions.mainActions("n", code);
+  });
+
   socket.on("connect", () => {
     socket.emit("joinLobby", lobby.code);
   });
@@ -40,8 +56,8 @@ export function initSocket(
     actions.updateLobby({ type: "updateLobby", payload: latestGame });
 
     const timer = {
-      white: latestGame.timer?.white,
-      black: latestGame.timer?.black,
+      white: latestGame.timer?.white || 0,
+      black: latestGame.timer?.black || 0,
     };
     actions.updateClock(timer);
 

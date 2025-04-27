@@ -1,7 +1,7 @@
 // components/SoundManager.tsx
 import { useEffect, useRef } from "react";
 
-type SoundType = "move" | "capture" | "notify" | "lowTime" | "select";
+export type SoundType = "move" | "capture" | "notify" | "lowTime" | "select";
 
 export const useChessSounds = () => {
   const sounds = useRef<Record<SoundType, HTMLAudioElement | null>>({
@@ -10,7 +10,7 @@ export const useChessSounds = () => {
     // check: null,
     notify: null,
     lowTime: null,
-    select: null
+    select: null,
   });
 
   // Load sounds on mount

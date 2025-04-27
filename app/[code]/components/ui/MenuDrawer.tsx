@@ -2,7 +2,7 @@
 
 import Menu from "@/app/(home)/components/Menu";
 import { Lobby } from "@/types";
-import { IconMenu2 } from "@tabler/icons-react";
+import { IconMenuDeep } from "@tabler/icons-react";
 import React, { ReactNode, useEffect, useRef } from "react";
 import type { Chess } from "chess.js";
 
@@ -88,7 +88,7 @@ function MenuDrawer({
             aria-label="open sidebar"
             className="opacity-50 mr-3"
           >
-            <IconMenu2 className="size-6" />
+            <IconMenuDeep className="size-6" />
           </label>
           {lobby?.pgn?.length ? (
             <div

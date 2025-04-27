@@ -1,3 +1,4 @@
+import { getWallet } from "@/lib/user";
 import type { Action, CustomSquares, Lobby } from "@/types";
 import type { Game, User } from "@/types";
 import type { Dispatch, SetStateAction } from "react";
@@ -59,10 +60,15 @@ export const syncSide = (
   actions: { updateLobby: Dispatch<Action> }
 ) => {
   if (!game) game = lobby;
+  console.log("b", game.black?.id, "w", game.white?.id, "u", user?.id);
+
   if (game.black?.id === user?.id) {
+    console.log("yes b");
     if (lobby.side !== "b")
       actions.updateLobby({ type: "setSide", payload: "b" });
   } else if (game.white?.id === user?.id) {
+    console.log("yes w");
+
     if (lobby.side !== "w")
       actions.updateLobby({ type: "setSide", payload: "w" });
   } else if (lobby.side !== "s") {
@@ -76,4 +82,18 @@ export const condition = (v: any, items: []) => {
       return i[1] || i[0];
     }
   });
+};
+
+export const userWalletCheck = async (stake: number) => {
+  try {
+    const data = await getWallet();
+
+    if (Math.sign(data.wallet - stake) === -1) {
+      return { type: "e", message: "Insufficient funds" };
+    }
+
+    return { type: "s" };
+  } catch (error) {
+    return { type: "e", message: "Something went wrong" };
+  }
 };

@@ -6,22 +6,71 @@ import {
   IconReload,
   IconHome2,
   IconX,
-  IconCircleHalf2,
+  IconMath1Divide2,
 } from "@tabler/icons-react";
 import Counter from "./Counter";
 import Link from "next/link";
+import clsx from "clsx";
+import { useState } from "react";
+import { Socket } from "socket.io-client";
+import { Game } from "@/types";
+import { useToast } from "@/context/ToastContext";
 
 type GameOverModalProps = {
   isWinner: boolean | "draw";
   countStart: number;
   stake: number;
+  reason?: string;
+  socket: Socket;
+  rematchOffer: boolean;
+  game: Game;
 };
 
 export default function GameOver({
   isWinner,
   countStart,
   stake,
+  socket,
+  reason,
+  rematchOffer,
+  game,
 }: GameOverModalProps) {
+  const [rematch, setRematch] = useState(false);
+  const [disabled, setDisabled] = useState(false);
+  const { toast } = useToast();
+  const wallet =
+    isWinner === "draw"
+      ? countStart
+      : isWinner
+      ? countStart + stake
+      : countStart - stake;
+
+  const sendRematchOffer = () => {
+    if (Math.sign(wallet - stake) === -1) {
+      toast("Insufficient funds", "error");
+      return;
+    }
+
+    setRematch(true);
+    socket.emit("rematch");
+  };
+
+  const sendJoinGame = async () => {
+    if (Math.sign(wallet - stake) === -1) {
+      toast("Insufficient funds", "error");
+      return;
+    }
+
+    setDisabled(true);
+    socket.emit("rematch", {
+      stake: game.stake,
+      host: game.host,
+      timeControl: game.timeControl,
+      white: game.white,
+      black: game.black,
+    } as Game);
+  };
+
   function modalControl() {
     (document.getElementById("gameOverModal") as HTMLDialogElement)?.close();
   }
@@ -38,7 +87,7 @@ export default function GameOver({
       {/* Winner/Loser Icon */}
       <div className="flex justify-center mb-3">
         {isWinner === "draw" ? (
-          <IconCircleHalf2 size={80} className="text-gray-500" />
+          <IconMath1Divide2 size={80} className="text-gray-400" />
         ) : isWinner ? (
           <IconCrown size={80} className="text-yellow-500" />
         ) : (
@@ -47,30 +96,21 @@ export default function GameOver({
       </div>
       {/* Title */}
       <h3
-        className={`text-2xl text-center font-bold mb-2 ${
+        className={clsx(
+          "text-2xl text-center font-bold mb-2",
           isWinner === "draw"
-            ? "text-gray-500"
+            ? "text-gray-400"
             : isWinner
             ? "text-yellow-500"
             : "text-gray-500"
-        }`}
+        )}
       >
         {isWinner === "draw" ? "Draw" : isWinner ? "You Won!" : "You Lost"}
       </h3>
-      {/* Message */}
+      <span className="mb-5 opacity-30 px-2 text-center w-full">{reason}</span>
       <span className="text-center relative text-3xl text-white/60 font-bold">
         <span className="scale-50">₦</span>
-        <Counter
-          from={countStart}
-          to={
-            isWinner === "draw"
-              ? countStart
-              : isWinner
-              ? countStart + stake
-              : countStart - stake
-          }
-          duration={2000}
-        />
+        <Counter from={countStart} to={wallet} duration={2000} />
         <span
           className={`absolute text-sm top-full right-0 ${
             isWinner === "draw"
@@ -84,18 +124,41 @@ export default function GameOver({
         </span>
       </span>
       {/* Buttons */}
-      <form method="dialog" className="flex gap-3 mt-14 justify-center">
-        <Link href={"/"}>
-          <button className="btn">
-            <IconHome2 className="mr-1 opacity-60" />
-            Home
-          </button>
+      <div className="flex gap-3 mt-14 justify-center">
+        <Link
+          href={"/"}
+          className="btn active:scale-90  duration-300 scale-100 btn-soft fx rounded-lg"
+        >
+          <IconHome2 className="size-5 opacity-55 mb-0.5" />
+          Home
         </Link>
-        <button className="btn btn-soft btn-success ">
-          <IconReload className="mr-1" />
-          Rematch
-        </button>
-      </form>
+        {rematchOffer ? (
+          <button
+            onClick={sendJoinGame}
+            disabled={disabled}
+            className="btn fx active:scale-90  duration-300 scale-100 rounded-lg btn-success animate-pulse text-white "
+          >
+            Join Game{" "}
+            {disabled && (
+              <span className="loading loading-spinner size-5"></span>
+            )}
+          </button>
+        ) : (
+          <button
+            onClick={sendRematchOffer}
+            className="btn fx active:scale-90 duration-300 scale-100 btn-soft rounded-lg btn-info "
+          >
+            {rematch ? (
+              <span className="loading loading-spinner size-5"></span>
+            ) : (
+              <>
+                Rematch
+                <IconReload className="size-5  mb-0.5" />
+              </>
+            )}
+          </button>
+        )}
+      </div>
     </div>
   );
 }

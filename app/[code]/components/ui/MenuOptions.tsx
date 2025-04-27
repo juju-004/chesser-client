@@ -23,6 +23,7 @@ interface MenuAlert {
 }
 
 export function MenuAlert({ socket, draw, setDraw }: MenuAlert) {
+  if (!draw) return null;
   const session = useSession();
   function declineDrawOffer() {
     socket.emit("chat", `${session.user?.name} declines draw offer`, true);
@@ -36,22 +37,20 @@ export function MenuAlert({ socket, draw, setDraw }: MenuAlert) {
 
   return (
     <div className="fixed inset-x-4 z-[93] top-3">
-      {draw && (
-        <div role="alert" className="alert alert-vertical">
-          <span className="pt-3">Your opponent offers a draw</span>
-          <div className="flex gap-3">
-            <button
-              onClick={acceptDrawOffer}
-              className="btn btn-sm btn-success btn-soft"
-            >
-              Accept
-            </button>
-            <button className="btn btn-sm btn-soft" onClick={declineDrawOffer}>
-              Decline
-            </button>
-          </div>
+      <div role="alert" className="alert alert-vertical">
+        <span className="pt-3">Your opponent offers a draw</span>
+        <div className="flex gap-3">
+          <button
+            onClick={acceptDrawOffer}
+            className="btn btn-sm btn-success btn-soft"
+          >
+            Accept
+          </button>
+          <button className="btn btn-sm btn-soft" onClick={declineDrawOffer}>
+            Decline
+          </button>
         </div>
-      )}
+      </div>
     </div>
   );
 }

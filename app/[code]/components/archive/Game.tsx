@@ -1,35 +1,39 @@
 "use client";
 
-import type { CustomSquares, Lobby } from "@/types";
+import type { Lobby } from "@/types";
 import { Game } from "@/types";
-import type { Square } from "chess.js";
 import { Chess } from "chess.js";
-import { ReactNode, useEffect, useReducer, useState } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { Chessboard } from "react-chessboard";
 import MenuDrawer from "../ui/MenuDrawer";
-import { ChessTimer } from "../ui/Timer";
 import { useSession } from "@/context/SessionProvider";
-import { IconHome, IconMenu, IconShare } from "@tabler/icons-react";
+import { IconHome, IconMenu, IconReload, IconShare } from "@tabler/icons-react";
 import Link from "next/link";
 import { CopyLinkButton } from "../CopyLink";
 import Chat from "../ui/Chat";
 import { EndReason } from "../ui/MenuOptions";
 import Dock from "../ui/Dock";
 import PlayerHtml from "../ui/PlayerHtml";
+import { Socket } from "socket.io-client";
+import { useToast } from "@/context/ToastContext";
 
 export default function ArchivedGame({
   game,
   chatDot,
   children,
+  socket,
 }: {
   game: Game;
   chatDot: boolean;
   children?: ReactNode;
+  socket?: Socket;
 }) {
   const session = useSession();
   const [boardWidth, setBoardWidth] = useState(480);
   const [navFen, setNavFen] = useState<string | null>(null);
   const [navIndex, setNavIndex] = useState<number | null>(null);
+  const [rematch, setRematch] = useState<boolean>(false);
+  const { toast } = useToast();
   const actualGame = new Chess();
   actualGame.loadPgn(game.pgn as string);
 
@@ -46,32 +50,6 @@ export default function ArchivedGame({
   useEffect(() => {
     setBoardWidth(window.innerWidth);
   }, []);
-
-  const [customSquares, updateCustomSquares] = useReducer(
-    (squares: CustomSquares, action: Partial<CustomSquares>) => {
-      return { ...squares, ...action };
-    },
-    {
-      options: {},
-      lastMove: {},
-      rightClicked: {},
-      check: {},
-    }
-  );
-
-  function onSquareRightClick(square: Square) {
-    const colour = "rgba(0, 0, 255, 0.4)";
-    updateCustomSquares({
-      rightClicked: {
-        ...customSquares.rightClicked,
-        [square]:
-          customSquares.rightClicked[square] &&
-          customSquares.rightClicked[square]?.backgroundColor === colour
-            ? undefined
-            : { backgroundColor: colour },
-      },
-    });
-  }
 
   function navigateMove(index: number | null | "prev") {
     const history = actualGame.history({ verbose: true });
@@ -129,6 +107,30 @@ export default function ArchivedGame({
     return color === "black" ? blackHtml : whiteHtml;
   }
 
+  function currentSide(lobby: Lobby | Game) {
+    if (lobby.white?.id === session.user?.id) {
+      return lobby.white;
+    } else if (lobby.black?.id === session.user?.id) {
+      return lobby.black;
+    } else return null;
+  }
+
+  function sendRematch() {
+    if (!rematch && socket) {
+      console.log(currentSide(game)?.wallet as number);
+
+      if (
+        Math.sign((currentSide(game)?.wallet as number) - game.stake) === -1
+      ) {
+        toast("Insufficient funds", "error");
+        return;
+      }
+
+      setRematch(true);
+      socket.emit("rematch");
+    }
+  }
+
   return (
     <MenuDrawer
       actualGame={actualGame}
@@ -150,11 +152,8 @@ export default function ArchivedGame({
                 position={navFen || actualGame.fen()}
                 boardOrientation={perspective}
                 isDraggablePiece={() => false}
-                onSquareClick={() => updateCustomSquares({ rightClicked: {} })}
-                onSquareRightClick={onSquareRightClick}
                 customSquareStyles={{
                   ...getNavMoveSquares(),
-                  ...customSquares.rightClicked,
                 }}
               />
             </div>
@@ -188,13 +187,23 @@ export default function ArchivedGame({
                       </Link>
                     </li>
                     <li>
-                      <a
-                        href=""
-                        className="active:opacity-25 opacity-100 duration-300"
+                      <button
+                        onClick={sendRematch}
+                        className="active:opacity-25 text-info opacity-100 duration-300"
                       >
+                        {rematch ? (
+                          <span className="loading loading-spinner size-5"></span>
+                        ) : (
+                          <IconReload className="size-4" />
+                        )}
+                        Rematch
+                      </button>
+                    </li>
+                    <li>
+                      <button className="active:opacity-25 opacity-100 duration-300">
                         <IconShare className="size-4" />
-                        Share Game URL
-                      </a>
+                        Share Game
+                      </button>
                     </li>
                     <li>
                       <CopyLinkButton link={lobby.pgn || ""}>

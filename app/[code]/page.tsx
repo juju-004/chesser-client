@@ -2,6 +2,7 @@ import GameAuthWrapper from "./components/GameAuthWrapper";
 import { fetchActiveGame } from "@/lib/game";
 import { notFound } from "next/navigation";
 import ArchivedGame from "./components/archive/Game";
+import { CLIENT_URL } from "@/config";
 
 export async function generateMetadata({
   params,
@@ -23,38 +24,32 @@ export async function generateMetadata({
 
   if (game.endReason) {
     return {
-      description: `Play chess Online`,
+      title: `${game.white?.name} vs ${game.black?.name} | chesser`,
+      description: `Game played between ${game.white?.name}(white) and ${game.black?.name}(black)`,
+      type: "website",
+      url: `${CLIENT_URL}/${game.code}`,
       openGraph: {
         title: "chesser",
         description: `Game played between ${game.white?.name}(white) and ${game.black?.name}(black)`,
-        url: `https://chesser/${game.code}`,
+        url: `${CLIENT_URL}/${game.code}`,
         siteName: "chesser",
         locale: "en_US",
         type: "website",
-      },
-      robots: {
-        index: false,
-        follow: false,
-        nocache: false,
-        noarchive: false,
       },
     };
   } else {
     return {
-      description: `Play or watch a game with ${game.host?.name}`,
+      title: `Challenge from ${game.host?.name} | chesser`,
+      description: `${game.timeControl} mins - ₦${game.stake} | Play or watch a game with ${game.host?.name}`,
+      type: "website",
+      url: `${CLIENT_URL}/${game.code}`,
       openGraph: {
         title: "chesser",
-        description: `Challenge from ${game.host?.name} | ${game.timeControl} mins - ₦${game.stake}`,
-        url: `https://chesser/${game.code}`,
+        description: `${game.timeControl} mins - ₦${game.stake} | Play or watch a game with ${game.host?.name}`,
+        url: `${CLIENT_URL}/${game.code}`,
         siteName: "chesser",
         locale: "en_US",
         type: "website",
-      },
-      robots: {
-        index: false,
-        follow: false,
-        nocache: false,
-        noarchive: false,
       },
     };
   }
@@ -62,6 +57,8 @@ export async function generateMetadata({
 
 export default async function Game({ params }: { params: { code: string } }) {
   const game = await fetchActiveGame(params.code);
+
+  console.log(game);
 
   if (!game) {
     notFound();
