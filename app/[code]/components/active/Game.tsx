@@ -19,7 +19,6 @@ import { syncPgn, syncSide, userWalletCheck } from "../utils";
 import { CopyLinkButton, ShareButton } from "../CopyLink";
 import Chat from "../ui/Chat";
 import { useToast } from "@/context/ToastContext";
-import { getWallet } from "@/lib/user";
 import MenuOptions, { EndReason, MenuAlert } from "../ui/MenuOptions";
 import MenuDrawer from "../ui/MenuDrawer";
 import { useChessSounds } from "../ui/SoundManager";
@@ -417,7 +416,12 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
                 <>
                   {lobby.status === "inPlay" &&
                   (!lobby.black?.connected || !lobby.white?.connected) ? (
-                    <Disconnect socket={socket} lobby={lobby} />
+                    <Disconnect
+                      blackConnected={lobby.black?.connected}
+                      whiteConnected={lobby.white?.connected}
+                      socket={socket}
+                      lobby={lobby}
+                    />
                   ) : (
                     <MenuAlert
                       draw={draw}

@@ -60,15 +60,10 @@ export const syncSide = (
   actions: { updateLobby: Dispatch<Action> }
 ) => {
   if (!game) game = lobby;
-  console.log("b", game.black?.id, "w", game.white?.id, "u", user?.id);
-
   if (game.black?.id === user?.id) {
-    console.log("yes b");
     if (lobby.side !== "b")
       actions.updateLobby({ type: "setSide", payload: "b" });
   } else if (game.white?.id === user?.id) {
-    console.log("yes w");
-
     if (lobby.side !== "w")
       actions.updateLobby({ type: "setSide", payload: "w" });
   } else if (lobby.side !== "s") {

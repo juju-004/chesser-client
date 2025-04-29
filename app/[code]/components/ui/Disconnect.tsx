@@ -1,18 +1,29 @@
+"use client";
+
 import { useSession } from "@/context/SessionProvider";
-import { Lobby } from "@/types";
+import { Lobby, User } from "@/types";
 import React, { useEffect, useState } from "react";
 import { Socket } from "socket.io-client";
 
 interface DisconnectProps {
   lobby: Lobby;
+  blackConnected?: User["connected"];
+  whiteConnected?: User["connected"];
   socket: Socket;
 }
 
-function Disconnect({ lobby, socket }: DisconnectProps) {
+function Disconnect({
+  lobby,
+  socket,
+  blackConnected,
+  whiteConnected,
+}: DisconnectProps) {
   const session = useSession();
   const [abandonSeconds, setAbandonSeconds] = useState(25);
 
   useEffect(() => {
+    console.log("yes sir");
+
     if (
       lobby.side === "s" ||
       lobby.endReason ||
@@ -26,8 +37,8 @@ function Disconnect({ lobby, socket }: DisconnectProps) {
       return;
 
     let interval: number;
-    if (!lobby.white?.connected || !lobby.black?.connected) {
-      setAbandonSeconds(30);
+    if (!blackConnected || !whiteConnected) {
+      setAbandonSeconds(25);
       interval = Number(
         setInterval(() => {
           if (
@@ -43,12 +54,7 @@ function Disconnect({ lobby, socket }: DisconnectProps) {
     }
     return () => clearInterval(interval);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    lobby.black,
-    lobby.white,
-    lobby.black?.disconnectedOn,
-    lobby.white?.disconnectedOn,
-  ]);
+  }, [blackConnected, whiteConnected]);
 
   function claimAbandoned(type: "win" | "draw") {
     if (

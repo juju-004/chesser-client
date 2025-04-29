@@ -1,6 +1,6 @@
 "use client";
 
-import Menu from "@/app/(home)/components/Menu";
+import Menu from "@/app/components/Menu";
 import { Lobby } from "@/types";
 import { IconMenuDeep } from "@tabler/icons-react";
 import React, { ReactNode, useEffect, useRef } from "react";
@@ -68,11 +68,11 @@ function MenuDrawer({
 
     return movePairs.map((moves, i) => {
       return (
-        <div className="flex items-center ml-1" key={i + 1}>
+        <React.Fragment key={i + 1}>
           <span className="opacity-25">{i + 1}.</span>
           {button(moves[0])}
           {moves[1] && button(moves[1])}
-        </div>
+        </React.Fragment>
       );
     });
   }
@@ -93,9 +93,10 @@ function MenuDrawer({
           {lobby?.pgn?.length ? (
             <div
               ref={moveListRef}
-              className=" flex-1 overflow-x-scroll no-bar h-full"
+              id="movelist"
+              className=" flex-1 scroll-smooth overflow-x-scroll no-bar h-full"
             >
-              <div className="flex pl-4" id="scrollable">
+              <div className="flex items-center pl-4" id="scrollable">
                 {getMoveListHtml()}
               </div>
             </div>

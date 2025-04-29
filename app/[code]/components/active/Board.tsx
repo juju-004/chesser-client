@@ -201,6 +201,14 @@ export default function Board({
 
     if (!history.length) return;
 
+    const activeNavMove = document.getElementById("activeNavMove");
+    document
+      .getElementById("movelist")
+      ?.scrollTo(
+        (activeNavMove?.offsetLeft as number) - window.innerWidth / 2 + 22,
+        0
+      );
+
     return {
       [history[navIndex].from]: { background: "rgba(255, 255, 0, 0.4)" },
       [history[navIndex].to]: { background: "rgba(255, 255, 0, 0.4)" },

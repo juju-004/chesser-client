@@ -1,10 +1,11 @@
 "use client";
 
-import React, { ReactNode, useEffect } from "react";
+import React, { ReactNode } from "react";
 import { IconChevronRight, IconMessage2 } from "@tabler/icons-react";
 import { IconChevronLeft } from "@tabler/icons-react";
 import { IconRotateRectangle } from "@tabler/icons-react";
 import { Chess } from "chess.js";
+import clsx from "clsx";
 
 interface DockType {
   actualGame: Chess;
@@ -48,10 +49,10 @@ function Dock({
         </div>
       </button>
       <button
-        className={`${
-          perspective ? "rotate-180" : "rotate-0"
-        } transition-all duration-300 
-        `}
+        className={clsx(
+          perspective ? "rotate-180" : "rotate-0",
+          "transition-all duration-300 "
+        )}
         onClick={() =>
           setPerspective(
             typeof perspective === "boolean"
@@ -66,17 +67,20 @@ function Dock({
       </button>
 
       <button
-        className={
-          navIndex === 0 || actualGame.history().length <= 1
-            ? "btn-disabled disabled:opacity-50"
-            : ""
-        }
+        className={clsx(
+          (navIndex === 0 || actualGame.history().length <= 1) &&
+            "btn-disabled disabled:opacity-50",
+          " active:bg-white/10 bg-white/0 duration-200"
+        )}
         onClick={() => navigateMove(navIndex === null ? "prev" : navIndex - 1)}
       >
         <IconChevronLeft size={18} />
       </button>
       <button
-        className={navIndex === null ? "btn-disabled disabled:opacity-50" : ""}
+        className={clsx(
+          navIndex === null && "btn-disabled disabled:opacity-50",
+          " active:bg-white/10 bg-white/0 duration-200"
+        )}
         onClick={() => navigateMove(navIndex === null ? null : navIndex + 1)}
       >
         <IconChevronRight size={18} />

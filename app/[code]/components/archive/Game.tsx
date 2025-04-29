@@ -9,7 +9,7 @@ import MenuDrawer from "../ui/MenuDrawer";
 import { useSession } from "@/context/SessionProvider";
 import { IconHome, IconMenu, IconReload, IconShare } from "@tabler/icons-react";
 import Link from "next/link";
-import { CopyLinkButton } from "../CopyLink";
+import { CopyLinkButton, ShareButton } from "../CopyLink";
 import Chat from "../ui/Chat";
 import { EndReason } from "../ui/MenuOptions";
 import Dock from "../ui/Dock";
@@ -81,6 +81,14 @@ export default function ArchivedGame({
     if (!history.length) return;
 
     let index = navIndex ?? history.length - 1;
+
+    const activeNavMove = document.getElementById("activeNavMove");
+    document
+      .getElementById("movelist")
+      ?.scrollTo(
+        (activeNavMove?.offsetLeft as number) - window.innerWidth / 2 + 22,
+        0
+      );
 
     return {
       [history[index].from]: { background: "rgba(255, 255, 0, 0.4)" },
@@ -186,24 +194,26 @@ export default function ArchivedGame({
                         Home
                       </Link>
                     </li>
+                    {socket && (
+                      <li>
+                        <button
+                          onClick={sendRematch}
+                          className="active:opacity-25 text-info opacity-100 duration-300"
+                        >
+                          {rematch ? (
+                            <span className="loading loading-spinner size-5"></span>
+                          ) : (
+                            <IconReload className="size-4" />
+                          )}
+                          Rematch
+                        </button>
+                      </li>
+                    )}
                     <li>
-                      <button
-                        onClick={sendRematch}
-                        className="active:opacity-25 text-info opacity-100 duration-300"
-                      >
-                        {rematch ? (
-                          <span className="loading loading-spinner size-5"></span>
-                        ) : (
-                          <IconReload className="size-4" />
-                        )}
-                        Rematch
-                      </button>
-                    </li>
-                    <li>
-                      <button className="active:opacity-25 opacity-100 duration-300">
+                      <ShareButton className="active:opacity-25 opacity-100 duration-300">
                         <IconShare className="size-4" />
                         Share Game
-                      </button>
+                      </ShareButton>
                     </li>
                     <li>
                       <CopyLinkButton link={lobby.pgn || ""}>

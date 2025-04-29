@@ -73,11 +73,11 @@ function Menu({ className }: { className?: string }) {
 
   return (
     <div className={`flex h-screen flex-col items-center ${className}`}>
-      <details className="collapse-arrow w-full collapse bg-black/20">
+      <details className="collapse-arrow w-full bg-black/10 pt-8 collapse">
         <summary className="collapse-title rounded-3xl border-0 !p-0 after:opacity-60">
-          <div className="px-5 pb-1 pt-8">
+          <div className="px-5 pb-1 pt-4">
             <h3 className="ml-3 text-lg">{session?.user?.name}</h3>
-            <div className="bg-base-100 mb-4 flex w-full items-center gap-2 rounded-3xl px-2 py-1">
+            <div className="bg-base-100 mb-4 flex w-full shadow-2xl items-center gap-2 rounded-3xl px-2 py-1">
               <span className="fx bg-base-300 size-5 rounded-full">
                 {session?.user?.email && session?.user?.email[0]}
               </span>
