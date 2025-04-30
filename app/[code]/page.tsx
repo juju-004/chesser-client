@@ -58,11 +58,7 @@ export async function generateMetadata({
 export default async function Game({ params }: { params: { code: string } }) {
   const game = await fetchActiveGame(params.code);
 
-  console.log(game);
-
-  if (!game) {
-    notFound();
-  }
+  if (!game) notFound();
 
   return game.endReason ? (
     <ArchivedGame game={game} chatDot={game.chat?.length ? true : false} />

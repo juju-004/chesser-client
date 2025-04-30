@@ -7,23 +7,14 @@ import { Socket } from "socket.io-client";
 
 interface DisconnectProps {
   lobby: Lobby;
-  blackConnected?: User["connected"];
-  whiteConnected?: User["connected"];
   socket: Socket;
 }
 
-function Disconnect({
-  lobby,
-  socket,
-  blackConnected,
-  whiteConnected,
-}: DisconnectProps) {
+function Disconnect({ lobby, socket }: DisconnectProps) {
   const session = useSession();
   const [abandonSeconds, setAbandonSeconds] = useState(25);
 
   useEffect(() => {
-    console.log("yes sir");
-
     if (
       lobby.side === "s" ||
       lobby.endReason ||
@@ -37,7 +28,7 @@ function Disconnect({
       return;
 
     let interval: number;
-    if (!blackConnected || !whiteConnected) {
+    if (!lobby?.black?.disconnectedOn || !lobby?.white?.disconnectedOn) {
       setAbandonSeconds(25);
       interval = Number(
         setInterval(() => {
@@ -54,7 +45,12 @@ function Disconnect({
     }
     return () => clearInterval(interval);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [blackConnected, whiteConnected]);
+  }, [
+    lobby.black,
+    lobby.white,
+    lobby.black?.disconnectedOn,
+    lobby.white?.disconnectedOn,
+  ]);
 
   function claimAbandoned(type: "win" | "draw") {
     if (
@@ -70,35 +66,33 @@ function Disconnect({
   }
 
   return (
-    <>
-      <div className="fixed z-[99] rounded-xl inset-x-4 top-3">
-        <div role="alert" className="alert alert-vertical">
-          {abandonSeconds > 0 ? (
-            `Your opponent has disconnected. You can claim the win or draw in ${abandonSeconds} second${
-              abandonSeconds > 1 ? "s" : ""
-            }.`
-          ) : (
-            <>
-              <span className="pt-3">Your opponent has disconnected.</span>
-              <div className="flex gap-3">
-                <button
-                  onClick={() => claimAbandoned("win")}
-                  className="btn btn-sm btn-success btn-soft"
-                >
-                  Claim win
-                </button>
-                <button
-                  onClick={() => claimAbandoned("draw")}
-                  className="btn btn-sm"
-                >
-                  Draw
-                </button>
-              </div>
-            </>
-          )}
-        </div>
+    <div className="fixed z-[99] rounded-xl inset-x-4 top-3">
+      <div role="alert" className="alert alert-vertical">
+        {abandonSeconds > 0 ? (
+          `Your opponent has disconnected. You can claim the win or draw in ${abandonSeconds} second${
+            abandonSeconds > 1 ? "s" : ""
+          }.`
+        ) : (
+          <>
+            <span className="pt-3">Your opponent has disconnected.</span>
+            <div className="flex gap-3">
+              <button
+                onClick={() => claimAbandoned("win")}
+                className="btn btn-sm btn-success btn-soft"
+              >
+                Claim win
+              </button>
+              <button
+                onClick={() => claimAbandoned("draw")}
+                className="btn btn-sm"
+              >
+                Draw
+              </button>
+            </div>
+          </>
+        )}
       </div>
-    </>
+    </div>
   );
 }
 

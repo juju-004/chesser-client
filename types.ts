@@ -11,7 +11,6 @@ export interface Game {
   pgn?: string;
   white?: User;
   black?: User;
-  status?: "started" | "inPlay" | "ended";
   winner?: "white" | "black" | "draw";
   endReason?:
     | "draw"

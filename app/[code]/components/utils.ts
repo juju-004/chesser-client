@@ -1,6 +1,7 @@
 import { getWallet } from "@/lib/user";
 import type { Action, CustomSquares, Lobby } from "@/types";
 import type { Game, User } from "@/types";
+import { Chess } from "chess.js";
 import type { Dispatch, SetStateAction } from "react";
 
 export const syncPgn = (
@@ -91,4 +92,9 @@ export const userWalletCheck = async (stake: number) => {
   } catch (error) {
     return { type: "e", message: "Something went wrong" };
   }
+};
+
+export const lobbyStatus = (game: Chess) => {
+  if (game.history().length >= 2) return "inPlay";
+  else return "started";
 };

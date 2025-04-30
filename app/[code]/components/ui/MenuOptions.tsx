@@ -11,6 +11,7 @@ import { IconMenu } from "@tabler/icons-react";
 import Link from "next/link";
 import React, { useEffect, useState } from "react";
 import { Socket } from "socket.io-client";
+import { lobbyStatus } from "../utils";
 
 interface Menu {
   lobby: Lobby;
@@ -107,7 +108,7 @@ function MenuOptions({ lobby, socket }: Menu) {
                 Home
               </Link>
             </li>
-            {lobby.status === "inPlay" && !lobby.endReason && (
+            {lobbyStatus(lobby.actualGame) === "inPlay" && !lobby.endReason && (
               <>
                 <li>
                   <a onClick={sendDrawOffer} className="text-white/50">
@@ -131,13 +132,14 @@ function MenuOptions({ lobby, socket }: Menu) {
                 </li>
               </>
             )}
-            {lobby.status === "started" && !lobby.endReason && (
-              <li>
-                <a onClick={abort} className="text-white/50">
-                  <IconProgressX className="size-4" /> Abort
-                </a>
-              </li>
-            )}
+            {lobbyStatus(lobby.actualGame) === "started" &&
+              !lobby.endReason && (
+                <li>
+                  <a onClick={abort} className="text-white/50">
+                    <IconProgressX className="size-4" /> Abort
+                  </a>
+                </li>
+              )}
           </ul>
         </div>
       </div>

@@ -44,14 +44,9 @@ export function initSocket(
   socket.on("chat", (message: Message) => {
     actions.addMessage(message);
   });
-  socket.on("leave", (message: Message) => {
-    console.log("yes sir");
-  });
 
   socket.on("updateLobby", (game: Game) => {
-    console.log("yes sirrrrr", game);
-
-    actions.updateLobby({ type: "updateLobby", payload: { ...game } });
+    actions.updateLobby({ type: "updateLobby", payload: game });
   });
 
   socket.on("receivedLatestGame", (latestGame: Game) => {

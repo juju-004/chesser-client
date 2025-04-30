@@ -15,7 +15,7 @@ import { io } from "socket.io-client";
 
 import { lobbyReducer, squareReducer } from "../reducers";
 import { initSocket } from "../socketEvents";
-import { syncPgn, syncSide, userWalletCheck } from "../utils";
+import { lobbyStatus, syncPgn, syncSide, userWalletCheck } from "../utils";
 import { CopyLinkButton, ShareButton } from "../CopyLink";
 import Chat from "../ui/Chat";
 import { useToast } from "@/context/ToastContext";
@@ -167,13 +167,10 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
       const result = lobby.actualGame.move(m);
 
       if (result) {
-        if (result.captured) {
-          playSound("capture");
-        } else if (opponent) {
-          playSound("move", true);
-        } else {
-          playSound("move");
-        }
+        // Sound
+        if (result.captured) playSound("capture");
+        else if (opponent) playSound("move", true);
+        else playSound("move");
 
         setNavFen(null);
         setNavIndex(null);
@@ -181,8 +178,6 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
           type: "updateLobby",
           payload: {
             pgn: lobby.actualGame.pgn(),
-            status:
-              lobby.actualGame.history().length >= 2 ? "inPlay" : "started",
           },
         });
         updateTurnTitle();
@@ -414,20 +409,18 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
             <div className="drawer-content">
               <div className="relative flex h-screen  w-full flex-col justify-center gap-3 py-4 lg:gap-10 2xl:gap-16">
                 <>
-                  {lobby.status === "inPlay" &&
-                  (!lobby.black?.connected || !lobby.white?.connected) ? (
-                    <Disconnect
-                      blackConnected={lobby.black?.connected}
-                      whiteConnected={lobby.white?.connected}
-                      socket={socket}
-                      lobby={lobby}
-                    />
-                  ) : (
-                    <MenuAlert
-                      draw={draw}
-                      socket={socket}
-                      setDraw={(v: boolean) => setDraw(v)}
-                    />
+                  {lobbyStatus(lobby.actualGame) === "inPlay" && (
+                    <>
+                      {!lobby.black?.connected || !lobby.white?.connected ? (
+                        <Disconnect socket={socket} lobby={lobby} />
+                      ) : (
+                        <MenuAlert
+                          draw={draw}
+                          socket={socket}
+                          setDraw={(v: boolean) => setDraw(v)}
+                        />
+                      )}
+                    </>
                   )}
                 </>
 
@@ -482,7 +475,6 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
                 {getPlayerHtml("bottom", perspective)}
 
                 <EndReason reason={lobby.endReason} winner={lobby.winner} />
-
                 <Dock
                   actualGame={lobby.actualGame}
                   navIndex={navIndex}
