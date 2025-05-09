@@ -1,10 +1,8 @@
-import { User } from "@/types";
+import { ProfileData, User } from "@/types";
 
 type Body = {
-  name?: string;
-  password?: string;
-  email?: string;
-  token?: string;
+  friendId?: string;
+  userId?: string;
 };
 
 const post = async (url: string, body: Body) => {
@@ -17,57 +15,58 @@ const post = async (url: string, body: Body) => {
       },
       body: JSON.stringify(body),
     });
-    if (res.status === 200) {
-      const data = await res.json();
+    if (res.status === 201) {
+      const data: ProfileData = await res.json();
       return data;
     } else if (res.status === 404 || res.status === 401 || res.status === 500) {
       const { message } = await res.json();
-      return message as string;
+      return (message as string) || "Something went wrong";
     }
-  } catch (err) {
-    console.error(err);
-  }
+  } catch (err) {}
 };
 
 const get = async (url: string) => {
   try {
     const res = await fetch(url, {
       credentials: "include",
+      cache: "no-store",
     });
 
     if (res && res.status === 200) {
-      const user: User = await res.json();
-      return user;
+      const data = await res.json();
+      return data;
+    } else if (res.status === 404 || res.status === 401 || res.status === 500) {
+      const { message } = await res.json();
+      return (message as string) || "Something went wrong";
     }
   } catch (err) {
     // do nothing
   }
 };
 
-const patch = async (url: string, body: Body) => {
+const del = async (url: string) => {
   try {
     const res = await fetch(url, {
-      method: "PATCH",
+      method: "DELETE",
       credentials: "include",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(body),
     });
     if (res.status === 200) {
-      const user: User = await res.json();
-      return user;
-    } else if (res.status === 409) {
+      const data: ProfileData = await res.json();
+      return data;
+    } else if (res.status === 409 || res.status === 500 || res.status === 404) {
       const { message } = await res.json();
-      return message as string;
+      return (message as string) || "Something went wrong";
     }
   } catch (err) {
     console.error(err);
   }
 };
 
-export const authApi = {
+export const userApi = {
   post,
   get,
-  patch,
+  del,
 };

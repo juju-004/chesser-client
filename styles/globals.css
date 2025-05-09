@@ -66,6 +66,9 @@ button {
 .timer.active {
   @apply bg-success/15;
 }
+.click {
+  @apply active:opacity-45 opacity-100 duration-200;
+}
 
 .timer.low-time {
   @apply bg-error/15;

@@ -1,4 +1,8 @@
+"use client";
+
 import { useSession } from "@/context/SessionProvider";
+import { useToast } from "@/context/ToastContext";
+import { logout } from "@/lib/auth";
 import {
   IconCoin,
   IconPalette,
@@ -11,21 +15,45 @@ import {
   IconCashBanknote,
   IconHome2,
 } from "@tabler/icons-react";
-import React from "react";
+import { useRouter } from "next/navigation";
+import React, { useState } from "react";
 
 function Menu({ className }: { className?: string }) {
   const session = useSession();
+  const { push, replace } = useRouter();
+  const { toast } = useToast();
+  const [logoutLoader, setlogoutLoader] = useState(false);
+
+  const signOut = () => {
+    setlogoutLoader(true);
+
+    setTimeout(async () => {
+      const user = await logout();
+      if (typeof user === "string") {
+        toast(user, "error");
+        setlogoutLoader(false);
+        return;
+      }
+
+      session?.setUser(null);
+      setTimeout(() => {
+        replace("/auth");
+      }, 200);
+    }, 300);
+  };
 
   const items = [
     {
       text: "Home",
       icon: <IconHome2 className="size-4" />,
       color: "bg-fuchsia-600",
+      action: () => push("/"),
     },
     {
       text: "Players",
       icon: <IconAt className="size-4" />,
       color: "bg-cyan-500",
+      action: () => push("/"),
     },
     {
       text: "Theme",
@@ -37,10 +65,12 @@ function Menu({ className }: { className?: string }) {
     {
       text: "Profile",
       icon: <IconUser className="size-4" />,
+      action: () => push(`/u/${session.user?.name}`),
     },
     {
       text: "Logout",
       icon: <IconPower className="size-4 text-red-600" />,
+      action: signOut,
     },
   ];
 
@@ -90,13 +120,17 @@ function Menu({ className }: { className?: string }) {
         <div className="collapse-content py-0 text-sm">
           <ul className="menu w-full gap-1 px-1">
             {userItems.map((item, key) => (
-              <li className="" key={key}>
-                <a className="">
-                  <span
-                    className={`bg-base-100 size-6 rotate-6 rounded-lg px-1.5 text-white/70`}
-                  >
-                    {item.icon}
-                  </span>
+              <li key={key}>
+                <a onClick={item.action}>
+                  {key && logoutLoader ? (
+                    <span className="fill-error size-4 loading loading-spinner"></span>
+                  ) : (
+                    <span
+                      className={`bg-base-100 size-6 rotate-6 rounded-lg px-1.5 text-white/70`}
+                    >
+                      {item.icon}
+                    </span>
+                  )}
                   <span className="opacity-60">{item.text}</span>
                 </a>
               </li>

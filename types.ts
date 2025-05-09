@@ -90,3 +90,10 @@ export interface Message {
 export interface Session {
   user: User | null;
 }
+
+export type ProfileData = User & {
+  games?: number;
+  online?: boolean;
+  isFriend?: boolean;
+  isBlocked?: boolean;
+};

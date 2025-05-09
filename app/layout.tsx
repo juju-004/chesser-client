@@ -3,6 +3,7 @@ import "@/styles/globals.css";
 import type { ReactNode } from "react";
 import ToastProvider from "@/context/ToastContext";
 import SessionProvider from "@/context/SessionProvider";
+import { SocketProvider } from "@/context/SocketProvider";
 
 export const metadata = {
   description: "Play Chess online.",
@@ -34,7 +35,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html lang="en" className="overflow-x-hidden">
       <body className="overflow-x-hidden">
         <SessionProvider>
-          <ToastProvider>{children}</ToastProvider>
+          <SocketProvider>
+            <ToastProvider>{children}</ToastProvider>
+          </SocketProvider>
         </SessionProvider>
         <script
           id="load-theme"

@@ -10,8 +10,7 @@ import type { GameTimer, Lobby, Message, User } from "@/types";
 import type { Game } from "@/types";
 
 import { Chess } from "chess.js";
-import { API_URL, CLIENT_URL } from "@/config";
-import { io } from "socket.io-client";
+import { CLIENT_URL } from "@/config";
 
 import { lobbyReducer, squareReducer } from "../reducers";
 import { initSocket } from "../socketEvents";
@@ -30,12 +29,12 @@ import PlayerHtml from "../ui/PlayerHtml";
 import Disconnect from "../ui/Disconnect";
 import Board from "./Board";
 import { useRouter } from "next/navigation";
-
-const socket = io(API_URL, { withCredentials: true, autoConnect: false });
+import { useSocket } from "@/context/SocketProvider";
 
 export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
   const session = useSession();
   const router = useRouter();
+  const { socket, isConnected } = useSocket();
 
   const side = currentSide(initialLobby, true);
   const [lobby, updateLobby] = useReducer(lobbyReducer, {
@@ -69,8 +68,7 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
   const { toast } = useToast();
 
   useEffect(() => {
-    if (!session?.user || !session.user?.id) return;
-    socket.connect();
+    if (!socket || !isConnected || !session?.user?.id) return;
 
     if (lobby.pgn && lobby.actualGame.pgn() !== lobby.pgn) {
       syncPgn(lobby.pgn, lobby, {
@@ -94,27 +92,12 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
       mainActions,
     });
 
-    // socket.on("disconnect", () => {
-    //   toast(
-    //     <>
-    //       Connecting <span className="loading loading-bars"></span>
-    //     </>,
-    //     "info"
-    //   );
-
-    //   const isOnline = setInterval(() => {
-    //     if (navigator.onLine) {
-    //       clearInterval(isOnline);
-    //     }
-    //   }, 1000);
-    // });
-
     return () => {
+      socket.emit("leaveLobby", { game: lobby.code });
       socket.removeAllListeners();
-      socket.disconnect();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [socket, isConnected]);
 
   useEffect(() => {
     updateTurnTitle();
@@ -145,7 +128,7 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
         setDraw(false);
       }, 7000);
     } else if (type === "n") {
-      router.push(code as string);
+      router.replace(code as string);
     } else setRematchOffer(true);
   }
 
