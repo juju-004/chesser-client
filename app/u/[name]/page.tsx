@@ -1,49 +1,30 @@
-import { CLIENT_URL } from "@/config";
+"use client";
+
 import { fetchProfileData } from "@/lib/user";
-import { notFound } from "next/navigation";
+import { useEffect, useState } from "react";
 import Profile from "./Profile";
+import { notFound } from "next/navigation";
 
-export async function generateMetadata({
-  params,
-}: {
-  params: { name: string };
-}) {
-  const data = await fetchProfileData(params.name);
-  if (!data) {
-    return {
-      description: "User not found",
-      robots: {
-        index: false,
-        follow: false,
-        nocache: true,
-        noarchive: true,
-      },
+export default function Pro({ params }: { params: { name: string } }) {
+  const [data, setData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadData = async () => {
+      const profileData = await fetchProfileData(params.name);
+      if (!profileData) {
+        notFound();
+      } else {
+        setData(profileData);
+      }
+      setLoading(false);
     };
-  }
-  return {
-    title: `${data.name} | chesser`,
-    description: `${data.name}'s profile`,
-    openGraph: {
-      title: `${data.name} | chesser`,
-      description: `${data.name}'s profile on chesser`,
-      url: `${CLIENT_URL}/u/${data.name}`,
-      siteName: "chesser",
-      locale: "en_US",
-      type: "website",
-    },
-    robots: {
-      index: true,
-      follow: false,
-      nocache: true,
-    },
-  };
-}
 
-export default async function Pro({ params }: { params: { name: string } }) {
-  const data = await fetchProfileData(params.name);
+    loadData();
+  }, [params.name]);
 
-  if (!data) {
-    notFound();
+  if (loading) {
+    return <div>Loading...</div>;
   }
 
   return <Profile data={data} />;

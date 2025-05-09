@@ -73,9 +73,9 @@ function Games({ setIsOpen, name }: { setIsOpen: () => void; name: string }) {
     setGames(g);
   };
 
-  // useEffect(() => {
-  //   !games && getGames();
-  // }, []);
+  useEffect(() => {
+    !games && getGames();
+  }, []);
 
   return (
     <div className="bg-base-100 w-full h-full flex flex-col">

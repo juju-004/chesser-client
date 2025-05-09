@@ -15,7 +15,7 @@ const post = async (url: string, body: Body) => {
       },
       body: JSON.stringify(body),
     });
-    if (res.status === 201) {
+    if (res.status === 200) {
       const data: ProfileData = await res.json();
       return data;
     } else if (res.status === 404 || res.status === 401 || res.status === 500) {

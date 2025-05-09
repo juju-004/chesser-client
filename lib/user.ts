@@ -2,7 +2,7 @@ import { API_URL } from "@/config";
 import { userApi } from "./api/userapi";
 
 export const fetchProfileData = async (name: string) =>
-  userApi.get(`${API_URL}/v1/auth/user/${name}`);
+  userApi.get(`${API_URL}/v1/user/${name}`);
 
 export const fetchUserGames = async (name: string) =>
   userApi.get(`${API_URL}/v1/user/${name}/games`);

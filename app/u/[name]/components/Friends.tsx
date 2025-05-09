@@ -46,9 +46,9 @@ export default function Friends({ setIsOpen }: { setIsOpen: () => void }) {
     setFriends((friends as ProfileData[]).filter((f) => f.id !== id));
   };
 
-  // useEffect(() => {
-  //   !friends && getUserFriends();
-  // }, []);
+  useEffect(() => {
+    !friends && getUserFriends();
+  }, []);
 
   return (
     <div className="bg-base-100 w-full h-full flex flex-col">

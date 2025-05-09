@@ -26,6 +26,8 @@ export const Block = ({
     setDisabled(true);
     const g = isBlocked ? await unBlockUser(id) : await blockUser(id);
 
+    console.log(g);
+
     setDisabled(false);
     if (!g || typeof g === "string") {
       toast(g || "Something went wrong", "error");
@@ -39,7 +41,7 @@ export const Block = ({
     <button
       onClick={updateBlockedUser}
       className={clsx(
-        "bg-base-200 mt-5 px-6 flex click justify-between py-4 gap-2",
+        "bg-base-200 px-6 flex click justify-between py-4 gap-2",
         isBlocked ? "text-gray-400" : "text-error"
       )}
     >

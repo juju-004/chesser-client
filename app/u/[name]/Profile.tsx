@@ -31,8 +31,6 @@ export default function Profile({ data }: Profile) {
   const { toast } = useToast();
   const { replace } = useRouter();
 
-  console.log(profile);
-
   const isUser = session.user?.id === profile.id;
 
   const back = () => {
@@ -60,14 +58,18 @@ export default function Profile({ data }: Profile) {
       <Slider
         isOpen={isOpen ? true : false}
         content={
-          isOpen === "game" ? (
-            <Games
-              name={data.name as string}
-              setIsOpen={() => setisOpen(false)}
-            />
-          ) : (
-            <Friends setIsOpen={() => setisOpen(false)} />
-          )
+          <>
+            {isOpen === "game" && (
+              <Games
+                name={data.name as string}
+                setIsOpen={() => setisOpen(false)}
+              />
+            )}
+
+            {isOpen === "friends" && (
+              <Friends setIsOpen={() => setisOpen(false)} />
+            )}
+          </>
         }
       >
         <div className=" max-w-4xl mx-auto bg-base-100 min-h-screen w-full shadow-lg rounded-2xl">
@@ -80,9 +82,11 @@ export default function Profile({ data }: Profile) {
                     <IconEdit className="absolute left-[105%]" size={15} />
                   )}
                 </h2>
-                <span className="text-xs -mt-0.5 opacity-40">
-                  {profile.email}
-                </span>
+                {isUser && (
+                  <span className="text-xs -mt-0.5 opacity-40">
+                    {profile.email}
+                  </span>
+                )}
               </span>
             }
             onClick={back}
