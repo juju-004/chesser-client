@@ -7,6 +7,7 @@ import {
   IconUsers,
 } from "@tabler/icons-react";
 import clsx from "clsx";
+import Image from "next/image";
 import React from "react";
 
 function Nav({
@@ -35,19 +36,6 @@ function Nav({
       <div className="navbar-end">
         <button className="btn btn-ghost btn-circle">
           <IconUsers size={20} />
-        </button>
-        <button className="btn btn-ghost btn-circle">
-          <label className="swap swap-rotate">
-            {/* this hidden checkbox controls the state */}
-            <input
-              type="checkbox"
-              className="theme-controller"
-              value="synthwave"
-            />
-
-            <IconSun className="swap-off " />
-            <IconMoon className="swap-on" />
-          </label>
         </button>
       </div>
     </div>

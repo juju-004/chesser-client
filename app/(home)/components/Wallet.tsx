@@ -3,6 +3,7 @@
 import { getWallet } from "@/lib/user";
 import { IconEye } from "@tabler/icons-react";
 import { IconEyeCancel } from "@tabler/icons-react";
+import Link from "next/link";
 import React, { useEffect, useState } from "react";
 
 function Wallet() {
@@ -48,7 +49,9 @@ function Wallet() {
         </button>
       )}
       <div className="flex w-full justify-end">
-        <button className="btn btn-ghost bg-base-200">+ Add money</button>
+        <Link href={"/pay"} className="btn btn-ghost bg-base-200">
+          + Add money
+        </Link>
       </div>
     </div>
   );

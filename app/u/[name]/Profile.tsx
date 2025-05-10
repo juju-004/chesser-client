@@ -73,24 +73,19 @@ export default function Profile({ data }: Profile) {
         }
       >
         <div className=" max-w-4xl mx-auto bg-base-100 min-h-screen w-full shadow-lg rounded-2xl">
-          <Subnav
-            text={
-              <span className="flex flex-col">
-                <h2 className="text-xl relative text-gray-300 flex gap-3">
-                  {profile.name}
-                  {isUser && (
-                    <IconEdit className="absolute left-[105%]" size={15} />
-                  )}
-                </h2>
-                {isUser && (
-                  <span className="text-xs -mt-0.5 opacity-40">
-                    {profile.email}
-                  </span>
-                )}
+          <span className="flex flex-col items-start relative px-9 py-2 bg-base-300">
+            <h2 className="text-xl relative text-gray-300 flex gap-3">
+              {profile.name}
+              {isUser && (
+                <IconEdit className="absolute left-[105%]" size={15} />
+              )}
+            </h2>
+            {isUser && (
+              <span className="text-xs -mt-0.5 opacity-40">
+                {profile.email}
               </span>
-            }
-            onClick={back}
-          />
+            )}
+          </span>
           <div className=" bg-base-300 text-sm text-gray-400 w-full flex px-6 pb-6 pt-2 justify-between">
             <span className="flex gap-3 ">
               Wins

@@ -4,6 +4,9 @@ import { userApi } from "./api/userapi";
 export const fetchProfileData = async (name: string) =>
   userApi.get(`${API_URL}/v1/user/${name}`);
 
+export const fetchPlayersByName = async (name: string) =>
+  userApi.get(`${API_URL}/v1/user/players/${name}`);
+
 export const fetchUserGames = async (name: string) =>
   userApi.get(`${API_URL}/v1/user/${name}/games`);
 

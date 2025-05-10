@@ -53,7 +53,7 @@ function Menu({ className }: { className?: string }) {
       text: "Players",
       icon: <IconAt className="size-4" />,
       color: "bg-cyan-500",
-      action: () => push("/"),
+      action: () => push("/players"),
     },
     {
       text: "Theme",
@@ -78,14 +78,17 @@ function Menu({ className }: { className?: string }) {
     {
       text: "Deposit",
       icon: <IconCashBanknote className="size-4" />,
+      action: () => push("/pay"),
     },
     {
       text: "Withdraw",
       icon: <IconCoin className="size-4" />,
+      action: () => push("/pay/withdraw"),
     },
     {
       text: "Transaction History",
       icon: <IconArrowCapsule className="size-4" />,
+      action: () => push("/pay/transactions"),
     },
   ];
 
@@ -142,7 +145,7 @@ function Menu({ className }: { className?: string }) {
         <ul className="menu w-full gap-4 px-5">
           {items.map((item, key) => (
             <li className="" key={key}>
-              <a className="">
+              <a onClick={item.action} className="">
                 <span
                   className={`size-6 rotate-6 rounded-lg px-1.5 ${item.color}`}
                 >
@@ -158,7 +161,7 @@ function Menu({ className }: { className?: string }) {
               <ul>
                 {paymentItems.map((item, key) => (
                   <li className="" key={key}>
-                    <a className="">
+                    <a onClick={item.action} className="">
                       <span
                         className={`bg-base-100 size-6 rotate-6 rounded-lg px-1.5 text-white/70`}
                       >
