@@ -2,25 +2,17 @@
 
 import Menu from "@/app/components/Menu";
 import { Lobby } from "@/types";
-import { IconMenuDeep } from "@tabler/icons-react";
 import React, { ReactNode, useEffect, useRef } from "react";
 import type { Chess } from "chess.js";
 
 interface Menu {
-  children: ReactNode;
   lobby?: Lobby;
   navIndex: number | null;
   navigateMove: Function;
   actualGame: Chess;
 }
 
-function MenuDrawer({
-  lobby,
-  children,
-  actualGame,
-  navIndex,
-  navigateMove,
-}: Menu) {
+function GameNav({ lobby, actualGame, navIndex, navigateMove }: Menu) {
   const moveListRef = useRef<HTMLDivElement>(null);
 
   if (lobby) {
@@ -41,7 +33,7 @@ function MenuDrawer({
       return (
         <button
           className={
-            "btn btn-ghost  h-full font-normal normal-case" +
+            "btn btn-ghost mr-2 h-full font-normal normal-case" +
             ((history.indexOf(move) === history.length - 1 &&
               navIndex === null) ||
             navIndex === history.indexOf(move)
@@ -69,7 +61,7 @@ function MenuDrawer({
     return movePairs.map((moves, i) => {
       return (
         <React.Fragment key={i + 1}>
-          <span className="opacity-25">{i + 1}.</span>
+          <span className="opacity-25 mr-1">{i + 1}.</span>
           {button(moves[0])}
           {moves[1] && button(moves[1])}
         </React.Fragment>
@@ -78,48 +70,25 @@ function MenuDrawer({
   }
 
   return (
-    <div className="drawer">
-      <input id="my-drawer-3" type="checkbox" className="drawer-toggle" />
-      <div className="drawer-content flex flex-col">
-        {/* Navbar */}
-        <div className=" fixed bg-base-100 inset-x-0 top-0 z-50 flex w-full items-center px-4 py-4">
-          <label
-            htmlFor="my-drawer-3"
-            aria-label="open sidebar"
-            className="opacity-50 mr-3"
-          >
-            <IconMenuDeep className="size-6" />
-          </label>
-          {lobby?.pgn?.length ? (
-            <div
-              ref={moveListRef}
-              id="movelist"
-              className=" flex-1 scroll-smooth overflow-x-scroll no-bar h-full"
-            >
-              <div className="flex items-center pl-4" id="scrollable">
-                {getMoveListHtml()}
-              </div>
-            </div>
-          ) : (
-            <div className="opacity-75">
-              {lobby?.timeControl}mins <span className="opacity-55">∘</span> ₦
-              {lobby?.stake}
-            </div>
-          )}
+    <>
+      {lobby?.pgn?.length ? (
+        <div
+          ref={moveListRef}
+          id="movelist"
+          className=" flex-1 scroll-smooth overflow-x-scroll no-bar h-full"
+        >
+          <div className="flex items-center pl-4" id="scrollable">
+            {getMoveListHtml()}
+          </div>
         </div>
-        {/* Page content here */}
-        {children}
-      </div>
-      <div className="drawer-side z-50">
-        <label
-          htmlFor="my-drawer-3"
-          aria-label="close sidebar"
-          className="drawer-overlay"
-        ></label>
-        <Menu className="bg-base-200 w-[80vw]" />
-      </div>
-    </div>
+      ) : (
+        <div className="opacity-75 w-full text-center">
+          {lobby?.timeControl}mins <span className="opacity-55">∘</span> ₦
+          {lobby?.stake}
+        </div>
+      )}
+    </>
   );
 }
 
-export default MenuDrawer;
+export default GameNav;

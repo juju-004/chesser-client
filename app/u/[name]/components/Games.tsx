@@ -5,10 +5,10 @@ import { CLIENT_URL } from "@/config";
 import { useToast } from "@/context/ToastContext";
 import { fetchUserGames } from "@/lib/user";
 import { Game } from "@/types";
-import { IconArrowLeft, IconClock } from "@tabler/icons-react";
+import { IconChess, IconCircle, IconClock } from "@tabler/icons-react";
 import clsx from "clsx";
 import Link from "next/link";
-import React, { ReactElement, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 
 const gameEndText = (winner: Game["winner"], reason?: string) => {
   switch (reason) {
@@ -17,17 +17,26 @@ const gameEndText = (winner: Game["winner"], reason?: string) => {
       break;
 
     case "resigned":
+      reason = `${
+        winner === "white" ? "black" : "white"
+      } ${reason}. ${winner} wins`;
+      break;
+
     case "timeout":
       reason = `${
         winner === "white" ? "black" : "white"
       } ${reason}. ${winner} wins`;
+      break;
 
     case "abandoned":
       reason = `${
         winner === "white" ? "black" : "white"
       } left the game. ${winner} wins`;
+      break;
+
     case "repetition":
       reason = `draw by repitition`;
+      break;
 
     default:
       break;
@@ -86,29 +95,29 @@ function Games({ setIsOpen, name }: { setIsOpen: () => void; name: string }) {
         ) : games.length === 0 ? (
           <p className="text-gray-500">No recent games.</p>
         ) : (
-          <ul className="space-y-2 h-full py-6 overflow-y-scroll overflow-x-hidden w-full">
+          <ul className="space-y-2 h-full pb-20 overflow-y-scroll overflow-x-hidden w-full">
             {games.map((game, index) => (
               <Link
                 href={`${CLIENT_URL}/${game.code as string}`}
                 key={index}
-                className="p-3 bg-base-200 fx flex-col click items-center"
+                className="p-3 even:bg-base-200 odd:bg-base-200/40 fx flex-col click items-center"
               >
                 <div className="fx gap-2 opacity-60 text-sm mb-1">
-                  <span className="fx mt-0.5">₦{game.stake}</span>
-                  <span>|</span>
                   <span className="fx">
                     <IconClock size={14} /> {game.timeControl}mins
                   </span>
+                  <IconCircle size={8} />
+                  <span className="fx mt-0.5">₦{game.stake}</span>
                 </div>
                 <div className="flex items-center gap-6">
-                  <div className="fx flex-col">
+                  <div className="fx gap-2">
+                    <IconChess size={12} className="text-white" />
                     <span className="font-bold">{game.white?.name}</span>
-                    <span className="text-xs opacity-40">{"white"}</span>
                   </div>
                   <span className="opacity-60">vs</span>
-                  <div className=" fx flex-col">
+                  <div className=" fx gap-2">
                     <span className="font-bold">{game.black?.name}</span>
-                    <span className="text-xs opacity-40">{"black"}</span>
+                    <IconChess size={12} className="text-black" />
                   </div>
                 </div>
                 <span

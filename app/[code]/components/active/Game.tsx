@@ -19,7 +19,7 @@ import { CopyLinkButton, ShareButton } from "../CopyLink";
 import Chat from "../ui/Chat";
 import { useToast } from "@/context/ToastContext";
 import MenuOptions, { EndReason, MenuAlert } from "../ui/MenuOptions";
-import MenuDrawer from "../ui/MenuDrawer";
+import MenuDrawer from "../ui/GameNav";
 import { useChessSounds } from "../ui/SoundManager";
 import { useSession } from "@/context/SessionProvider";
 import ArchivedGame from "../archive/Game";
@@ -30,6 +30,8 @@ import Disconnect from "../ui/Disconnect";
 import Board from "./Board";
 import { useRouter } from "next/navigation";
 import { useSocket } from "@/context/SocketProvider";
+import MenuSlider from "@/app/components/MenuSlider";
+import GameNav from "../ui/GameNav";
 
 export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
   const session = useSession();
@@ -68,6 +70,8 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
   const { toast } = useToast();
 
   useEffect(() => {
+    console.log(isConnected);
+
     if (!socket || !isConnected || !session?.user?.id) return;
 
     if (lobby.pgn && lobby.actualGame.pgn() !== lobby.pgn) {
@@ -92,12 +96,14 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
       mainActions,
     });
 
+    socket.emit("joinLobby", lobby.code);
+
     return () => {
       socket.emit("leaveLobby", { game: lobby.code });
       socket.removeAllListeners();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [socket, isConnected]);
+  }, [isConnected]);
 
   useEffect(() => {
     updateTurnTitle();
@@ -377,11 +383,16 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
           />
         </ArchivedGame>
       ) : (
-        <MenuDrawer
-          actualGame={lobby.actualGame}
-          navIndex={navIndex}
-          lobby={lobby}
-          navigateMove={(m: number | null | "prev") => navigateMove(m)}
+        <MenuSlider
+          navClass="fixed z-10"
+          nav={
+            <GameNav
+              actualGame={lobby.actualGame}
+              navIndex={navIndex}
+              lobby={lobby}
+              navigateMove={(m: number | null | "prev") => navigateMove(m)}
+            />
+          }
         >
           <div className="drawer drawer-end">
             <input
@@ -481,7 +492,7 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
               socket={socket}
             />
           </div>
-        </MenuDrawer>
+        </MenuSlider>
       )}
     </>
   );

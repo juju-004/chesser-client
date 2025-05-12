@@ -5,7 +5,6 @@ import { Game } from "@/types";
 import { Chess } from "chess.js";
 import { ReactNode, useEffect, useState } from "react";
 import { Chessboard } from "react-chessboard";
-import MenuDrawer from "../ui/MenuDrawer";
 import { useSession } from "@/context/SessionProvider";
 import { IconHome, IconMenu, IconReload, IconShare } from "@tabler/icons-react";
 import Link from "next/link";
@@ -16,6 +15,8 @@ import Dock from "../ui/Dock";
 import PlayerHtml from "../ui/PlayerHtml";
 import { Socket } from "socket.io-client";
 import { useToast } from "@/context/ToastContext";
+import MenuSlider from "@/app/components/MenuSlider";
+import GameNav from "../ui/GameNav";
 
 export default function ArchivedGame({
   game,
@@ -140,11 +141,16 @@ export default function ArchivedGame({
   }
 
   return (
-    <MenuDrawer
-      actualGame={actualGame}
-      lobby={game as Lobby}
-      navIndex={navIndex}
-      navigateMove={(m: number | null | "prev") => navigateMove(m)}
+    <MenuSlider
+      navClass="fixed z-10"
+      nav={
+        <GameNav
+          actualGame={lobby.actualGame}
+          navIndex={navIndex}
+          lobby={lobby}
+          navigateMove={(m: number | null | "prev") => navigateMove(m)}
+        />
+      }
     >
       <div className="drawer drawer-end">
         <input id="my-drawer-4" type="checkbox" className="drawer-toggle" />
@@ -236,6 +242,6 @@ export default function ArchivedGame({
           />
         )}
       </div>
-    </MenuDrawer>
+    </MenuSlider>
   );
 }

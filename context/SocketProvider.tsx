@@ -7,9 +7,9 @@ import React, {
   useState,
   ReactNode,
 } from "react";
-import { io, Socket } from "socket.io-client";
+import { Socket } from "socket.io-client";
 import { useSession } from "./SessionProvider";
-import { API_URL } from "@/config";
+import { socket } from "./socket";
 
 type SocketContextType = {
   socket: Socket;
@@ -21,24 +21,15 @@ const SocketContext = createContext<SocketContextType | undefined>(undefined);
 export const SocketProvider = ({ children }: { children: ReactNode }) => {
   const session = useSession();
 
-  const socket: Socket = io(API_URL, {
-    withCredentials: true,
-    autoConnect: false,
-  });
   const [isConnected, setIsConnected] = useState(false);
 
   useEffect(() => {
     if (!session?.user?.id) return;
 
-    socket.connect();
+    if (!socket.connected) socket.connect();
 
-    socket.on("connect", () => {
-      setIsConnected(true);
-    });
-
-    socket.on("disconnect", () => {
-      setIsConnected(false);
-    });
+    socket.on("connect", () => setIsConnected(true));
+    socket.on("disconnect", () => setIsConnected(false));
 
     return () => {
       socket.off("connect");

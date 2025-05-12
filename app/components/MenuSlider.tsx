@@ -1,6 +1,6 @@
 "use client";
 
-import { ReactNode, useEffect, useState } from "react";
+import { ReactElement, ReactNode, useEffect, useState } from "react";
 import Nav from "./Nav";
 import Menu from "./Menu";
 import clsx from "clsx";
@@ -8,9 +8,11 @@ import clsx from "clsx";
 export default function MenuSlider({
   children,
   navClass,
+  nav,
 }: {
   children: ReactNode;
   navClass?: string;
+  nav?: ReactElement;
 }) {
   const [isOpen, setIsOpen] = useState(true);
 
@@ -45,7 +47,7 @@ export default function MenuSlider({
             className="inset-0 z-50 absolute bg-black/20"
           ></div>
         )}
-        <Nav clicked={() => setIsOpen(!isOpen)} navClass={navClass} />
+        <Nav nav={nav} clicked={() => setIsOpen(!isOpen)} navClass={navClass} />
         <div className="flex h-screen w-[100vw] flex-col gap-4 overflow-x-hidden overflow-y-scroll">
           {children}
         </div>
