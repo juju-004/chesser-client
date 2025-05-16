@@ -1,8 +1,10 @@
 import { API_URL } from "@/config";
 import { userApi } from "./api/userapi";
+import api, { handler } from "./api";
 
-export const fetchProfileData = async (name: string) =>
-  userApi.get(`${API_URL}/v1/user/${name}`);
+export const fetchProfileData = handler((name: string) =>
+  api.get(`/user/${name}`)
+);
 
 export const fetchPlayersByName = async (name: string) =>
   userApi.get(`${API_URL}/v1/user/players/${name}`);

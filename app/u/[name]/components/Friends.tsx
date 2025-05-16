@@ -142,7 +142,7 @@ export const FriendButton = ({
     <button
       onClick={updateFriend}
       className={clsx(
-        "bg-base-200 mt-5 px-6 flex click justify-between py-4 gap-2",
+        "bg-base-200 px-6 flex click justify-between py-4 gap-2",
         isFriend ? "text-gray-400" : "text-success"
       )}
     >

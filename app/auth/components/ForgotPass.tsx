@@ -3,11 +3,17 @@
 import React, { useState } from "react";
 import FormInput from "./form-input";
 import FormButton from "./form-button";
-import { sendForgotPassMail } from "@/lib/auth";
 import { useToast } from "@/context/ToastContext";
 import { IconSend } from "@tabler/icons-react";
+import { sendMail } from "@/lib/auth";
 
-const ForgotPass = ({ checked, onCheck }: { checked: boolean; onCheck: () => void }) => {
+const ForgotPass = ({
+  checked,
+  onCheck,
+}: {
+  checked: boolean;
+  onCheck: () => void;
+}) => {
   const [disabled, setDisabled] = useState<boolean>(false);
   const [email, setEmail] = useState<string | null>(null);
   const { toast } = useToast();
@@ -18,7 +24,7 @@ const ForgotPass = ({ checked, onCheck }: { checked: boolean; onCheck: () => voi
     const email = formData.get("email2");
 
     setTimeout(async () => {
-      const user = await sendForgotPassMail(email, password);
+      const user = await sendMail(email, password);
       if (typeof user === "string") {
         onCheck();
         setTimeout(() => {
@@ -32,22 +38,29 @@ const ForgotPass = ({ checked, onCheck }: { checked: boolean; onCheck: () => voi
   };
   return (
     <>
-      <input type="checkbox" checked={checked} id="my_modal_7" className="modal-toggle" />
+      <input
+        type="checkbox"
+        checked={checked}
+        id="my_modal_7"
+        className="modal-toggle"
+      />
       <div className="modal modal-bottom sm:modal-middle" role="dialog">
         <div className="modal-box rounded-t-3xl md:rounded-2xl">
           {email ? (
             <div className="flex w-full flex-col items-center justify-center">
-              <span className="fx text-success bg-success/15 size-12 rounded-2xl">
+              <span className="fx text-secondary bg-secondary/15 size-12 rounded-2xl">
                 <IconSend className="size-8" />
               </span>
-              <h3 className="mb-4 mt-1 text-lg opacity-60">Confirm your Email</h3>
+              <h3 className="mb-4 mt-1 text-lg opacity-60">
+                Confirm your Email
+              </h3>
               <span className="text-center">
                 We have sent a password reset link to{" "}
                 <a
                   href="https://mail.google.com"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="link text-sky-400"
+                  className="link text-secondary"
                 >
                   {email}
                 </a>
@@ -62,15 +75,30 @@ const ForgotPass = ({ checked, onCheck }: { checked: boolean; onCheck: () => voi
           ) : (
             <>
               <h3 className="text-lg font-bold">ForgotPassword</h3>
-              <form action={submitAction} className="flex w-full flex-col pb-3 pt-8">
-                <FormInput name={"email2"} type="email" placeholder={"Your email"} />
-                <FormInput name={"password2"} type="password" placeholder={"New password"} />
+              <form
+                action={submitAction}
+                className="flex w-full flex-col pb-3 pt-8"
+              >
+                <FormInput
+                  name={"email2"}
+                  type="email"
+                  placeholder={"Your email"}
+                />
+                <FormInput
+                  name={"password2"}
+                  type="password"
+                  placeholder={"New password"}
+                />
                 <FormButton disabled={disabled} text={"Submit"} />
               </form>
             </>
           )}
         </div>
-        <label onClick={onCheck} className="modal-backdrop" htmlFor="my_modal_7">
+        <label
+          onClick={onCheck}
+          className="modal-backdrop"
+          htmlFor="my_modal_7"
+        >
           Close
         </label>
       </div>

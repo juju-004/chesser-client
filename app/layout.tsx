@@ -7,6 +7,7 @@ import { SocketProvider } from "@/context/SocketProvider";
 
 export const metadata = {
   description: "Play Chess online.",
+  title: "chesser",
   openGraph: {
     title: "chesser",
     description: "Play Chess online.",
@@ -23,32 +24,23 @@ export const metadata = {
   },
   icons: {
     icon: [
-      { type: "image/png", sizes: "32x32", url: "/favicon-32x32.png" },
-      { type: "image/png", sizes: "16x16", url: "/favicon-16x16.png" },
+      { type: "image/png", sizes: "32x32", url: "/logo32x32.svg" },
+      { type: "image/png", sizes: "16x16", url: "/logo32x32.svg" },
     ],
-    apple: { url: "/apple-touch-icon.png", sizes: "180x180" },
+    apple: { url: "/logo32x32.svg", sizes: "180x180" },
   },
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
+  // document.documentElement.setAttribute("data-theme", "dark");
   return (
-    <html lang="en" className="overflow-x-hidden">
+    <html lang="en" data-theme="dark" className="overflow-x-hidden">
       <body className="overflow-x-hidden">
         <SessionProvider>
           <SocketProvider>
             <ToastProvider>{children}</ToastProvider>
           </SocketProvider>
         </SessionProvider>
-        <script
-          id="load-theme"
-          dangerouslySetInnerHTML={{
-            __html: `if (localStorage.theme === "dark" || (!("theme" in localStorage) && window.matchMedia("(prefers-color-scheme: dark)").matches)) {
-              document.documentElement.setAttribute("data-theme", "chessuDark");
-          } else {
-              document.documentElement.setAttribute("data-theme", "chessuLight");
-          }`,
-          }}
-        ></script>
       </body>
     </html>
   );

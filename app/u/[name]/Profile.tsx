@@ -15,9 +15,8 @@ import Games from "./components/Games";
 import { useToast } from "@/context/ToastContext";
 import { logout } from "@/lib/auth";
 import { useRouter } from "next/navigation";
-import Subnav from "@/app/components/Subnav";
 import Friends, { FriendButton } from "./components/Friends";
-import { Block } from "./components/Block";
+import Image from "next/image";
 
 interface Profile {
   data: ProfileData;
@@ -32,10 +31,6 @@ export default function Profile({ data }: Profile) {
   const { replace } = useRouter();
 
   const isUser = session.user?.id === profile.id;
-
-  const back = () => {
-    window.history.back();
-  };
 
   const signOut = () => {
     setlogoutLoader(true);
@@ -142,19 +137,22 @@ export default function Profile({ data }: Profile) {
               </>
             ) : (
               <>
+                <button className=" bg-base-200 mt-5 click px-6 flex text-cyan-500 justify-between py-4 gap-2">
+                  Challenge
+                  <Image
+                    src={"/battle.svg"}
+                    alt=""
+                    width={50}
+                    height={50}
+                    className="size-6 text-gray-400"
+                  />
+                </button>
                 <FriendButton
                   id={profile.id as string}
                   updateProfile={(p) =>
                     setProfile({ ...profile, isFriend: p.isFriend })
                   }
                   isFriend={profile.isFriend}
-                />
-                <Block
-                  id={profile.id as string}
-                  updateProfile={(p) =>
-                    setProfile({ ...profile, isBlocked: p.isBlocked })
-                  }
-                  isBlocked={profile.isBlocked}
                 />
               </>
             )}

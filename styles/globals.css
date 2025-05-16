@@ -3,10 +3,22 @@
   themes: dark --default;
 }
 
+:root {
+  --color-primary: #c23a84;
+  --color-secondary: #00e6f4;
+  --color-accent: #0047f4;
+}
+
 @theme {
   --font-jose-reg: "JoseR";
   --font-jose-bold: "JoseB";
-  --color-c1: oklch(0.792 0.209 151.711);
+
+  --color-primary: #c23a84;
+  --color-primary-content: oklch(98% 0.01 240);
+  --color-secondary: #00e6f4;
+  --color-secondary-content: oklch(98% 0.01 200);
+  --color-accent: #0047f4;
+  --color-accent-content: oklch(98% 0.01 160);
 }
 
 @font-face {
@@ -26,7 +38,7 @@ button {
   font-family: "JoseR";
 }
 .grad1 {
-  @apply bg-gradient-to-r from-green-500 to-sky-600;
+  @apply bg-gradient-to-r from-accent to-secondary hover:opacity-100 opacity-85 active:scale-90 duration-200;
 }
 
 .input:focus,

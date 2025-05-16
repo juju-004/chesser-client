@@ -1,7 +1,7 @@
 "use client";
 
 import { useToast } from "@/context/ToastContext";
-import { resendMail } from "@/lib/auth";
+import { sendMail } from "@/lib/auth";
 import { IconSend } from "@tabler/icons-react";
 import React, { useEffect, useState } from "react";
 
@@ -26,11 +26,11 @@ function Mailsend({ email }: { email: string | null }) {
 
     setTimeout(async () => {
       const mail = email as string;
-      const data = await resendMail(mail);
+      const data = await sendMail(mail);
       if (typeof data === "string") {
         toast(data, "error");
-      } else if (data?.message) {
-        toast(data.message, "success");
+      } else if (data?.email) {
+        toast("Mail sent successfully", "success");
 
         setTime(60);
       }
@@ -40,8 +40,8 @@ function Mailsend({ email }: { email: string | null }) {
   };
 
   return (
-    <div className="fx bg-base-300/40 mt-12 w-full max-w-md flex-col rounded-3xl px-8 pb-6 text-center">
-      <span className="fx text-success bg-success/15 h-16 w-16 -translate-y-1/2 rounded-2xl">
+    <div className="fx mx-auto bg-base-300/40 shadow-md mt-12 w-full max-w-md flex-col rounded-3xl px-8 pb-6 text-center">
+      <span className="fx text-secondary bg-secondary/15 h-16 w-16 -translate-y-1/2 rounded-2xl">
         <IconSend className="size-8" />
       </span>
       <div>
@@ -56,15 +56,16 @@ function Mailsend({ email }: { email: string | null }) {
         </a>{" "}
         to activate your account
       </div>
-
-      <span className="mt-4 text-white/25">Didnt get one?</span>
+      <span className="mb-5 mt-2 text-white/50">Didnt get one?</span>
       <button
         disabled={loading ? true : time ? true : false}
-        className={`btn btn-soft btn-success fx disabled:btn-neutral mt-1 disabled:text-white/40`}
+        className={`btn btn-soft btn-secondary fx disabled:btn-neutral mt-1 disabled:text-white/40`}
         onClick={submitAction}
       >
-        {loading && <span className="loading loading-spinner loading-sm mr-0.5"></span>} Resend{" "}
-        {time ? `in ${time}s` : ""}
+        {loading && (
+          <span className="loading loading-spinner loading-sm mr-0.5"></span>
+        )}{" "}
+        Resend {time ? `in ${time}s` : ""}
       </button>
     </div>
   );
