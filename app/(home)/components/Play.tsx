@@ -13,14 +13,14 @@ function Play() {
       text: "Create game",
       id: "my_modal_3",
       icon: (size = "size-[15vw]") => (
-        <IconChessBishopFilled className={`${size} text-fuchsia-600`} />
+        <IconChessBishopFilled className={`${size} text-primary`} />
       ),
     },
     {
       text: "Join game",
       id: "my_modal_2",
       icon: (size = "size-[15vw]") => (
-        <IconChessKing className={`${size} text-cyan-500`} />
+        <IconChessKing className={`${size} text-secondary`} />
       ),
     },
   ];

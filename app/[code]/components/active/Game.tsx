@@ -70,8 +70,6 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
   const { toast } = useToast();
 
   useEffect(() => {
-    console.log(isConnected);
-
     if (!socket || !isConnected || !session?.user?.id) return;
 
     if (lobby.pgn && lobby.actualGame.pgn() !== lobby.pgn) {

@@ -4,6 +4,7 @@ import { ReactElement, ReactNode, useEffect, useState } from "react";
 import Nav from "./Nav";
 import Menu from "./Menu";
 import clsx from "clsx";
+import Notifications from "./Notifications";
 
 export default function MenuSlider({
   children,
@@ -52,6 +53,7 @@ export default function MenuSlider({
           {children}
         </div>
       </main>
+      <Notifications.Modal />
     </div>
   );
 }

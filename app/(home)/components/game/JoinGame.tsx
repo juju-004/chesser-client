@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-import { fetchActiveGame } from "@/lib/game";
+import { fetchGame } from "@/lib/game";
 import { useToast } from "@/context/ToastContext";
 import Button from "./button";
 import { useSession } from "@/context/SessionProvider";
@@ -31,7 +31,7 @@ export default function JoinGame() {
     }
 
     setTimeout(async () => {
-      const game = await fetchActiveGame(code);
+      const game = await fetchGame(code);
 
       if (game && game.code) {
         router.push(`/${game.code}`);

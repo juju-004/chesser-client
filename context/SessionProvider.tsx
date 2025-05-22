@@ -5,6 +5,7 @@ import { createContext, useContext, useEffect, useState } from "react";
 
 import { fetchSession } from "@/lib/auth";
 import { User } from "@/types";
+import Loading from "@/app/components/Loading";
 
 type SessionContextType = {
   user: User | null;
@@ -28,15 +29,7 @@ export default function SessionProvider({ children }: { children: ReactNode }) {
 
   return (
     <SessionContext.Provider value={{ user, setUser }}>
-      {user === undefined ? (
-        <div className="animate-fadein absolute inset-0 z-40">
-          <div className="absolute inset-0 flex items-center justify-center">
-            <span className="loading text-c2 loading-spinner loading-xl"></span>
-          </div>
-        </div>
-      ) : (
-        <>{children}</>
-      )}
+      {user === undefined ? <Loading /> : <>{children}</>}
     </SessionContext.Provider>
   );
 }

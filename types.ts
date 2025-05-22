@@ -36,6 +36,7 @@ export interface Game {
 }
 
 export interface User {
+  _id?: number | string; // string for guest IDs
   id?: number | string; // string for guest IDs
   name?: string | null;
   email?: string;
@@ -95,5 +96,12 @@ export type ProfileData = User & {
   games?: number;
   online?: boolean;
   isFriend?: boolean;
-  isBlocked?: boolean;
 };
+
+export interface FriendRequest {
+  from: Partial<User>; // sender ID
+  to: Partial<User>; // receiver ID
+  status: "pending" | "rejected" | "accepted";
+  createdAt?: string;
+  updatedAt?: string;
+}

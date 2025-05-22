@@ -2,15 +2,16 @@
 
 import { useSession } from "@/context/SessionProvider";
 import { useToast } from "@/context/ToastContext";
-import { addFriend, fetchUserFriends, removeFriend } from "@/lib/user";
-import { ProfileData } from "@/types";
-import React, { useEffect, useState } from "react";
+import { fetchUserFriends, unFriend } from "@/lib/user";
+import { FriendRequest, ProfileData } from "@/types";
+import React, { useEffect, useRef, useState } from "react";
 import Subnav from "@/app/components/Subnav";
 import { IconReload, IconUserMinus, IconUserPlus } from "@tabler/icons-react";
 import clsx from "clsx";
 import Link from "next/link";
+import { useSocket } from "@/context/SocketProvider";
 
-export default function Friends({ setIsOpen }: { setIsOpen: () => void }) {
+function Page({ setIsOpen }: { setIsOpen: () => void }) {
   const [friends, setFriends] = useState<
     null | ProfileData[] | undefined | "error"
   >(null);
@@ -33,7 +34,7 @@ export default function Friends({ setIsOpen }: { setIsOpen: () => void }) {
 
   const unfriend = async (id: string) => {
     setisLoading(true);
-    const g = await removeFriend(id);
+    const g = await unFriend(id);
 
     setisLoading(false);
     console.log(g);
@@ -112,7 +113,7 @@ export default function Friends({ setIsOpen }: { setIsOpen: () => void }) {
   );
 }
 
-export const FriendButton = ({
+function AddButton({
   updateProfile,
   isFriend,
   id,
@@ -120,37 +121,98 @@ export const FriendButton = ({
   updateProfile: (p: ProfileData) => void;
   isFriend?: boolean;
   id: string;
-}) => {
+}) {
   const { toast } = useToast();
   const [disabled, setDisabled] = useState(false);
+  const session = useSession();
+  const { socket } = useSocket();
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [unFriendLoading, setUnFriendLoading] = useState(false);
 
-  const updateFriend = async () => {
-    if (disabled) return;
-    setDisabled(true);
-    const g = isFriend ? await removeFriend(id) : await addFriend(id);
-
-    setDisabled(false);
-    if (!g || typeof g === "string") {
-      toast(g || "Something went wrong", "error");
-      return;
+  useEffect(() => {
+    if (disabled) {
+      timeoutRef.current = setTimeout(() => {
+        setDisabled(false);
+      }, 20000);
     }
 
-    updateProfile(g);
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current); // cleanup on unmount or dependency change
+    };
+  }, [disabled]);
+
+  const cancelTimeout = () => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
   };
+
+  const addFriend = () => {
+    try {
+      setDisabled(true);
+      if (session.user?.id === id) return;
+
+      socket.emit("send_friend_request", {
+        from: session.user?.id,
+        to: id,
+      });
+    } catch (error) {
+      cancelTimeout();
+      toast("Could'nt send request", "error");
+    }
+  };
+
+  socket.on("friend_request_responded", (request: FriendRequest) => {
+    if (request.status === "accepted") {
+      updateProfile({ isFriend: true });
+    }
+    toast(
+      `${request.to.name} ${request.status} your friend request`,
+      request.status === "accepted" ? "success" : "error"
+    );
+    cancelTimeout();
+  });
+
+  const updateFriend = async () => {
+    setUnFriendLoading(true);
+    try {
+      const g = await unFriend(id);
+
+      toast(g.message, "info");
+      updateProfile({ isFriend: false });
+    } catch (error) {
+      toast("Something went wrong", "error");
+    }
+    setUnFriendLoading(false);
+  };
+
+  useEffect(() => {
+    setTimeout(() => {
+      setDisabled(false);
+    }, 20000);
+  }, [disabled]);
 
   return (
     <button
-      onClick={updateFriend}
+      onClick={isFriend ? updateFriend : addFriend}
       className={clsx(
         "bg-base-200 px-6 flex click justify-between py-4 gap-2",
-        isFriend ? "text-gray-400" : "text-success"
+        isFriend || disabled ? "text-gray-400" : "text-secondary"
       )}
+      disabled={disabled || unFriendLoading}
     >
       {isFriend ? (
         <>
           <span>Unfriend</span>
-          <IconUserMinus size={18} />
+          {unFriendLoading ? (
+            <span className="loading loading-spinner loading-sm"></span>
+          ) : (
+            <IconUserMinus size={18} />
+          )}
         </>
+      ) : disabled ? (
+        <>Waiting for reply...</>
       ) : (
         <>
           <span>Add friend</span>
@@ -159,4 +221,10 @@ export const FriendButton = ({
       )}
     </button>
   );
+}
+
+const Friends = {
+  Page,
+  AddButton,
 };
+export default Friends;

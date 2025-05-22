@@ -1,8 +1,8 @@
-"use client";
-
-import { IconMenuDeep, IconUsers } from "@tabler/icons-react";
+import { IconBell, IconMenuDeep, IconUsers } from "@tabler/icons-react";
 import clsx from "clsx";
+import Image from "next/image";
 import React, { ReactElement } from "react";
+import Notifications from "./Notifications";
 
 function Nav({
   clicked,
@@ -20,30 +20,45 @@ function Nav({
         navClass || " bg-base-100 shadow-sm"
       )}
     >
-      <div className=" w-auto navbar-start">
+      <div className={clsx("navbar-start", nav && "w-auto")}>
         <button
           onClick={(e) => {
             e.stopPropagation();
             clicked();
           }}
-          className="btn btn-ghost btn-circle"
+          className="btn btn-ghost text-secondary btn-circle"
         >
           <IconMenuDeep />
         </button>
       </div>
-      <div className="overflow-hidden navbar-center w-auto !flex-1">
+      <div
+        className={clsx(
+          "overflow-hidden navbar-center ",
+          nav ? "!flex-1 w-auto" : ""
+        )}
+      >
         {nav ? (
           nav
         ) : (
           <span className="w-full text-center fx">
-            <a className="btn btn-ghost text-xl ">Chesser</a>
+            <a className="btn fx btn-ghost text-xl">
+              <Image
+                width={32}
+                height={32}
+                alt=""
+                className="-mt-2"
+                src={"/logo32x32.svg"}
+              />
+              <span className="-ml-2.5">hesser</span>
+            </a>
           </span>
         )}
       </div>
-      <div className="navbar-end w-auto pl-2">
+      <div className={clsx("navbar-end", nav && "w-auto")}>
         <button className="btn btn-ghost btn-circle">
           <IconUsers size={20} />
         </button>
+        <Notifications.Button />
       </div>
     </div>
   );

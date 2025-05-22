@@ -1,5 +1,6 @@
 import { CLIENT_URL } from "@/config";
-import { fetchProfileData } from "@/lib/user";
+import { fetchUserData } from "@/lib/user";
+import { notFound } from "next/navigation";
 import { ReactNode } from "react";
 
 export async function generateMetadata({
@@ -7,7 +8,7 @@ export async function generateMetadata({
 }: {
   params: { name: string };
 }) {
-  const data = await fetchProfileData(params.name);
+  const data = await fetchUserData(params.name);
   if (!data) {
     return {
       description: "User not found",
@@ -38,6 +39,16 @@ export async function generateMetadata({
   };
 }
 
-export default async function Layout({ children }: { children: ReactNode }) {
+export default async function Layout({
+  children,
+  params,
+}: {
+  params: { name: string };
+  children: ReactNode;
+}) {
+  const data = await fetchUserData(params.name);
+
+  if (!data?.id) notFound();
+
   return <>{children}</>;
 }
