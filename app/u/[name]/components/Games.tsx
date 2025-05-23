@@ -88,7 +88,10 @@ function Games({ setIsOpen, name }: { setIsOpen: () => void; name: string }) {
 
   return (
     <div className="bg-base-100 w-full h-full flex flex-col">
-      <Subnav onClick={() => setIsOpen()} text={`${name + "'s"} Games`} />
+      <Subnav
+        onClick={() => setIsOpen()}
+        text={`My Games (${games?.length})`}
+      />
       <div className="flex h overflow-y-scroll flex-1 w-full justify-center">
         {!games ? (
           <span className="loading loading-dots text-info"></span>

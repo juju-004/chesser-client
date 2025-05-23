@@ -118,12 +118,12 @@ function Modal() {
 
   useEffect(() => {
     const onReceive = (request: FriendRequest) => {
-      document.getElementById("ind")?.classList.remove("badge-soft");
-      document.getElementById("ind")?.classList.remove("hidden");
+      document.getElementById("ind")?.classList.remove("badge-soft", "hidden");
 
-      const n = notifications?.filter((v) => v.from.name !== request.from.name);
-
-      setNotifications([...n, request]);
+      setNotifications((prev) => [
+        ...prev.filter((n) => n.from.name !== request.from.name),
+        request,
+      ]);
     };
     const onRespond = (request: FriendRequest) => {
       setNotifications([...notifications, request]);

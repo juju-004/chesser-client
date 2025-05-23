@@ -5,6 +5,7 @@ import Nav from "./Nav";
 import Menu from "./Menu";
 import clsx from "clsx";
 import Notifications from "./Notifications";
+import FriendStatus from "./FriendStatus";
 
 export default function MenuSlider({
   children,
@@ -54,6 +55,7 @@ export default function MenuSlider({
         </div>
       </main>
       <Notifications.Modal />
+      <FriendStatus.Modal />
     </div>
   );
 }

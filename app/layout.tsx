@@ -5,6 +5,7 @@ import ToastProvider from "@/context/ToastContext";
 import SessionProvider from "@/context/SessionProvider";
 import { SocketProvider } from "@/context/SocketProvider";
 import NotificationsProvider from "@/context/NotificationsContext";
+import FriendsProvider from "@/context/FriendsContext";
 
 export const metadata = {
   description: "Play Chess online.",
@@ -40,7 +41,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <SessionProvider>
           <SocketProvider>
             <ToastProvider>
-              <NotificationsProvider>{children}</NotificationsProvider>
+              <FriendsProvider>
+                <NotificationsProvider>{children}</NotificationsProvider>
+              </FriendsProvider>
             </ToastProvider>
           </SocketProvider>
         </SessionProvider>

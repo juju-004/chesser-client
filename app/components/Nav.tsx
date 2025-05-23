@@ -1,8 +1,9 @@
-import { IconBell, IconMenuDeep, IconUsers } from "@tabler/icons-react";
+import { IconMenuDeep } from "@tabler/icons-react";
 import clsx from "clsx";
 import Image from "next/image";
 import React, { ReactElement } from "react";
 import Notifications from "./Notifications";
+import FriendStatus from "./FriendStatus";
 
 function Nav({
   clicked,
@@ -55,9 +56,7 @@ function Nav({
         )}
       </div>
       <div className={clsx("navbar-end", nav && "w-auto")}>
-        <button className="btn btn-ghost btn-circle">
-          <IconUsers size={20} />
-        </button>
+        <FriendStatus.Button />
         <Notifications.Button />
       </div>
     </div>

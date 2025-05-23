@@ -95,7 +95,6 @@ export interface Session {
 export type ProfileData = User & {
   games?: number;
   online?: boolean;
-  isFriend?: boolean;
 };
 
 export interface FriendRequest {

@@ -1,27 +1,26 @@
 import api, { handler } from "./api";
 
-export const fetchProfileData = (name: string) =>
+export const fetchUserData = (name: string) =>
   handler(() => api.get(`user/${name}`));
 
-export const fetchUserData = (name: string) =>
-  handler(() => api.get(`user/data/${name}`));
-
 export const fetchPlayersByName = async (name: string) =>
-  handler(() => api.get(`user/players/${name}`));
+  handler(() => api.get(`user/${name}/players`));
 
 export const fetchUserGames = async (name: string) =>
   handler(() => api.get(`user/${name}/games`));
 
-export const fetchUserFriends = async (name: string) =>
-  handler(() => api.get(`user/${name}/friends`));
+export const getWallet = async () => handler(() => api.get(`auth/wallet`));
 
+// Notifications
 export const fetchNotifications = async () =>
   handler(() => api.get(`notification`));
 
 export const clearNotifications = async () =>
   handler(() => api.delete(`notification`));
 
+// Friends
 export const unFriend = async (friendId: string) =>
-  handler(() => api.delete(`user/friends/${friendId}`));
+  handler(() => api.delete(`friends/${friendId}`));
 
-export const getWallet = async () => handler(() => api.get(`auth/wallet`));
+export const fetchUserFriends = async (id: string) =>
+  handler(() => api.get(`friends/${id}`));
