@@ -32,6 +32,14 @@ function Modal() {
   const { updateFriendStatus, getOnlineFriends } = useFriends();
   const { socket } = useSocket();
 
+  const close = (id: string) => {
+    localStorage.setItem("c:to", id);
+
+    (
+      document.getElementById("challengeModalMain") as HTMLDialogElement
+    )?.showModal();
+  };
+
   useEffect(() => {
     socket.on("friend_status_changed", ({ userId, isOnline }) => {
       updateFriendStatus(userId, isOnline);
@@ -71,7 +79,7 @@ function Modal() {
                 </Link>
                 <div>
                   <button
-                    // onClick={() => unfriend(friend.id as string)}
+                    onClick={() => close(friend.id as string)}
                     className="btn-circle btn btn-ghost"
                   >
                     <IconSwords size={18} />

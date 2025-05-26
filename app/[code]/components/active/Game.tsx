@@ -19,7 +19,6 @@ import { CopyLinkButton, ShareButton } from "../CopyLink";
 import Chat from "../ui/Chat";
 import { useToast } from "@/context/ToastContext";
 import MenuOptions, { EndReason, MenuAlert } from "../ui/MenuOptions";
-import MenuDrawer from "../ui/GameNav";
 import { useChessSounds } from "../ui/SoundManager";
 import { useSession } from "@/context/SessionProvider";
 import ArchivedGame from "../archive/Game";
@@ -70,7 +69,9 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
   const { toast } = useToast();
 
   useEffect(() => {
-    if (!socket || !isConnected || !session?.user?.id) return;
+    console.log("yess");
+
+    if (!socket || !session?.user?.id) return;
 
     if (lobby.pgn && lobby.actualGame.pgn() !== lobby.pgn) {
       syncPgn(lobby.pgn, lobby, {
@@ -81,8 +82,9 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
     }
 
     syncSide(session.user, undefined, lobby, { updateLobby });
+    socket.emit("joinLobby", lobby.code);
 
-    initSocket(session.user, socket, lobby, {
+    const cleanupSocket = initSocket(session.user, socket, lobby, {
       updateLobby,
       addMessage,
       updateCustomSquares,
@@ -94,14 +96,13 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
       mainActions,
     });
 
-    socket.emit("joinLobby", lobby.code);
-
     return () => {
-      socket.emit("leaveLobby", { game: lobby.code });
-      socket.removeAllListeners();
+      cleanupSocket();
+      socket.emit("leaveLobby", lobby.code);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isConnected]);
+  }, []);
+
+  // useEffect(() => {}, [isConnected]);
 
   useEffect(() => {
     updateTurnTitle();
@@ -370,7 +371,12 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
       </dialog>
 
       {lobby.endReason ? (
-        <ArchivedGame game={lobby} socket={socket} chatDot={chatDot}>
+        <ArchivedGame
+          isNotOpen={true}
+          game={lobby}
+          socket={socket}
+          chatDot={chatDot}
+        >
           <Chat
             id="my-drawer-4"
             addMessage={addMessage}

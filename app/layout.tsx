@@ -39,13 +39,13 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html lang="en" data-theme="dark" className="overflow-x-hidden">
       <body className="overflow-x-hidden">
         <SessionProvider>
-          <SocketProvider>
-            <ToastProvider>
+          <ToastProvider>
+            <SocketProvider>
               <FriendsProvider>
                 <NotificationsProvider>{children}</NotificationsProvider>
               </FriendsProvider>
-            </ToastProvider>
-          </SocketProvider>
+            </SocketProvider>
+          </ToastProvider>
         </SessionProvider>
       </body>
     </html>

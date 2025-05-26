@@ -6,20 +6,23 @@ import Menu from "./Menu";
 import clsx from "clsx";
 import Notifications from "./Notifications";
 import FriendStatus from "./FriendStatus";
+import Challenge from "./Challenge";
 
 export default function MenuSlider({
   children,
   navClass,
   nav,
+  isNotOpen,
 }: {
   children: ReactNode;
   navClass?: string;
   nav?: ReactElement;
+  isNotOpen?: boolean;
 }) {
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(isNotOpen ? false : true);
 
   useEffect(() => {
-    setIsOpen(false);
+    isOpen && setIsOpen(false);
   }, []);
 
   return (
@@ -56,6 +59,8 @@ export default function MenuSlider({
       </main>
       <Notifications.Modal />
       <FriendStatus.Modal />
+      <Challenge.Modal />
+      <Challenge.ModalMain />
     </div>
   );
 }

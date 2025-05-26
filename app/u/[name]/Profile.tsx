@@ -7,8 +7,10 @@ import Slider from "@/app/components/Slider";
 import { useSession } from "@/context/SessionProvider";
 import {
   IconChevronRight,
+  IconCircleFilled,
   IconEdit,
   IconPower,
+  IconSwords,
   IconUsers,
 } from "@tabler/icons-react";
 import Games from "./components/Games";
@@ -18,6 +20,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Friends from "./components/Friends";
 import { useFriends } from "@/context/FriendsContext";
+import clsx from "clsx";
 
 export default function Profile({ data }: { data: ProfileData }) {
   const session = useSession();
@@ -25,7 +28,7 @@ export default function Profile({ data }: { data: ProfileData }) {
   const [logoutLoader, setlogoutLoader] = useState(false);
   const { toast } = useToast();
   const { replace } = useRouter();
-  const { isFriend } = useFriends();
+  const { isFriend, isFriendOnline } = useFriends();
 
   const isUser = session.user?.id === data.id;
   const isUserFriend = isFriend(data.id as string);
@@ -44,6 +47,14 @@ export default function Profile({ data }: { data: ProfileData }) {
       session?.setUser(null);
       replace("/auth");
     }, 300);
+  };
+
+  const challenge = () => {
+    localStorage.setItem("c:to", data.id as string);
+
+    (
+      document.getElementById("challengeModalMain") as HTMLDialogElement
+    )?.showModal();
   };
 
   return (
@@ -67,7 +78,10 @@ export default function Profile({ data }: { data: ProfileData }) {
       >
         <div className=" max-w-4xl mx-auto bg-base-100 min-h-screen w-full shadow-lg rounded-2xl">
           <span className="flex flex-col items-start relative px-9 py-2 bg-base-300">
-            <h2 className="text-xl relative text-gray-300 flex gap-3">
+            <h2 className="text-xl relative items-center text-gray-300 flex gap-2">
+              {isFriendOnline(data.id as string) && (
+                <IconCircleFilled size={15} className={"text-green-500"} />
+              )}
               {data.name}
               {isUser && (
                 <IconEdit className="absolute left-[105%]" size={15} />
@@ -133,15 +147,12 @@ export default function Profile({ data }: { data: ProfileData }) {
             ) : (
               <>
                 {isUserFriend && (
-                  <button className=" bg-base-200 mt-5 click px-6 flex text-cyan-500 justify-between py-4 gap-2">
+                  <button
+                    onClick={challenge}
+                    className=" bg-base-200 mt-5 click px-6 flex text-cyan-500 justify-between py-4 gap-2"
+                  >
                     Challenge
-                    <Image
-                      src={"/svg/battle.svg"}
-                      alt=""
-                      width={50}
-                      height={50}
-                      className="size-6 text-gray-400"
-                    />
+                    <IconSwords size={20} />
                   </button>
                 )}
                 <Friends.AddButton

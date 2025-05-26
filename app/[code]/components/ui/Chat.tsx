@@ -66,7 +66,7 @@ function Chat({
     <div className="drawer-side z-50">
       <label
         htmlFor={id}
-        onClick={setChatDot && setChatDot()}
+        onClick={() => setChatDot && setChatDot()}
         aria-label="close sidebar"
         className="drawer-overlay"
       ></label>

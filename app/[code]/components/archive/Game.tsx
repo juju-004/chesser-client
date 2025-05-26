@@ -23,11 +23,13 @@ export default function ArchivedGame({
   chatDot,
   children,
   socket,
+  isNotOpen,
 }: {
   game: Game;
   chatDot: boolean;
   children?: ReactNode;
   socket?: Socket;
+  isNotOpen?: boolean;
 }) {
   const session = useSession();
   const [boardWidth, setBoardWidth] = useState(480);
@@ -143,6 +145,7 @@ export default function ArchivedGame({
   return (
     <MenuSlider
       navClass="fixed z-10"
+      isNotOpen={isNotOpen}
       nav={
         <GameNav
           actualGame={lobby.actualGame}

@@ -4,6 +4,7 @@ import Image from "next/image";
 import React, { ReactElement } from "react";
 import Notifications from "./Notifications";
 import FriendStatus from "./FriendStatus";
+import Challenge from "./Challenge";
 
 function Nav({
   clicked,
@@ -27,7 +28,7 @@ function Nav({
             e.stopPropagation();
             clicked();
           }}
-          className="btn btn-ghost text-secondary btn-circle"
+          className="btn btn-ghost btn-circle"
         >
           <IconMenuDeep />
         </button>
@@ -56,6 +57,7 @@ function Nav({
         )}
       </div>
       <div className={clsx("navbar-end", nav && "w-auto")}>
+        <Challenge.Button />
         <FriendStatus.Button />
         <Notifications.Button />
       </div>

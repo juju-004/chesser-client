@@ -199,7 +199,7 @@ function Modal() {
                     </div>
                   </div>
                 ) : (
-                  <div className="flex flex-col italic py-3 px-4">
+                  <div key={key} className="flex flex-col italic py-3 px-4">
                     <span className="text-base ">
                       <Link
                         href={`/u/${n.to.name}`}

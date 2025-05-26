@@ -25,31 +25,41 @@ export function initSocket(
     playSound: (type: SoundType, isOpponent?: boolean) => void;
   }
 ) {
-  socket.on("offerdraw", () => {
+  const listeners: { event: string; handler: (...args: any[]) => void }[] = [];
+
+  const on = (event: string, handler: (...args: any[]) => void) => {
+    socket.on(event, handler);
+    listeners.push({ event, handler });
+  };
+
+  on("offerdraw", () => {
     actions.mainActions("d");
   });
 
-  socket.on("rematch", () => {
+  on("rematch", () => {
     actions.mainActions("r");
   });
 
-  socket.on("newGameCode", (code: string) => {
+  on("newGameCode", (code: string) => {
     actions.mainActions("n", code);
   });
 
-  socket.on("connect", () => {
+  on("connect", () => {
     socket.emit("joinLobby", lobby.code);
   });
+  on("disconnect", () => {
+    socket.emit("leaveLobby", lobby.code);
+  });
 
-  socket.on("chat", (message: Message) => {
+  on("chat", (message: Message) => {
     actions.addMessage(message);
   });
 
-  socket.on("updateLobby", (game: Game) => {
+  on("updateLobby", (game: Game) => {
     actions.updateLobby({ type: "updateLobby", payload: game });
   });
 
-  socket.on("receivedLatestGame", (latestGame: Game) => {
+  on("receivedLatestGame", (latestGame: Game) => {
     if (latestGame.pgn && latestGame.pgn !== lobby.actualGame.pgn()) {
       syncPgn(latestGame.pgn, lobby, actions);
     }
@@ -64,21 +74,18 @@ export function initSocket(
     syncSide(user, latestGame, lobby, actions);
   });
 
-  socket.on("timeUpdate", (timer: GameTimer) => {
+  on("timeUpdate", (timer: GameTimer) => {
     actions.updateClock(timer);
   });
 
-  socket.on(
-    "receivedMove",
-    (m: { from: string; to: string; promotion?: string }) => {
-      const success = actions.makeMove(m, true);
-      if (!success) {
-        socket.emit("getLatestGame");
-      }
+  on("receivedMove", (m: { from: string; to: string; promotion?: string }) => {
+    const success = actions.makeMove(m, true);
+    if (!success) {
+      socket.emit("getLatestGame");
     }
-  );
+  });
 
-  socket.on(
+  on(
     "userJoinedAsPlayer",
     ({ name, side }: { name: string; side: "white" | "black" }) => {
       actions.addMessage({
@@ -89,7 +96,7 @@ export function initSocket(
     }
   );
 
-  socket.on(
+  on(
     "gameOver",
     ({
       winnerName,
@@ -155,4 +162,11 @@ export function initSocket(
       actions.addMessage(m);
     }
   );
+
+  // Return a cleanup function
+  return () => {
+    for (const { event, handler } of listeners) {
+      socket.off(event, handler);
+    }
+  };
 }
