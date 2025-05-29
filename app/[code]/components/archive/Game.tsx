@@ -20,16 +20,10 @@ import GameNav from "../ui/GameNav";
 
 export default function ArchivedGame({
   game,
-  chatDot,
   children,
-  socket,
-  isNotOpen,
 }: {
   game: Game;
-  chatDot: boolean;
   children?: ReactNode;
-  socket?: Socket;
-  isNotOpen?: boolean;
 }) {
   const session = useSession();
   const [boardWidth, setBoardWidth] = useState(480);
@@ -48,7 +42,9 @@ export default function ArchivedGame({
   const [perspective, setPerspective] = useState<"black" | "white">(
     lobby.side === "b" ? "black" : "white"
   );
-  const [chatDotArchive, setchatDotArchive] = useState<boolean>(chatDot);
+  const [chatDotArchive, setchatDotArchive] = useState<boolean>(
+    game.chat ? (game.chat.length > 0 ? true : false) : false
+  );
 
   useEffect(() => {
     setBoardWidth(window.innerWidth);
@@ -118,34 +114,25 @@ export default function ArchivedGame({
     return color === "black" ? blackHtml : whiteHtml;
   }
 
-  function currentSide(lobby: Lobby | Game) {
-    if (lobby.white?.id === session.user?.id) {
-      return lobby.white;
-    } else if (lobby.black?.id === session.user?.id) {
-      return lobby.black;
-    } else return null;
-  }
+  // function sendRematch() {
+  //   if (!rematch && socket) {
+  //     console.log(currentSide(game)?.wallet as number);
 
-  function sendRematch() {
-    if (!rematch && socket) {
-      console.log(currentSide(game)?.wallet as number);
+  //     if (
+  //       Math.sign((currentSide(game)?.wallet as number) - game.stake) === -1
+  //     ) {
+  //       toast("Insufficient funds", "error");
+  //       return;
+  //     }
 
-      if (
-        Math.sign((currentSide(game)?.wallet as number) - game.stake) === -1
-      ) {
-        toast("Insufficient funds", "error");
-        return;
-      }
-
-      setRematch(true);
-      socket.emit("rematch");
-    }
-  }
+  //     setRematch(true);
+  //     socket.emit("rematch");
+  //   }
+  // }
 
   return (
     <MenuSlider
       navClass="fixed z-10"
-      isNotOpen={isNotOpen}
       nav={
         <GameNav
           actualGame={lobby.actualGame}
@@ -203,21 +190,19 @@ export default function ArchivedGame({
                         Home
                       </Link>
                     </li>
-                    {socket && (
-                      <li>
-                        <button
-                          onClick={sendRematch}
-                          className="active:opacity-25 text-info opacity-100 duration-300"
-                        >
-                          {rematch ? (
-                            <span className="loading loading-spinner size-5"></span>
-                          ) : (
-                            <IconReload className="size-4" />
-                          )}
-                          Rematch
-                        </button>
-                      </li>
-                    )}
+                    {/* <li>
+                         <button
+                           onClick={sendRematch}
+                           className="active:opacity-25 text-info opacity-100 duration-300"
+                         >
+                           {rematch ? (
+                             <span className="loading loading-spinner size-5"></span>
+                           ) : (
+                             <IconReload className="size-4" />
+                           )}
+                           Rematch
+                         </button>
+                       </li> */}
                     <li>
                       <ShareButton className="active:opacity-25 opacity-100 duration-300">
                         <IconShare className="size-4" />
