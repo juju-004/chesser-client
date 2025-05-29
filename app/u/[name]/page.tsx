@@ -1,7 +1,6 @@
 import { CLIENT_URL } from "@/config";
 import { fetchUserData } from "@/lib/user";
 import { notFound } from "next/navigation";
-import { ReactNode } from "react";
 import Profile from "./Profile";
 
 export async function generateMetadata({
@@ -40,13 +39,7 @@ export async function generateMetadata({
   };
 }
 
-export default async function Page({
-  children,
-  params,
-}: {
-  params: { name: string };
-  children: ReactNode;
-}) {
+export default async function Page({ params }: { params: { name: string } }) {
   const data = await fetchUserData(params.name);
 
   if (!data?.id) notFound();
