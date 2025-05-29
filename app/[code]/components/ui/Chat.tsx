@@ -4,29 +4,23 @@ import { IconMessage2, IconSend2 } from "@tabler/icons-react";
 import React, { useEffect, useRef } from "react";
 import type { FormEvent, KeyboardEvent } from "react";
 
-import type { Lobby, Message, Session } from "@/types";
-import type { Socket } from "socket.io-client";
+import type { Lobby, Message, Session, User } from "@/types";
 import { useSession } from "@/context/SessionProvider";
+import { useSocket } from "@/context/SocketProvider";
+import { useRoom } from "../GameRoom";
 
 interface ChatInterface {
-  lobby?: Lobby;
-  socket?: Socket;
   addMessage?: Function;
   chatMessages: Message[];
   id: string;
   setChatDot: Function;
 }
 
-function Chat({
-  id,
-  lobby,
-  socket,
-  addMessage,
-  chatMessages,
-  setChatDot,
-}: ChatInterface) {
+function Chat({ id, addMessage, chatMessages, setChatDot }: ChatInterface) {
+  const { socket } = useSocket();
   const session = useSession();
   const chatListRef = useRef<HTMLUListElement>(null);
+  const { connectedUsers, isUserAPlayer } = useRoom();
 
   useEffect(() => {
     const chatList = chatListRef.current;
@@ -74,7 +68,7 @@ function Chat({
       {/* ! Chat */}
       <div className="bg-base-200 text-base-content flex min-h-full w-[90%] flex-col p-4">
         <header className="flex w-full justify-center gap-1 pb-3">
-          Chat <IconMessage2 className="text-sky-600" />
+          Chat <IconMessage2 className="text-accent" />
         </header>
         <div className="bg-base-300 flex h-full w-full min-w-[64px] flex-1 flex-col overflow-y-scroll rounded-lg p-4 shadow-sm">
           <ul
@@ -95,10 +89,10 @@ function Chat({
                       }`}
                     >
                       <div
-                        className={`chat-bubble ${
+                        className={`chat-bubble text-white ${
                           m.author.name === session?.user?.name
-                            ? "chat-bubble-primary "
-                            : "chat-bubble-secondary"
+                            ? "chat-bubble-accent "
+                            : "chat-bubble-neutral"
                         }`}
                       >
                         {m.message}
@@ -110,9 +104,13 @@ function Chat({
             })}
           </ul>
         </div>
-        {lobby && lobby.observers && lobby.observers.length > 0 && (
+        {}
+        {connectedUsers && (
           <div className="w-full px-2 text-xs md:px-0">
-            Spectators: {lobby.observers?.map((o) => o.name).join(", ")}
+            Spectators:{" "}
+            {connectedUsers.map(
+              (c) => !isUserAPlayer(c.id as string) && <>{c.name}</>
+            )}
           </div>
         )}
         {socket && (
@@ -127,7 +125,7 @@ function Chat({
               required
             />
             <button
-              className="btn btn-square ml-1 rounded-2xl bg-sky-600"
+              className="btn btn-square ml-1 rounded-2xl bg-accent"
               type="submit"
             >
               <IconSend2 />

@@ -64,10 +64,10 @@ export default function GameOver({
     setDisabled(true);
     socket.emit("rematch", {
       stake: game.stake,
-      host: game.host,
       timeControl: game.timeControl,
       white: game.white,
       black: game.black,
+      code: game.code,
     } as Game);
   };
 

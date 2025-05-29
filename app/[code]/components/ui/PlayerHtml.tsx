@@ -1,6 +1,11 @@
+"use client";
+
 import { Lobby } from "@/types";
 import React from "react";
 import { ActiveChessTimer, ChessTimer } from "./Timer";
+import { useSocket } from "@/context/SocketProvider";
+import Link from "next/link";
+import { useRoom } from "../GameRoom";
 
 interface PlayerProps {
   color: "black" | "white";
@@ -9,28 +14,22 @@ interface PlayerProps {
 }
 
 function PlayerHtml({ time, color, lobby }: PlayerProps) {
+  const { isConnected } = useSocket();
+  const { isUserConnected } = useRoom();
   const isActive =
     (lobby.actualGame.turn() === "b" ? "black" : "white") === color;
+
   return (
     <div className="relative ml-3 flex items-center justify-between gap-4">
       <div className="flex w-full flex-col justify-center">
-        <a
-          className={
-            (lobby[color]?.name ? "font-bold" : "") +
-            (typeof lobby[color]?.id === "number"
-              ? " text-primary link-hover"
-              : " cursor-default")
-          }
-          href={
-            typeof lobby[color]?.id === "number"
-              ? `/user/${lobby[color]?.name}`
-              : undefined
-          }
+        <Link
+          className={lobby[color]?.id ? "click link-hover" : " cursor-default"}
+          href={lobby[color]?.id ? `/user/${lobby[color]?.name}` : "#"}
           target="_blank"
           rel="noopener noreferrer"
         >
           {lobby[color]?.name || "(no one)"}
-        </a>
+        </Link>
         <span className="flex items-center gap-1 text-xs">
           <span className="opacity-65">{color}</span>
           {lobby?.winner && lobby.winner === color && (
@@ -38,8 +37,15 @@ function PlayerHtml({ time, color, lobby }: PlayerProps) {
               winner
             </span>
           )}
-          {lobby[color]?.connected === false && (
-            <span className="badge badge-xs badge-error">disconnected</span>
+          {lobby[color]?.name && (
+            <>
+              {!isConnected ||
+                (!isUserConnected(lobby[color]?.id as string) && (
+                  <span className="badge badge-xs badge-error">
+                    disconnected
+                  </span>
+                ))}
+            </>
           )}
         </span>
       </div>

@@ -22,17 +22,13 @@ export interface Game {
     | "timeout"
     | "resigned"
     | "aborted";
-  host?: User;
   code?: string;
-  unlisted?: boolean;
   timeout?: number;
-  observers?: User[];
   startedAt?: number;
   endedAt?: number;
   timer?: GameTimer;
   timeControl: number; // in minutes
   stake: number;
-  chat?: Message[];
 }
 
 export interface User {
@@ -44,11 +40,10 @@ export interface User {
   losses?: number;
   draws?: number;
   verified?: boolean;
+  isHost?: boolean;
 
   // mainly for players, not spectators
   wallet?: number;
-  connected?: boolean;
-  disconnectedOn?: number;
   offersDraw?: number;
 }
 

@@ -7,6 +7,7 @@ import { User } from "@/types";
 import { useRouter } from "next/navigation";
 import { CLIENT_URL } from "@/config";
 import { useToast } from "@/context/ToastContext";
+import { useChessSounds } from "../[code]/components/ui/SoundManager";
 
 export type ChallengeData = {
   id: string;
@@ -41,10 +42,12 @@ function Modal() {
   const [challenge, setChallenge] = useState<ChallengeData | null>(null);
   const router = useRouter();
   const [disabled, setDisabled] = useState(false);
+  const { playSound } = useChessSounds();
 
   useEffect(() => {
     socket.on("challenge:received", (challenge) => {
       document.getElementById("cbtn")?.classList.remove("hidden");
+      playSound("notify");
       setChallenge(challenge);
     });
 

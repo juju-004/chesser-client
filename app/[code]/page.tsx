@@ -3,6 +3,7 @@ import { fetchGame } from "@/lib/game";
 import { notFound } from "next/navigation";
 import ArchivedGame from "./components/archive/Game";
 import { CLIENT_URL } from "@/config";
+import { isHost } from "@/lib/helpers";
 
 export async function generateMetadata({
   params,
@@ -10,6 +11,7 @@ export async function generateMetadata({
   params: { code: string };
 }) {
   const game = await fetchGame(params.code);
+
   if (!game) {
     return {
       description: "Game not found",
@@ -21,6 +23,8 @@ export async function generateMetadata({
       },
     };
   }
+
+  const host = isHost(game);
 
   if (game.endReason) {
     return {
@@ -39,13 +43,13 @@ export async function generateMetadata({
     };
   } else {
     return {
-      title: `Challenge from ${game.host?.name} | chesser`,
-      description: `${game.timeControl} mins - ₦${game.stake} | Play or watch a game with ${game.host?.name}`,
+      title: `Challenge from ${host?.name} | chesser`,
+      description: `${game.timeControl} mins - ₦${game.stake} | Play or watch a game with ${host?.name}`,
       type: "website",
       url: `${CLIENT_URL}/${game.code}`,
       openGraph: {
         title: "chesser",
-        description: `${game.timeControl} mins - ₦${game.stake} | Play or watch a game with ${game.host?.name}`,
+        description: `${game.timeControl} mins - ₦${game.stake} | Play or watch a game with ${host?.name}`,
         url: `${CLIENT_URL}/${game.code}`,
         siteName: "chesser",
         locale: "en_US",

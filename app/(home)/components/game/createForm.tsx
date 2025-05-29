@@ -1,3 +1,5 @@
+"use client";
+
 import { useSession } from "@/context/SessionProvider";
 import React, { ReactElement } from "react";
 import Button from "./button";

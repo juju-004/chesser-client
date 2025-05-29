@@ -43,23 +43,12 @@ export function initSocket(
   on("newGameCode", (code: string) => {
     actions.mainActions("n", code);
   });
-
-  on("connect", () => {
-    socket.emit("joinLobby", lobby.code);
-  });
-  on("disconnect", () => {
-    socket.emit("leaveLobby", lobby.code);
-  });
-
   on("chat", (message: Message) => {
     actions.addMessage(message);
   });
 
-  on("updateLobby", (game: Game) => {
-    actions.updateLobby({ type: "updateLobby", payload: game });
-  });
-
-  on("receivedLatestGame", (latestGame: Game) => {
+  on("game:update", (latestGame: Game) => {
+    syncSide(user, latestGame, lobby, actions);
     if (latestGame.pgn && latestGame.pgn !== lobby.actualGame.pgn()) {
       syncPgn(latestGame.pgn, lobby, actions);
     }
@@ -70,23 +59,30 @@ export function initSocket(
       black: latestGame.timer?.black || 0,
     };
     actions.updateClock(timer);
-
-    syncSide(user, latestGame, lobby, actions);
   });
 
-  on("timeUpdate", (timer: GameTimer) => {
+  on("lobby:update", (latestGame: Game) => {
+    actions.updateLobby({ type: "updateLobby", payload: latestGame });
+  });
+
+  on("time:update", (timer: GameTimer) => {
     actions.updateClock(timer);
   });
 
-  on("receivedMove", (m: { from: string; to: string; promotion?: string }) => {
-    const success = actions.makeMove(m, true);
-    if (!success) {
-      socket.emit("getLatestGame");
+  on(
+    "move:update",
+    (
+      m: { from: string; to: string; promotion?: string },
+      timer?: GameTimer
+    ) => {
+      const success = actions.makeMove(m, true);
+      if (timer) actions.updateClock(timer);
+      if (!success) socket.emit("game:get_game");
     }
-  });
+  );
 
   on(
-    "userJoinedAsPlayer",
+    "game:joined_as_player",
     ({ name, side }: { name: string; side: "white" | "black" }) => {
       actions.addMessage({
         author: { name: "server" },
@@ -97,7 +93,7 @@ export function initSocket(
   );
 
   on(
-    "gameOver",
+    "game:over",
     ({
       winnerName,
       winnerSide,

@@ -17,14 +17,16 @@ export default function CreateGame() {
       disabled={disabled}
       exec={async (s, t, a) => {
         setdisabled(true);
-        const game = await createGame(s, t, a);
+        setTimeout(async () => {
+          const game = await createGame(s, t, a);
 
-        if (typeof game === "string") {
-          toast(game, "error");
-          setdisabled(false);
-        } else if (game) {
-          router.push(`/${game.code}`);
-        }
+          if (typeof game === "string") {
+            toast(game, "error");
+            setdisabled(false);
+          } else if (game) {
+            router.push(`/${game.code}`);
+          }
+        }, 500);
       }}
     />
   );
