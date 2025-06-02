@@ -65,7 +65,7 @@ export default async function Game({ params }: { params: { code: string } }) {
   if (!game) notFound();
 
   return game.endReason ? (
-    <ArchivedGame game={game} chatDot={game.chat?.length ? true : false} />
+    <ArchivedGame game={game} />
   ) : (
     <GameAuthWrapper initialLobby={game} />
   );

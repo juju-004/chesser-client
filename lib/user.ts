@@ -1,3 +1,4 @@
+import { Preference } from "@/context/PreferenceProvider";
 import api, { handler } from "./api";
 
 export const fetchUserData = (name: string) =>
@@ -24,3 +25,10 @@ export const unFriend = async (friendId: string) =>
 
 export const fetchUserFriends = async (id: string) =>
   handler(() => api.get(`friends/${id}`));
+
+// Preferences
+
+export const fetchPref = async () => handler(() => api.get(`preference`));
+
+export const updatePref = async (data: Preference) =>
+  handler(() => api.patch(`preference`, data));

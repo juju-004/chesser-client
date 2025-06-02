@@ -110,7 +110,7 @@ export function Reconnect({ lobby }: DisconnectProps) {
   const { socket, isConnected } = useSocket();
 
   useEffect(() => {
-    socket.io.on("reconnect", () => {
+    socket.on("reconnect", () => {
       socket.emit("game:join", lobby.code);
     });
 
@@ -119,5 +119,14 @@ export function Reconnect({ lobby }: DisconnectProps) {
     };
   }, []);
 
-  return !isConnected && !lobby.endReason ? <div></div> : <></>;
+  return !isConnected && !lobby.endReason ? (
+    <div className="fixed z-[99] fx rounded-xl inset-x-0 top-5">
+      <div role="alert" className="alert bg-base-300">
+        Connecting{" "}
+        <span className="loading loading-bars loading-sm text-accent"></span>
+      </div>
+    </div>
+  ) : (
+    <></>
+  );
 }

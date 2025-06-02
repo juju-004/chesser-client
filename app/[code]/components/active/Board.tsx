@@ -1,8 +1,34 @@
+import { PieceSet } from "@/app/preferences/components/Piece";
+import { themes } from "@/app/preferences/components/Theme";
+import { usePreference } from "@/context/PreferenceProvider";
 import { CustomSquares, Lobby } from "@/types";
 import { Chess, Move, Square } from "chess.js";
 import React, { Dispatch, useEffect, useMemo, useState } from "react";
 import { Chessboard } from "react-chessboard";
 import { Socket } from "socket.io-client";
+
+const pieceTypes = ["K", "Q", "R", "B", "N", "P"];
+const colors = ["w", "b"];
+
+export const createLocalPieceSet = (style: PieceSet) => {
+  const pieces: { [key: string]: () => JSX.Element } = {};
+
+  for (const color of colors) {
+    for (const type of pieceTypes) {
+      const id = `${color}${type}`;
+      pieces[id] = () => (
+        <img
+          src={`/piece/${style}/${id}.svg`} // Assumes public folder
+          alt={id}
+          style={{ width: "100%", height: "100%" }}
+          draggable={false}
+        />
+      );
+    }
+  }
+
+  return pieces;
+};
 
 interface BoardProps {
   lobby: Lobby;
@@ -32,9 +58,13 @@ export default function Board({
   const [moveFrom, setMoveFrom] = useState<string | Square | null>(null);
 
   const [boardWidth, setBoardWidth] = useState(480);
+  const { userPreference } = usePreference();
+
+  const pieces = userPreference && createLocalPieceSet(userPreference.pieceset);
   const [premove, setPremove] = useState<{ from: Square; to: Square } | null>(
     null
   );
+
   const premoveFen = useMemo(() => {
     if (lobby.side === "s") return lobby.actualGame;
     const fenParts = lobby.actualGame.fen().split(" ");
@@ -218,8 +248,12 @@ export default function Board({
   return (
     <Chessboard
       boardWidth={boardWidth}
-      customDarkSquareStyle={{ backgroundColor: "#4b7399" }}
-      customLightSquareStyle={{ backgroundColor: "#eae9d2" }}
+      customDarkSquareStyle={{
+        backgroundColor: themes[userPreference?.theme || "default"][0],
+      }}
+      customLightSquareStyle={{
+        backgroundColor: themes[userPreference?.theme || "default"][1],
+      }}
       position={navFen || lobby.actualGame.fen()}
       boardOrientation={
         lobby.side === "b"
@@ -252,6 +286,7 @@ export default function Board({
               ...(navIndex === null ? customSquares.check : {}),
             }),
       }}
+      customPieces={pieces}
     />
   );
 }

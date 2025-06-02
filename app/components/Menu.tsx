@@ -5,8 +5,8 @@ import { useToast } from "@/context/ToastContext";
 import { logout } from "@/lib/auth";
 import {
   IconCoin,
-  IconPalette,
   IconPower,
+  IconSettings,
   IconUser,
 } from "@tabler/icons-react";
 import {
@@ -52,13 +52,14 @@ function Menu({ className }: { className?: string }) {
     {
       text: "Players",
       icon: <IconAt className="size-4" />,
-      color: "bg-cyan-500",
+      color: "bg-red-600",
       action: () => push("/players"),
     },
     {
-      text: "Theme",
-      icon: <IconPalette className="size-4" />,
-      color: "bg-red-600",
+      text: "Preferences",
+      icon: <IconSettings className="size-4" />,
+      color: "bg-accent",
+      action: () => push("/preferences"),
     },
   ];
   const userItems = [
@@ -95,9 +96,6 @@ function Menu({ className }: { className?: string }) {
   const customerItems = [
     {
       text: "Make Complaint",
-    },
-    {
-      text: "Support",
     },
     {
       text: "Terms & conditions",

@@ -6,6 +6,7 @@ import SessionProvider from "@/context/SessionProvider";
 import { SocketProvider } from "@/context/SocketProvider";
 import NotificationsProvider from "@/context/NotificationsContext";
 import FriendsProvider from "@/context/FriendsContext";
+import PreferenceProvider from "@/context/PreferenceProvider";
 
 export const metadata = {
   description: "Play Chess online.",
@@ -39,13 +40,15 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html lang="en" data-theme="dark" className="overflow-x-hidden">
       <body className="overflow-x-hidden">
         <SessionProvider>
-          <ToastProvider>
-            <SocketProvider>
-              <FriendsProvider>
-                <NotificationsProvider>{children}</NotificationsProvider>
-              </FriendsProvider>
-            </SocketProvider>
-          </ToastProvider>
+          <PreferenceProvider>
+            <ToastProvider>
+              <SocketProvider>
+                <FriendsProvider>
+                  <NotificationsProvider>{children}</NotificationsProvider>
+                </FriendsProvider>
+              </SocketProvider>
+            </ToastProvider>
+          </PreferenceProvider>
         </SessionProvider>
       </body>
     </html>

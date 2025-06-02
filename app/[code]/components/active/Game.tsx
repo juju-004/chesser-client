@@ -24,7 +24,7 @@ import { useSession } from "@/context/SessionProvider";
 import GameOver from "../ui/GameOver";
 import Dock from "../ui/Dock";
 import PlayerHtml from "../ui/PlayerHtml";
-import { Disconnect } from "../ui/Connection";
+import { Disconnect, Reconnect } from "../ui/Connection";
 import Board from "./Board";
 import { useRouter } from "next/navigation";
 import { useSocket } from "@/context/SocketProvider";
@@ -364,6 +364,7 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
           />
         }
       >
+        <Reconnect lobby={lobby} />
         <div className="drawer drawer-end">
           <input id="my-drawer-45" type="checkbox" className="drawer-toggle" />
           <div className="drawer-content">
