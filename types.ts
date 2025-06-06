@@ -48,9 +48,11 @@ export interface User {
   offersDraw?: number;
 }
 
+export type Side = "b" | "w" | "s";
+
 export interface Lobby extends Game {
   actualGame: Chess;
-  side: "b" | "w" | "s";
+  side: Side;
 }
 
 export interface CustomSquares {

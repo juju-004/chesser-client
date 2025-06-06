@@ -19,7 +19,6 @@ export function initSocket(
       m: { from: string; to: string; promotion?: string },
       opponent?: boolean
     ) => boolean;
-    mainActions: (type: "r" | "d" | "n", code?: string) => void;
     setNavFen: Dispatch<SetStateAction<string | null>>;
     setNavIndex: Dispatch<SetStateAction<number | null>>;
     playSound: (type: SoundType, isOpponent?: boolean) => void;
@@ -32,17 +31,6 @@ export function initSocket(
     listeners.push({ event, handler });
   };
 
-  on("offerdraw", () => {
-    actions.mainActions("d");
-  });
-
-  on("rematch", () => {
-    actions.mainActions("r");
-  });
-
-  on("newGameCode", (code: string) => {
-    actions.mainActions("n", code);
-  });
   on("chat", (message: Message) => {
     actions.addMessage(message);
   });
@@ -62,6 +50,8 @@ export function initSocket(
   });
 
   on("lobby:update", (latestGame: Game) => {
+    console.log(latestGame);
+
     actions.updateLobby({ type: "updateLobby", payload: latestGame });
   });
 

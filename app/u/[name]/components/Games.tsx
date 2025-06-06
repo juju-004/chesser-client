@@ -2,6 +2,7 @@
 
 import Subnav from "@/app/components/Subnav";
 import { CLIENT_URL } from "@/config";
+import { useSession } from "@/context/SessionProvider";
 import { useToast } from "@/context/ToastContext";
 import { fetchUserGames } from "@/lib/user";
 import { Game } from "@/types";
@@ -70,6 +71,7 @@ function formatDateToFriendly(dateString?: number) {
 function Games({ setIsOpen, name }: { setIsOpen: () => void; name: string }) {
   const [games, setGames] = useState<null | Game[] | undefined>(null);
   const { toast } = useToast();
+  const session = useSession();
 
   const getGames = async () => {
     const g = await fetchUserGames(name);
@@ -90,13 +92,15 @@ function Games({ setIsOpen, name }: { setIsOpen: () => void; name: string }) {
     <div className="bg-base-100 w-full h-full flex flex-col">
       <Subnav
         onClick={() => setIsOpen()}
-        text={`My Games (${games?.length})`}
+        text={`${session.user?.name === name ? "My" : `${name}'s`} Games ${
+          games ? "(" + games?.length + ")" : ""
+        }`}
       />
       <div className="flex h overflow-y-scroll flex-1 w-full justify-center">
         {!games ? (
           <span className="loading loading-dots text-info"></span>
         ) : games.length === 0 ? (
-          <p className="text-gray-500">No recent games.</p>
+          <p className="text-gray-500 mt-2 text-base">No recent games.</p>
         ) : (
           <ul className="space-y-2 h-full pb-20 overflow-y-scroll overflow-x-hidden w-full">
             {games.map((game, index) => (

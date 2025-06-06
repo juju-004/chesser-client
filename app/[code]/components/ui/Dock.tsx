@@ -6,17 +6,18 @@ import { IconChevronLeft } from "@tabler/icons-react";
 import { IconRotateRectangle } from "@tabler/icons-react";
 import { Chess } from "chess.js";
 import clsx from "clsx";
+import { BoardOrientation } from "react-chessboard/dist/chessboard/types";
 
 interface DockType {
   actualGame: Chess;
-  perspective: boolean | "white" | "black";
-  setPerspective: Function;
+  perspective: BoardOrientation;
   chatDot: boolean;
   setchatDot: Function;
   navIndex: number | null;
   navigateMove: Function;
   children: ReactNode;
   htmlFor: string;
+  setPerspective: (p: BoardOrientation) => void;
 }
 
 function Dock({
@@ -50,17 +51,11 @@ function Dock({
       </button>
       <button
         className={clsx(
-          perspective ? "rotate-180" : "rotate-0",
-          "transition-all duration-300 "
+          perspective === "white" ? "rotate-180" : "rotate-0",
+          "duration-200 "
         )}
         onClick={() =>
-          setPerspective(
-            typeof perspective === "boolean"
-              ? !perspective
-              : perspective === "white"
-              ? "black"
-              : "white"
-          )
+          setPerspective(perspective === "white" ? "black" : "white")
         }
       >
         <IconRotateRectangle />

@@ -1,12 +1,11 @@
 "use client";
-// TODO: restructure, i could use some help with this :>
 
 import type { FormEvent } from "react";
 
-import React, { useEffect, useReducer, useState } from "react";
+import React, { useEffect, useMemo, useReducer, useState } from "react";
 import { clsx } from "clsx";
 
-import type { GameTimer, Lobby, Message, User } from "@/types";
+import type { GameTimer, Lobby, Message, Session, Side, User } from "@/types";
 import type { Game } from "@/types";
 
 import { Chess } from "chess.js";
@@ -15,7 +14,7 @@ import { CLIENT_URL } from "@/config";
 import { lobbyReducer, squareReducer } from "../reducers";
 import { initSocket } from "../socketEvents";
 import { lobbyStatus, userWalletCheck } from "../utils";
-import { CopyLinkButton, ShareButton } from "../CopyLink";
+import { CopyLinkButton, ShareButton } from "../ui/CopyLink";
 import Chat from "../ui/Chat";
 import { useToast } from "@/context/ToastContext";
 import MenuOptions, { EndReason, MenuAlert } from "../ui/MenuOptions";
@@ -23,26 +22,37 @@ import { useChessSounds } from "../ui/SoundManager";
 import { useSession } from "@/context/SessionProvider";
 import GameOver from "../ui/GameOver";
 import Dock from "../ui/Dock";
-import PlayerHtml from "../ui/PlayerHtml";
 import { Disconnect, Reconnect } from "../ui/Connection";
-import Board from "./Board";
-import { useRouter } from "next/navigation";
 import { useSocket } from "@/context/SocketProvider";
 import MenuSlider from "@/app/components/MenuSlider";
 import GameNav from "../ui/GameNav";
-import { RoomProvider } from "../GameRoom";
+import { RoomProvider } from "../context/GameRoom";
+import { BoardOrientation } from "react-chessboard/dist/chessboard/types";
+import ActiveBoard from "../ui/boards/active";
+
+export function currentSide(lobby: Lobby | Game, session: Session) {
+  if (lobby.white?.id === session.user?.id) {
+    return { user: lobby.white as User, color: "white" };
+  } else if (lobby.black?.id === session.user?.id) {
+    return { user: lobby.black as User, color: "black" };
+  } else return null;
+}
 
 export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
   const session = useSession();
-  const router = useRouter();
   const { socket } = useSocket();
 
-  const side = currentSide(initialLobby, true);
+  const thisuser = currentSide(initialLobby, session);
   const [lobby, updateLobby] = useReducer(lobbyReducer, {
     ...initialLobby,
     actualGame: new Chess(),
-    side: typeof side === "string" ? side : "s",
+    side: thisuser ? (thisuser?.color[0] as Side) : "s",
   });
+  const thisPlayer = useMemo(
+    () => currentSide(lobby, session),
+    [lobby.black, lobby.white]
+  );
+
   const [customSquares, updateCustomSquares] = useReducer(squareReducer, {
     options: {},
     lastMove: {},
@@ -59,11 +69,10 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
     black: initialLobby.timeControl * 60 * 1000,
   });
 
-  const [perspective, setPerspective] = useState<boolean>(false);
+  const [perspective, setPerspective] = useState<BoardOrientation>(
+    thisPlayer ? (thisPlayer.color as BoardOrientation) : "white"
+  );
   const [chatDot, setchatDot] = useState<boolean>(false);
-  const [draw, setDraw] = useState<boolean>(false);
-  const [disabled, setDisabled] = useState<boolean>(false);
-  const [rematchOffer, setRematchOffer] = useState<boolean>(false);
 
   const { playSound } = useChessSounds();
   const { toast } = useToast();
@@ -80,7 +89,6 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
       setNavIndex,
       updateClock,
       playSound,
-      mainActions,
     });
 
     return () => {
@@ -108,17 +116,6 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
     } else {
       document.title = "chesser";
     }
-  }
-
-  function mainActions(type: "r" | "d" | "n", code?: string) {
-    if (type === "d") {
-      setDraw(true);
-      setTimeout(() => {
-        setDraw(false);
-      }, 7000);
-    } else if (type === "n") {
-      router.replace(code as string);
-    } else setRematchOffer(true);
   }
 
   function updateClock(clock: GameTimer) {
@@ -210,34 +207,6 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
     socket.emit("joinAsPlayer");
   }
 
-  function getPlayerHtml(side: "top" | "bottom", perspective: boolean) {
-    const blackHtml = (
-      <PlayerHtml time={clock.black} color="black" lobby={lobby} />
-    );
-
-    const whiteHtml = (
-      <PlayerHtml time={clock.white} color="white" lobby={lobby} />
-    );
-
-    if (lobby.black?.id === session?.user?.id) {
-      return side === "top"
-        ? perspective
-          ? blackHtml
-          : whiteHtml
-        : perspective
-        ? whiteHtml
-        : blackHtml;
-    } else {
-      return side === "top"
-        ? perspective
-          ? whiteHtml
-          : blackHtml
-        : perspective
-        ? blackHtml
-        : whiteHtml;
-    }
-  }
-
   function navigateMove(index: number | null | "prev") {
     const history = lobby.actualGame.history({ verbose: true });
 
@@ -262,78 +231,22 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
     setNavFen(history[index].after);
   }
 
-  function currentSide(lobby: Lobby | Game, color?: boolean) {
-    if (lobby.white?.id === session.user?.id) {
-      return color ? "w" : lobby.white;
-    } else if (lobby.black?.id === session.user?.id) {
-      return color ? "b" : lobby.black;
-    } else return null;
-  }
-
-  async function rematchAccept() {
-    setDisabled(true);
-    const wallet = (currentSide(lobby) as User).wallet || 0;
-
-    if (Math.sign(wallet - lobby.stake) === -1) {
-      toast("Insufficient funds", "error");
-      setDisabled(false);
-      setRematchOffer(false);
-      return;
-    }
-
-    socket.emit("rematch", {
-      stake: lobby.stake,
-      timeControl: lobby.timeControl,
-      white: lobby.white,
-      black: lobby.black,
-    } as Game);
-  }
-
   return (
     <RoomProvider lobby={lobby}>
-      {rematchOffer && (
-        <div className="fixed inset-x-4 z-[93] top-3">
-          <div role="alert" className="alert alert-vertical">
-            <span className="pt-3">Your opponent wants a rematch</span>
-            <div className="flex gap-3">
-              <button
-                onClick={() => setRematchOffer(false)}
-                className="btn btn-sm btn-soft btn-error"
-              >
-                Decline
-              </button>
-              <button
-                onClick={rematchAccept}
-                disabled={disabled}
-                className="btn btn-sm btn-success btn-soft"
-              >
-                Accept{" "}
-                {disabled && (
-                  <span className="loading loading-spinner size-3"></span>
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-      {currentSide(lobby) && (
+      {thisPlayer && lobby.winner && (
         <dialog id="gameOverModal" className="modal">
-          {lobby.winner && (
-            <GameOver
-              game={lobby as Game}
-              stake={lobby.stake}
-              socket={socket}
-              countStart={(currentSide(lobby) as User)?.wallet as number}
-              rematchOffer={rematchOffer}
-              isWinner={
-                lobby.winner === "draw"
-                  ? "draw"
-                  : lobby[lobby.winner]?.id === session.user?.id
-                  ? true
-                  : false
-              }
-            />
-          )}
+          <GameOver
+            lobby={lobby}
+            stake={lobby.stake}
+            countStart={thisPlayer.user?.wallet as number}
+            isWinner={
+              lobby.winner === "draw"
+                ? "draw"
+                : lobby.winner === thisPlayer.color
+                ? true
+                : false
+            }
+          />
         </dialog>
       )}
       <dialog id="resignModal" className="modal">
@@ -373,22 +286,26 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
                 {lobbyStatus(lobby.actualGame) === "inPlay" && (
                   <>
                     <Disconnect lobby={lobby} />
-                    <MenuAlert
-                      draw={draw}
-                      socket={socket}
-                      setDraw={(v: boolean) => setDraw(v)}
-                    />
+                    <MenuAlert />
                   </>
                 )}
               </>
 
-              {getPlayerHtml("top", perspective)}
-              <div className="relative">
-                {/* overlay */}
-                {(!lobby.white?.id || !lobby.black?.id) && (
+              <ActiveBoard
+                lobby={lobby}
+                socket={socket}
+                clock={clock}
+                customSquares={customSquares}
+                navIndex={navIndex}
+                navFen={navFen}
+                makeMove={makeMove}
+                perspective={perspective}
+                updateCustomSquares={updateCustomSquares}
+              >
+                {(!lobby.white?.id || !lobby.black?.id) && !lobby.endReason && (
                   <div className="absolute bottom-0 right-0 top-0 z-10 flex h-full w-full items-center justify-center bg-black/70">
                     <div className="bg-base-200 flex w-full flex-col items-center justify-center gap-2 px-2 py-4">
-                      {!currentSide(lobby) ? (
+                      {!currentSide(lobby, session) ? (
                         <button
                           className={clsx("btn grad1", play && "btn-disabled")}
                           onClick={clickPlay}
@@ -415,19 +332,7 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
                     </div>
                   </div>
                 )}
-
-                <Board
-                  lobby={lobby}
-                  socket={socket}
-                  customSquares={customSquares}
-                  navIndex={navIndex}
-                  navFen={navFen}
-                  makeMove={makeMove}
-                  perspective={perspective}
-                  updateCustomSquares={updateCustomSquares}
-                />
-              </div>
-              {getPlayerHtml("bottom", perspective)}
+              </ActiveBoard>
 
               <EndReason reason={lobby.endReason} winner={lobby.winner} />
               <Dock
@@ -437,10 +342,10 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
                 chatDot={chatDot}
                 htmlFor="my-drawer-45"
                 navigateMove={(m: number | null | "prev") => navigateMove(m)}
-                setPerspective={(m: boolean) => setPerspective(m)}
+                setPerspective={(m: BoardOrientation) => setPerspective(m)}
                 setchatDot={() => setchatDot(false)}
               >
-                <MenuOptions lobby={lobby} socket={socket} />
+                <MenuOptions lobby={lobby} />
               </Dock>
             </div>
           </div>

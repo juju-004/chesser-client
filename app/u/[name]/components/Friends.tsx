@@ -84,28 +84,8 @@ function AddButton({ isFriend, id }: { isFriend?: boolean; id: string }) {
   const [disabled, setDisabled] = useState(false);
   const session = useSession();
   const { socket } = useSocket();
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [unFriendLoading, setUnFriendLoading] = useState(false);
   const { removeFriend, getUserFriends } = useFriends();
-
-  useEffect(() => {
-    if (disabled) {
-      timeoutRef.current = setTimeout(() => {
-        setDisabled(false);
-      }, 20000);
-    }
-
-    return () => {
-      if (timeoutRef.current) clearTimeout(timeoutRef.current); // cleanup on unmount or dependency change
-    };
-  }, [disabled]);
-
-  const cancelTimeout = () => {
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-      timeoutRef.current = null;
-    }
-  };
 
   const addFriend = () => {
     try {
@@ -117,7 +97,7 @@ function AddButton({ isFriend, id }: { isFriend?: boolean; id: string }) {
         to: id,
       });
     } catch (error) {
-      cancelTimeout();
+      setDisabled(false);
       toast("Could'nt send request", "error");
     }
   };
@@ -130,7 +110,6 @@ function AddButton({ isFriend, id }: { isFriend?: boolean; id: string }) {
       `${request.to.name} ${request.status} your friend request`,
       request.status === "accepted" ? "success" : "error"
     );
-    cancelTimeout();
   });
 
   const updateFriend = async () => {

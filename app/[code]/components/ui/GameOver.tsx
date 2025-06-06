@@ -11,65 +11,65 @@ import {
 import Counter from "./Counter";
 import Link from "next/link";
 import clsx from "clsx";
-import { useState } from "react";
-import { Socket } from "socket.io-client";
-import { Game } from "@/types";
-import { useToast } from "@/context/ToastContext";
+import { Lobby } from "@/types";
+import { useActions } from "../context/Actions";
+
+export const RematchAlert = ({ lobby }: { lobby: Lobby }) => {
+  const { rematchOffer, rematchLoader, setRematchOffer, acceptRematchOffer } =
+    useActions();
+
+  return (
+    rematchOffer && (
+      <div className="fixed inset-x-4 z-[93] top-3">
+        <div role="alert" className="alert alert-vertical">
+          <span className="pt-3">Your opponent wants a rematch</span>
+          <div className="flex gap-3">
+            <button
+              onClick={() => setRematchOffer(false)}
+              className="btn btn-sm btn-soft btn-error"
+            >
+              Decline
+            </button>
+            <button
+              onClick={() => acceptRematchOffer(lobby)}
+              disabled={rematchLoader}
+              className="btn btn-sm btn-success btn-soft"
+            >
+              Accept{" "}
+              {rematchLoader && (
+                <span className="loading loading-spinner size-3"></span>
+              )}
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  );
+};
 
 type GameOverModalProps = {
   isWinner: boolean | "draw";
   countStart: number;
   stake: number;
   reason?: string;
-  socket: Socket;
-  rematchOffer: boolean;
-  game: Game;
+  lobby: Lobby;
 };
 
 export default function GameOver({
   isWinner,
   countStart,
   stake,
-  socket,
   reason,
-  rematchOffer,
-  game,
+  lobby,
 }: GameOverModalProps) {
-  const [rematch, setRematch] = useState(false);
-  const [disabled, setDisabled] = useState(false);
-  const { toast } = useToast();
+  const { rematchOffer, rematchLoader, acceptRematchOffer, sendRematchOffer } =
+    useActions();
   const wallet =
     isWinner === "draw"
       ? countStart
       : isWinner
       ? countStart + stake
       : countStart - stake;
-
-  const sendRematchOffer = () => {
-    if (Math.sign(wallet - stake) === -1) {
-      toast("Insufficient funds", "error");
-      return;
-    }
-
-    setRematch(true);
-    socket.emit("rematch");
-  };
-
-  const sendJoinGame = async () => {
-    if (Math.sign(wallet - stake) === -1) {
-      toast("Insufficient funds", "error");
-      return;
-    }
-
-    setDisabled(true);
-    socket.emit("rematch", {
-      stake: game.stake,
-      timeControl: game.timeControl,
-      white: game.white,
-      black: game.black,
-      code: game.code,
-    } as Game);
-  };
 
   function modalControl() {
     (document.getElementById("gameOverModal") as HTMLDialogElement)?.close();
@@ -134,21 +134,22 @@ export default function GameOver({
         </Link>
         {rematchOffer ? (
           <button
-            onClick={sendJoinGame}
-            disabled={disabled}
+            onClick={() => acceptRematchOffer(lobby)}
+            disabled={rematchLoader}
             className="btn fx active:scale-90  duration-300 scale-100 rounded-lg btn-success animate-pulse text-white "
           >
             Join Game{" "}
-            {disabled && (
+            {rematchLoader && (
               <span className="loading loading-spinner size-5"></span>
             )}
           </button>
         ) : (
           <button
-            onClick={sendRematchOffer}
+            onClick={() => sendRematchOffer(lobby)}
+            disabled={rematchLoader}
             className="btn fx active:scale-90 duration-300 scale-100 btn-soft rounded-lg btn-info "
           >
-            {rematch ? (
+            {rematchLoader ? (
               <span className="loading loading-spinner size-5"></span>
             ) : (
               <>

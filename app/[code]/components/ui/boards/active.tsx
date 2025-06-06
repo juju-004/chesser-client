@@ -1,42 +1,33 @@
 import { PieceSet } from "@/app/preferences/components/Piece";
 import { themes } from "@/app/preferences/components/Theme";
 import { usePreference } from "@/context/PreferenceProvider";
-import { CustomSquares, Lobby } from "@/types";
+import { CustomSquares, GameTimer, Lobby } from "@/types";
 import { Chess, Move, Square } from "chess.js";
-import React, { Dispatch, useEffect, useMemo, useState } from "react";
+import React, {
+  Dispatch,
+  ReactNode,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { Chessboard } from "react-chessboard";
+import { BoardOrientation } from "react-chessboard/dist/chessboard/types";
 import { Socket } from "socket.io-client";
+import Board, {
+  animationDuration,
+  BoardLoader,
+  createLocalPieceSet,
+} from "./Board";
 
-const pieceTypes = ["K", "Q", "R", "B", "N", "P"];
-const colors = ["w", "b"];
-
-export const createLocalPieceSet = (style: PieceSet) => {
-  const pieces: { [key: string]: () => JSX.Element } = {};
-
-  for (const color of colors) {
-    for (const type of pieceTypes) {
-      const id = `${color}${type}`;
-      pieces[id] = () => (
-        <img
-          src={`/piece/${style}/${id}.svg`} // Assumes public folder
-          alt={id}
-          style={{ width: "100%", height: "100%" }}
-          draggable={false}
-        />
-      );
-    }
-  }
-
-  return pieces;
-};
-
-interface BoardProps {
+interface ActiveBoardProps {
   lobby: Lobby;
   navFen: string | null;
-  socket: Socket;
-  perspective: boolean;
+  perspective: BoardOrientation;
   navIndex: number | null;
+  clock: Partial<GameTimer>;
+  socket: Socket;
   customSquares: CustomSquares;
+  children: ReactNode;
   updateCustomSquares: Dispatch<Partial<CustomSquares>>;
   makeMove: (m: {
     from: string | Square;
@@ -45,8 +36,9 @@ interface BoardProps {
   }) => boolean;
 }
 
-export default function Board({
+export default function ActiveBoard({
   lobby,
+  children,
   navIndex,
   customSquares,
   navFen,
@@ -54,13 +46,13 @@ export default function Board({
   perspective,
   makeMove,
   updateCustomSquares,
-}: BoardProps) {
-  const [moveFrom, setMoveFrom] = useState<string | Square | null>(null);
-
-  const [boardWidth, setBoardWidth] = useState(480);
+  clock,
+}: ActiveBoardProps) {
   const { userPreference } = usePreference();
-
   const pieces = userPreference && createLocalPieceSet(userPreference.pieceset);
+
+  // Premove logic for active games
+  const [moveFrom, setMoveFrom] = useState<string | Square | null>(null);
   const [premove, setPremove] = useState<{ from: Square; to: Square } | null>(
     null
   );
@@ -77,10 +69,6 @@ export default function Board({
   }, [lobby.actualGame.fen(), lobby.side]);
 
   useEffect(() => {
-    setBoardWidth(window.innerWidth);
-  }, []);
-
-  useEffect(() => {
     if (premove && lobby.side === lobby.actualGame.turn()) {
       const move = makeMove({ ...premove, promotion: "q" });
       if (move) {
@@ -90,34 +78,28 @@ export default function Board({
     }
   }, [lobby.actualGame.turn()]);
 
-  function isDraggablePiece({ piece }: { piece: string }) {
-    return piece.startsWith(lobby.side) && !lobby.endReason && !lobby.winner;
-  }
+  // General
+  function getNavMoveSquares() {
+    if (navIndex === null) return;
+    const history = lobby.actualGame.history({ verbose: true });
 
-  function onDrop(sourceSquare: Square, targetSquare: Square) {
-    if (lobby.side === "s" || navFen || lobby.endReason || lobby.winner)
-      return false;
+    if (!history.length) return;
 
-    const moveDetails = {
-      from: sourceSquare,
-      to: targetSquare,
-      promotion: "q",
+    const activeNavMove = document.getElementById("activeNavMove");
+    document
+      .getElementById("movelist")
+      ?.scrollTo(
+        (activeNavMove?.offsetLeft as number) - window.innerWidth / 2 + 22,
+        0
+      );
+
+    return {
+      [history[navIndex].from]: { background: "rgba(255, 255, 0, 0.4)" },
+      [history[navIndex].to]: { background: "rgba(255, 255, 0, 0.4)" },
     };
-
-    // Not your turn? Set single premove
-    if (lobby.side !== lobby.actualGame.turn()) {
-      setPremove(moveDetails); // overwrites old one
-      return true;
-    }
-
-    const move = makeMove(moveDetails);
-    if (!move) return false;
-
-    setPremove(null); // Clear premove just in case
-    socket.emit("sendMove", moveDetails);
-    return true;
   }
 
+  // For active games only
   function getMoveOptions(square: Square, isYourTurn?: boolean) {
     const mainLobby = isYourTurn ? lobby.actualGame : premoveFen;
     const moves = mainLobby.moves({
@@ -225,68 +207,77 @@ export default function Board({
       : setPremove({ from: moveDetails.from as Square, to: moveDetails.to });
   }
 
-  function getNavMoveSquares() {
-    if (navIndex === null) return;
-    const history = lobby.actualGame.history({ verbose: true });
+  function isDraggablePiece({ piece }: { piece: string }) {
+    return piece.startsWith(lobby.side) && !lobby.endReason && !lobby.winner;
+  }
 
-    if (!history.length) return;
+  function onDrop(sourceSquare: Square, targetSquare: Square) {
+    if (lobby.side === "s" || navFen || lobby.endReason || lobby.winner)
+      return false;
 
-    const activeNavMove = document.getElementById("activeNavMove");
-    document
-      .getElementById("movelist")
-      ?.scrollTo(
-        (activeNavMove?.offsetLeft as number) - window.innerWidth / 2 + 22,
-        0
-      );
-
-    return {
-      [history[navIndex].from]: { background: "rgba(255, 255, 0, 0.4)" },
-      [history[navIndex].to]: { background: "rgba(255, 255, 0, 0.4)" },
+    const moveDetails = {
+      from: sourceSquare,
+      to: targetSquare,
+      promotion: "q",
     };
+
+    // Not your turn? Set single premove
+    if (lobby.side !== lobby.actualGame.turn()) {
+      setPremove(moveDetails); // overwrites old one
+      return true;
+    }
+
+    const move = makeMove(moveDetails);
+    if (!move) return false;
+
+    setPremove(null); // Clear premove just in case
+    socket.emit("sendMove", moveDetails);
+    return true;
   }
 
   return (
-    <Chessboard
-      boardWidth={boardWidth}
-      customDarkSquareStyle={{
-        backgroundColor: themes[userPreference?.theme || "default"][0],
-      }}
-      customLightSquareStyle={{
-        backgroundColor: themes[userPreference?.theme || "default"][1],
-      }}
-      position={navFen || lobby.actualGame.fen()}
-      boardOrientation={
-        lobby.side === "b"
-          ? perspective
-            ? "white"
-            : "black"
-          : perspective
-          ? "black"
-          : "white"
-      }
-      isDraggablePiece={isDraggablePiece}
-      onPieceDragBegin={onPieceDragBegin}
-      onPieceDragEnd={onPieceDragEnd}
-      onPieceDrop={onDrop}
-      onSquareClick={onSquareClick}
-      animationDuration={200}
-      customSquareStyles={{
-        ...(navIndex === null ? customSquares.lastMove : getNavMoveSquares()),
-        ...(navIndex === null ? customSquares.options : {}),
-        ...(premove
-          ? {
-              [premove.from]: {
-                backgroundColor: "rgba(255, 55, 0, 0.6)",
-              },
-              [premove.to]: {
-                backgroundColor: "rgba(255, 55, 0, 0.6)",
-              },
-            }
-          : {
-              ...(navIndex === null ? customSquares.check : {}),
-            }),
-      }}
-      customPieces={pieces}
-    />
+    <Board clock={clock} lobby={lobby} perspective={perspective}>
+      {children}
+
+      {userPreference ? (
+        <Chessboard
+          customDarkSquareStyle={{
+            backgroundColor: themes[userPreference?.theme][0],
+          }}
+          customLightSquareStyle={{
+            backgroundColor: themes[userPreference?.theme][1],
+          }}
+          position={navFen || lobby.actualGame.fen()}
+          boardOrientation={perspective}
+          isDraggablePiece={isDraggablePiece}
+          onPieceDragBegin={onPieceDragBegin}
+          onPieceDragEnd={onPieceDragEnd}
+          onPieceDrop={onDrop}
+          onSquareClick={onSquareClick}
+          animationDuration={animationDuration(lobby.timeControl)}
+          customSquareStyles={{
+            ...(navIndex === null
+              ? customSquares.lastMove
+              : getNavMoveSquares()),
+            ...(navIndex === null ? customSquares.options : {}),
+            ...(premove
+              ? {
+                  [premove.from]: {
+                    backgroundColor: "rgba(255, 55, 0, 0.6)",
+                  },
+                  [premove.to]: {
+                    backgroundColor: "rgba(255, 55, 0, 0.6)",
+                  },
+                }
+              : {
+                  ...(navIndex === null ? customSquares.check : {}),
+                }),
+          }}
+          customPieces={pieces}
+        />
+      ) : (
+        <BoardLoader />
+      )}
+    </Board>
   );
 }

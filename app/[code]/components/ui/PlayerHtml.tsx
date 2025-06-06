@@ -5,7 +5,7 @@ import React from "react";
 import { ActiveChessTimer, ChessTimer } from "./Timer";
 import { useSocket } from "@/context/SocketProvider";
 import Link from "next/link";
-import { useRoom } from "../GameRoom";
+import { useRoom } from "../context/GameRoom";
 
 interface PlayerProps {
   color: "black" | "white";

@@ -30,7 +30,7 @@ function Wallet() {
 
   return (
     <>
-      <div className="bg-base-300 mx-auto flex w-[90%] flex-col items-start px-5 pb-2 pt-3">
+      <div className="bg-base-300 mx-auto rounded-2xl pb-11 flex w-[90%] flex-col items-start px-5 pt-3">
         {balance === null ? (
           <span className="loading loading-spinner opacity-40"></span>
         ) : (
@@ -55,11 +55,11 @@ function Wallet() {
             )}
           </button>
         )}
-        <div className="flex w-full justify-end">
+        {/* <div className="flex w-full justify-end">
           <Link href={"/pay"} className="btn btn-ghost bg-base-200">
             + Add money
           </Link>
-        </div>
+        </div> */}
       </div>
     </>
   );

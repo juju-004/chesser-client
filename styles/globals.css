@@ -38,12 +38,12 @@ button {
   font-family: "JoseR";
 }
 .grad1 {
-  @apply bg-gradient-to-r from-accent to-secondary hover:opacity-100 opacity-85 active:scale-90 duration-200;
+  @apply bg-gradient-to-r from-accent to-secondary disabled:from-gray-700 disabled:to-gray-700 hover:opacity-100 scale-100 opacity-85 active:scale-95 duration-300;
 }
 
 .input:focus,
 .select:focus {
-  @apply !border-sky-600 outline-0;
+  @apply !border-sky-600 outline-none ring-0;
 }
 
 *::-webkit-scrollbar {

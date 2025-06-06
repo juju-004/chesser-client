@@ -51,8 +51,8 @@ export default function PaystackForm() {
         <div className="form-control mb-4 mt-10">
           <input
             type="number"
-            placeholder="1000"
-            className="input input-bordered"
+            placeholder="min 100"
+            className="input w-full input-bordered"
             value={amount}
             ref={input}
             onChange={(e) => setAmount(e.target.value)}
@@ -60,9 +60,9 @@ export default function PaystackForm() {
         </div>
 
         <button
-          className={`btn btn-primary w-full ${loading && "loading"}`}
+          className={`btn grad1 w-full ${loading && "loading"}`}
           onClick={handlePayment}
-          disabled={loading || !amount}
+          disabled={loading || !amount || parseFloat(amount) < 100}
         >
           Pay Now
         </button>

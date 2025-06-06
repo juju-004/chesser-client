@@ -7,7 +7,7 @@ import type { FormEvent, KeyboardEvent } from "react";
 import type { Lobby, Message, Session, User } from "@/types";
 import { useSession } from "@/context/SessionProvider";
 import { useSocket } from "@/context/SocketProvider";
-import { useRoom } from "../GameRoom";
+import { useRoom } from "../context/GameRoom";
 
 interface ChatInterface {
   addMessage?: Function;

@@ -52,8 +52,6 @@ const TransactionsPage = () => {
   return (
     <MenuSlider>
       <div className="p-4 w-full max-w-4xl mx-auto">
-        <h1 className="text-xl opacity-45 pl-5 mb-4">Transactions</h1>
-
         {loading ? (
           <div className="flex justify-center loading loading-dots loading-lg items-center h-40"></div>
         ) : (

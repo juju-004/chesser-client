@@ -38,13 +38,13 @@ export default function PlayerSearch() {
         <div className="px-6 form-control mb-6 w-full">
           <label
             ref={input}
-            className="input input-bordered !outline-0 !ring-0 w-full flex items-center gap-2"
+            className="w-full focus-within:outline-0 focus-within:border-accent input flex items-center gap-2"
           >
-            <IconSearch className="w-5 h-5 text-gray-400" />
+            <IconSearch className="w-5  h-5 text-gray-400" />
             <input
               type="text"
               placeholder="Search players"
-              className="grow"
+              className=""
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />

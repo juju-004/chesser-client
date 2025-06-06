@@ -4,7 +4,7 @@ import { useSession } from "@/context/SessionProvider";
 import { useSocket } from "@/context/SocketProvider";
 import { Lobby } from "@/types";
 import React, { useEffect, useRef, useState } from "react";
-import { useRoom } from "../GameRoom";
+import { useRoom } from "../context/GameRoom";
 
 interface DisconnectProps {
   lobby: Lobby;

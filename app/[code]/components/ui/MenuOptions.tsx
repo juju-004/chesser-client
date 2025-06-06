@@ -3,37 +3,39 @@
 import { useSession } from "@/context/SessionProvider";
 import { useToast } from "@/context/ToastContext";
 import { Lobby } from "@/types";
-import { IconCirclePlus, IconHome } from "@tabler/icons-react";
+import { IconHome, IconReload, IconShare } from "@tabler/icons-react";
 import { IconProgressX } from "@tabler/icons-react";
 import { IconFlag2 } from "@tabler/icons-react";
 import { IconMath1Divide2 } from "@tabler/icons-react";
 import { IconMenu } from "@tabler/icons-react";
 import Link from "next/link";
-import React, { useEffect, useState } from "react";
-import { Socket } from "socket.io-client";
+import React from "react";
 import { lobbyStatus } from "../utils";
+import { CopyLinkButton, ShareButton } from "./CopyLink";
+import { useActions } from "../context/Actions";
+import { useSocket } from "@/context/SocketProvider";
+import clsx from "clsx";
 
 interface Menu {
   lobby: Lobby;
-  socket: Socket;
-}
-interface MenuAlert {
-  socket: Socket;
-  draw?: boolean;
-  setDraw?: Function;
+  isActive?: boolean;
 }
 
-export function MenuAlert({ socket, draw, setDraw }: MenuAlert) {
-  if (!draw) return null;
+export function MenuAlert() {
+  const { drawOffer, setdrawOffer } = useActions();
+
+  if (!drawOffer) return null;
+  const { socket } = useSocket();
   const session = useSession();
+
   function declineDrawOffer() {
     socket.emit("chat", `${session.user?.name} declines draw offer`, true);
-    setDraw && setDraw(false);
+    setdrawOffer(false);
   }
 
   function acceptDrawOffer() {
-    socket.emit("acceptDraw");
-    setDraw && setDraw(false);
+    socket.emit("draw:accept");
+    setdrawOffer(false);
   }
 
   return (
@@ -78,10 +80,15 @@ export function EndReason({
   );
 }
 
-function MenuOptions({ lobby, socket }: Menu) {
+function MenuOptions({ lobby, isActive }: Menu) {
   const { toast } = useToast();
+  const { socket, isConnected } = useSocket();
+  const { rematchOffer, rematchLoader, sendRematchOffer, acceptRematchOffer } =
+    useActions();
 
   function abort() {
+    console.log(isConnected);
+
     socket.emit("abort");
   }
 
@@ -140,10 +147,58 @@ function MenuOptions({ lobby, socket }: Menu) {
                   </a>
                 </li>
               )}
+            {isActive && lobby.endReason && (
+              <li>
+                <button
+                  onClick={() =>
+                    rematchOffer
+                      ? acceptRematchOffer(lobby)
+                      : sendRematchOffer(lobby)
+                  }
+                  disabled={rematchLoader}
+                  className={clsx(
+                    "active:opacity-25 opacity-100 duration-300",
+                    rematchOffer ? "animate-pulse text-success" : "text-info"
+                  )}
+                >
+                  {rematchOffer ? (
+                    <>
+                      {rematchLoader && (
+                        <span className="loading loading-spinner size-5"></span>
+                      )}
+                      Join Game
+                    </>
+                  ) : (
+                    <>
+                      {rematchLoader ? (
+                        <span className="loading loading-spinner size-5"></span>
+                      ) : (
+                        <IconReload className="size-4" />
+                      )}
+                      Rematch
+                    </>
+                  )}
+                </button>
+              </li>
+            )}
+            {lobby.endReason && (
+              <>
+                <li>
+                  <ShareButton className="active:opacity-25 opacity-100 duration-300">
+                    <IconShare className="size-4" />
+                    Share Game
+                  </ShareButton>
+                </li>
+                <li>
+                  <CopyLinkButton link={lobby.pgn || ""}>
+                    Copy Game PGN
+                  </CopyLinkButton>
+                </li>
+              </>
+            )}
           </ul>
         </div>
       </div>
-      {/* Open the modal using document.getElementById('ID').showModal() method */}
     </>
   );
 }

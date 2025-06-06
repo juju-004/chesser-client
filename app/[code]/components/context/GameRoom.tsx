@@ -49,15 +49,10 @@ export const RoomProvider = ({
   };
 
   useEffect(() => {
-    console.log("yes chei");
-
     if (!socket) return;
 
     socket.emit("game:join", lobby.code);
-
     socket.on("update_connected_users", (users: Partial<User>[]) => {
-      console.log(users);
-
       setConnectedUsers(users);
     });
 
@@ -65,7 +60,7 @@ export const RoomProvider = ({
       socket.emit("game:leave");
       socket.off("update_connected_users");
     };
-  }, [socket, lobby.code]);
+  }, [socket]);
 
   return (
     <RoomContext.Provider
