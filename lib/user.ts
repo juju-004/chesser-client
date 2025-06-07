@@ -7,8 +7,8 @@ export const fetchUserData = (name: string) =>
 export const fetchPlayersByName = async (name: string) =>
   handler(() => api.get(`user/${name}/players`));
 
-export const fetchUserGames = async (name: string) =>
-  handler(() => api.get(`user/${name}/games`));
+export const fetchUserGames = async (name: string, page: number) =>
+  handler(() => api.get(`user/${name}/games/${page}`));
 
 export const getWallet = async () => handler(() => api.get(`auth/wallet`));
 

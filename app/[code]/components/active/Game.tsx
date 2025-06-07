@@ -345,11 +345,11 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
                 setPerspective={(m: BoardOrientation) => setPerspective(m)}
                 setchatDot={() => setchatDot(false)}
               >
-                <MenuOptions lobby={lobby} />
+                <MenuOptions.Active lobby={lobby} />
               </Dock>
             </div>
           </div>
-          <Chat
+          <Chat.Active
             id="my-drawer-45"
             setChatDot={() => setchatDot(false)}
             addMessage={addMessage}

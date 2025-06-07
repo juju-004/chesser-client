@@ -9,17 +9,12 @@ import { IconFlag2 } from "@tabler/icons-react";
 import { IconMath1Divide2 } from "@tabler/icons-react";
 import { IconMenu } from "@tabler/icons-react";
 import Link from "next/link";
-import React from "react";
+import React, { ReactNode } from "react";
 import { lobbyStatus } from "../utils";
 import { CopyLinkButton, ShareButton } from "./CopyLink";
 import { useActions } from "../context/Actions";
 import { useSocket } from "@/context/SocketProvider";
 import clsx from "clsx";
-
-interface Menu {
-  lobby: Lobby;
-  isActive?: boolean;
-}
 
 export function MenuAlert() {
   const { drawOffer, setdrawOffer } = useActions();
@@ -80,7 +75,46 @@ export function EndReason({
   );
 }
 
-function MenuOptions({ lobby, isActive }: Menu) {
+function Template({ lobby, children }: { lobby: Lobby; children?: ReactNode }) {
+  return (
+    <div className="fx h-auto">
+      <div className="dropdown dropdown-top">
+        <div tabIndex={0} role="button" className="m-2">
+          <IconMenu />
+        </div>
+        <ul
+          tabIndex={0}
+          className="dropdown-content menu bg-base-200 rounded-box z-1 w-52 gap-3 p-2 shadow-sm"
+        >
+          <li>
+            <Link href={"/"}>
+              <IconHome className="size-4" />
+              Home
+            </Link>
+          </li>
+          {children}
+          {lobby.endReason && (
+            <>
+              <li>
+                <ShareButton className="active:opacity-25 opacity-100 duration-300">
+                  <IconShare className="size-4" />
+                  Share Game
+                </ShareButton>
+              </li>
+              <li>
+                <CopyLinkButton link={lobby.pgn || ""}>
+                  Copy Game PGN
+                </CopyLinkButton>
+              </li>
+            </>
+          )}
+        </ul>
+      </div>
+    </div>
+  );
+}
+
+function Active({ lobby }: { lobby: Lobby }) {
   const { toast } = useToast();
   const { socket, isConnected } = useSocket();
   const { rematchOffer, rematchLoader, sendRematchOffer, acceptRematchOffer } =
@@ -99,108 +133,75 @@ function MenuOptions({ lobby, isActive }: Menu) {
   }
 
   return (
-    <>
-      <div className="fx h-auto">
-        <div className="dropdown dropdown-top">
-          <div tabIndex={0} role="button" className="m-2">
-            <IconMenu />
-          </div>
-          <ul
-            tabIndex={0}
-            className="dropdown-content menu bg-base-200 rounded-box z-1 w-52 gap-3 p-2 shadow-sm"
-          >
-            <li>
-              <Link href={"/"}>
-                <IconHome className="size-4" />
-                Home
-              </Link>
-            </li>
-            {lobbyStatus(lobby.actualGame) === "inPlay" && !lobby.endReason && (
-              <>
-                <li>
-                  <a onClick={sendDrawOffer} className="text-white/50">
-                    <IconMath1Divide2 className="size-4" /> Offer Draw
-                  </a>
-                </li>
+    <Template lobby={lobby}>
+      {lobbyStatus(lobby.actualGame) === "inPlay" && !lobby.endReason && (
+        <>
+          <li>
+            <a onClick={sendDrawOffer} className="text-white/50">
+              <IconMath1Divide2 className="size-4" /> Offer Draw
+            </a>
+          </li>
 
-                <li>
-                  <a
-                    onClick={() =>
-                      (
-                        document.getElementById(
-                          "resignModal"
-                        ) as HTMLDialogElement
-                      ).showModal()
-                    }
-                    className="text-error"
-                  >
-                    <IconFlag2 className="size-4" /> Resign
-                  </a>
-                </li>
-              </>
+          <li>
+            <a
+              onClick={() =>
+                (
+                  document.getElementById("resignModal") as HTMLDialogElement
+                ).showModal()
+              }
+              className="text-error"
+            >
+              <IconFlag2 className="size-4" /> Resign
+            </a>
+          </li>
+        </>
+      )}
+      {lobbyStatus(lobby.actualGame) === "started" && !lobby.endReason && (
+        <li>
+          <a onClick={abort} className="text-white/50">
+            <IconProgressX className="size-4" /> Abort
+          </a>
+        </li>
+      )}
+      {lobby.endReason && (
+        <li>
+          <button
+            onClick={() =>
+              rematchOffer ? acceptRematchOffer(lobby) : sendRematchOffer(lobby)
+            }
+            disabled={rematchLoader}
+            className={clsx(
+              "active:opacity-25 opacity-100 duration-300",
+              rematchOffer ? "animate-pulse text-success" : "text-info"
             )}
-            {lobbyStatus(lobby.actualGame) === "started" &&
-              !lobby.endReason && (
-                <li>
-                  <a onClick={abort} className="text-white/50">
-                    <IconProgressX className="size-4" /> Abort
-                  </a>
-                </li>
-              )}
-            {isActive && lobby.endReason && (
-              <li>
-                <button
-                  onClick={() =>
-                    rematchOffer
-                      ? acceptRematchOffer(lobby)
-                      : sendRematchOffer(lobby)
-                  }
-                  disabled={rematchLoader}
-                  className={clsx(
-                    "active:opacity-25 opacity-100 duration-300",
-                    rematchOffer ? "animate-pulse text-success" : "text-info"
-                  )}
-                >
-                  {rematchOffer ? (
-                    <>
-                      {rematchLoader && (
-                        <span className="loading loading-spinner size-5"></span>
-                      )}
-                      Join Game
-                    </>
-                  ) : (
-                    <>
-                      {rematchLoader ? (
-                        <span className="loading loading-spinner size-5"></span>
-                      ) : (
-                        <IconReload className="size-4" />
-                      )}
-                      Rematch
-                    </>
-                  )}
-                </button>
-              </li>
-            )}
-            {lobby.endReason && (
+          >
+            {rematchOffer ? (
               <>
-                <li>
-                  <ShareButton className="active:opacity-25 opacity-100 duration-300">
-                    <IconShare className="size-4" />
-                    Share Game
-                  </ShareButton>
-                </li>
-                <li>
-                  <CopyLinkButton link={lobby.pgn || ""}>
-                    Copy Game PGN
-                  </CopyLinkButton>
-                </li>
+                {rematchLoader && (
+                  <span className="loading loading-spinner size-5"></span>
+                )}
+                Join Game
+              </>
+            ) : (
+              <>
+                {rematchLoader ? (
+                  <span className="loading loading-spinner size-5"></span>
+                ) : (
+                  <IconReload className="size-4" />
+                )}
+                Rematch
               </>
             )}
-          </ul>
-        </div>
-      </div>
-    </>
+          </button>
+        </li>
+      )}
+    </Template>
   );
 }
+
+const MenuOptions = {
+  Template,
+  Active,
+};
 
 export default MenuOptions;

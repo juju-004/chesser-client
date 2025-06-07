@@ -13,11 +13,7 @@ import React, {
 import { Chessboard } from "react-chessboard";
 import { BoardOrientation } from "react-chessboard/dist/chessboard/types";
 import { Socket } from "socket.io-client";
-import Board, {
-  animationDuration,
-  BoardLoader,
-  createLocalPieceSet,
-} from "./Board";
+import Board, { animationDuration, createLocalPieceSet } from "./Board";
 
 interface ActiveBoardProps {
   lobby: Lobby;
@@ -51,9 +47,9 @@ export default function ActiveBoard({
   const { userPreference } = usePreference();
   const pieces = userPreference && createLocalPieceSet(userPreference.pieceset);
 
-  // Premove logic for active games
+  // Premove logic
   const [moveFrom, setMoveFrom] = useState<string | Square | null>(null);
-  const [premove, setPremove] = useState<{ from: Square; to: Square } | null>(
+  const [premove, setPremove] = useState<{ from: Square; to: Square }[] | null>(
     null
   );
 
@@ -68,17 +64,22 @@ export default function ActiveBoard({
     return game;
   }, [lobby.actualGame.fen(), lobby.side]);
 
-  useEffect(() => {
-    if (premove && lobby.side === lobby.actualGame.turn()) {
-      const move = makeMove({ ...premove, promotion: "q" });
-      if (move) {
-        socket.emit("sendMove", { ...premove, promotion: "q" });
-      }
-      setPremove(null); // Clear after attempting
-    }
-  }, [lobby.actualGame.turn()]);
+  const preFen = useMemo(() => {
+    const game = new Chess();
+  }, [premove]);
 
-  // General
+  // useEffect(() => {
+  //   if (premove && lobby.side === lobby.actualGame.turn()) {
+  //     const move = makeMove({ ...premove, promotion: "q" });
+  //     if (move) {
+  //       socket.emit("sendMove", { ...premove, promotion: "q" });
+  //     }
+  //     setPremove(null); // Clear after attempting
+  //   }
+  // }, [lobby.actualGame.turn()]);
+
+  // Normal game logic
+
   function getNavMoveSquares() {
     if (navIndex === null) return;
     const history = lobby.actualGame.history({ verbose: true });
@@ -99,7 +100,6 @@ export default function ActiveBoard({
     };
   }
 
-  // For active games only
   function getMoveOptions(square: Square, isYourTurn?: boolean) {
     const mainLobby = isYourTurn ? lobby.actualGame : premoveFen;
     const moves = mainLobby.moves({
@@ -204,7 +204,14 @@ export default function ActiveBoard({
     setMoveFrom(null);
     isYourTurn
       ? socket.emit("sendMove", moveDetails)
-      : setPremove({ from: moveDetails.from as Square, to: moveDetails.to });
+      : setPremove(
+          premove
+            ? [
+                ...premove,
+                { from: moveDetails.from as Square, to: moveDetails.to },
+              ]
+            : [{ from: moveDetails.from as Square, to: moveDetails.to }]
+        );
   }
 
   function isDraggablePiece({ piece }: { piece: string }) {
@@ -223,7 +230,7 @@ export default function ActiveBoard({
 
     // Not your turn? Set single premove
     if (lobby.side !== lobby.actualGame.turn()) {
-      setPremove(moveDetails); // overwrites old one
+      setPremove(premove ? [...premove, moveDetails] : [moveDetails]); // overwrites old one
       return true;
     }
 
@@ -236,10 +243,10 @@ export default function ActiveBoard({
   }
 
   return (
-    <Board clock={clock} lobby={lobby} perspective={perspective}>
+    <Board isActive clock={clock} lobby={lobby} perspective={perspective}>
       {children}
 
-      {userPreference ? (
+      {userPreference && (
         <Chessboard
           customDarkSquareStyle={{
             backgroundColor: themes[userPreference?.theme][0],
@@ -255,28 +262,14 @@ export default function ActiveBoard({
           onPieceDrop={onDrop}
           onSquareClick={onSquareClick}
           animationDuration={animationDuration(lobby.timeControl)}
+          customPieces={pieces}
           customSquareStyles={{
             ...(navIndex === null
               ? customSquares.lastMove
               : getNavMoveSquares()),
             ...(navIndex === null ? customSquares.options : {}),
-            ...(premove
-              ? {
-                  [premove.from]: {
-                    backgroundColor: "rgba(255, 55, 0, 0.6)",
-                  },
-                  [premove.to]: {
-                    backgroundColor: "rgba(255, 55, 0, 0.6)",
-                  },
-                }
-              : {
-                  ...(navIndex === null ? customSquares.check : {}),
-                }),
           }}
-          customPieces={pieces}
         />
-      ) : (
-        <BoardLoader />
       )}
     </Board>
   );

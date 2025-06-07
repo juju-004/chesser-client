@@ -90,12 +90,12 @@ export default function ArchivedGame({ game }: { game: Game }) {
               navigateMove={(m: number | null | "prev") => navigateMove(m)}
               setPerspective={(m: "black" | "white") => setPerspective(m)}
             >
-              <MenuOptions lobby={lobby} />
+              <MenuOptions.Template lobby={lobby} />
             </Dock>
           </div>
         </div>
 
-        <Chat
+        <Chat.Archive
           setChatDot={() => setchatDotArchive(false)}
           id="my-drawer-4"
           chatMessages={game.chat ? game.chat : []}

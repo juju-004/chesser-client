@@ -49,6 +49,9 @@ button {
 *::-webkit-scrollbar {
   width: 4px;
 }
+.fadeText {
+  @apply after:absolute relative after:h-full after:from-transparent after:bg-gradient-to-r after:-right-1 after:w-9;
+}
 
 *::-webkit-scrollbar-thumb {
   @apply bg-slate-500;

@@ -4,19 +4,24 @@ import { IconMessage2, IconSend2 } from "@tabler/icons-react";
 import React, { useEffect, useRef } from "react";
 import type { FormEvent, KeyboardEvent } from "react";
 
-import type { Lobby, Message, Session, User } from "@/types";
+import type { Message } from "@/types";
 import { useSession } from "@/context/SessionProvider";
 import { useSocket } from "@/context/SocketProvider";
 import { useRoom } from "../context/GameRoom";
 
-interface ChatInterface {
-  addMessage?: Function;
+interface ActiveInterface {
+  addMessage: Function;
+  chatMessages: Message[];
+  id: string;
+  setChatDot: Function;
+}
+interface ArchiveInterface {
   chatMessages: Message[];
   id: string;
   setChatDot: Function;
 }
 
-function Chat({ id, addMessage, chatMessages, setChatDot }: ChatInterface) {
+function Active({ id, addMessage, chatMessages, setChatDot }: ActiveInterface) {
   const { socket } = useSocket();
   const session = useSession();
   const chatListRef = useRef<HTMLUListElement>(null);
@@ -136,5 +141,73 @@ function Chat({ id, addMessage, chatMessages, setChatDot }: ChatInterface) {
     </div>
   );
 }
+
+function Archive({ id, chatMessages, setChatDot }: ArchiveInterface) {
+  const session = useSession();
+  const chatListRef = useRef<HTMLUListElement>(null);
+
+  useEffect(() => {
+    const chatList = chatListRef.current;
+    if (!chatList) return;
+    chatList.scrollTop = chatList.scrollHeight;
+  }, [chatMessages]);
+
+  return (
+    <div className="drawer-side z-50">
+      <label
+        htmlFor={id}
+        onClick={() => setChatDot && setChatDot()}
+        aria-label="close sidebar"
+        className="drawer-overlay"
+      ></label>
+
+      {/* ! Chat */}
+      <div className="bg-base-200 text-base-content flex min-h-full w-[90%] flex-col p-4">
+        <header className="flex w-full justify-center gap-1 pb-3">
+          Chat <IconMessage2 className="text-accent" />
+        </header>
+        <div className="bg-base-300 flex h-full w-full min-w-[64px] flex-1 flex-col overflow-y-scroll rounded-lg p-4 shadow-sm">
+          <ul
+            className="mb-4 flex h-full flex-col gap-1 overflow-y-scroll break-words"
+            ref={chatListRef}
+          >
+            {chatMessages.map((m, i) => {
+              return (
+                <React.Fragment key={i}>
+                  {m.author.name === "server" ? (
+                    <div className="mb-3 opacity-25 italic">{m.message}</div>
+                  ) : (
+                    <div
+                      className={`chat  ${
+                        m.author.name === session?.user?.name
+                          ? "chat-start "
+                          : "chat-end"
+                      }`}
+                    >
+                      <div
+                        className={`chat-bubble text-white ${
+                          m.author.name === session?.user?.name
+                            ? "chat-bubble-accent "
+                            : "chat-bubble-neutral"
+                        }`}
+                      >
+                        {m.message}
+                      </div>
+                    </div>
+                  )}
+                </React.Fragment>
+              );
+            })}
+          </ul>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const Chat = {
+  Active,
+  Archive,
+};
 
 export default Chat;

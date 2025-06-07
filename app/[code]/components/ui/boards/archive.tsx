@@ -1,5 +1,5 @@
 import { usePreference } from "@/context/PreferenceProvider";
-import Board, { BoardLoader, createLocalPieceSet } from "./Board";
+import Board, { createLocalPieceSet } from "./Board";
 import { themes } from "@/app/preferences/components/Theme";
 import { Chessboard } from "react-chessboard";
 import { GameTimer, Lobby } from "@/types";
@@ -46,7 +46,7 @@ export default function ArchiveBoard({
 
   return (
     <Board clock={clock} lobby={lobby} perspective={perspective}>
-      {userPreference ? (
+      {userPreference && (
         <Chessboard
           boardOrientation={perspective}
           isDraggablePiece={() => false}
@@ -62,8 +62,6 @@ export default function ArchiveBoard({
           }}
           customPieces={pieces}
         />
-      ) : (
-        <BoardLoader />
       )}
     </Board>
   );
