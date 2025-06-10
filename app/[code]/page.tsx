@@ -1,4 +1,4 @@
-import GameAuthWrapper from "./components/GameAuthWrapper";
+import GameAuthWrapper from "./components/context/GameAuthWrapper";
 import { fetchGame } from "@/lib/game";
 import { notFound } from "next/navigation";
 import ArchivedGame from "./components/archive/Game";

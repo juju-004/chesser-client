@@ -5,7 +5,6 @@ import React from "react";
 import { ActiveChessTimer, ChessTimer } from "./Timer";
 import { useSocket } from "@/context/SocketProvider";
 import Link from "next/link";
-import { useRoom } from "../context/GameRoom";
 
 interface PlayerProps {
   color: "black" | "white";
@@ -15,7 +14,6 @@ interface PlayerProps {
 
 function Active({ time, color, lobby }: PlayerProps) {
   const { isConnected } = useSocket();
-  const { isUserConnected } = useRoom();
   const isActive =
     (lobby.actualGame.turn() === "b" ? "black" : "white") === color;
 
@@ -24,9 +22,7 @@ function Active({ time, color, lobby }: PlayerProps) {
       <div className="flex w-full flex-col justify-center">
         <Link
           className={lobby[color]?.id ? "click link-hover" : " cursor-default"}
-          href={lobby[color]?.id ? `/user/${lobby[color]?.name}` : "#"}
-          target="_blank"
-          rel="noopener noreferrer"
+          href={lobby[color]?.id ? `/u/${lobby[color]?.name}` : "#"}
         >
           {lobby[color]?.name || "(no one)"}
         </Link>
@@ -37,15 +33,8 @@ function Active({ time, color, lobby }: PlayerProps) {
               winner
             </span>
           )}
-          {lobby[color]?.name && (
-            <>
-              {!isConnected ||
-                (!isUserConnected(lobby[color]?.id as string) && (
-                  <span className="badge text-white badge-xs badge-error">
-                    disconnected
-                  </span>
-                ))}
-            </>
+          {lobby[color]?.name && !isConnected && (
+            <span className="badge badge-xs badge-error">disconnected</span>
           )}
         </span>
       </div>
@@ -76,7 +65,7 @@ function Archive({ time, color, lobby }: PlayerProps) {
           target="_blank"
           rel="noopener noreferrer"
         >
-          {lobby[color]?.name || "(no one)"}
+          {lobby[color]?.name}
         </Link>
         <span className="flex items-center gap-1 text-xs">
           <span className="opacity-65">{color}</span>

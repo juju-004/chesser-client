@@ -9,31 +9,29 @@ import { IconFlag2 } from "@tabler/icons-react";
 import { IconMath1Divide2 } from "@tabler/icons-react";
 import { IconMenu } from "@tabler/icons-react";
 import Link from "next/link";
-import React, { ReactNode } from "react";
+import React, { ReactNode, useState } from "react";
 import { lobbyStatus } from "../utils";
 import { CopyLinkButton, ShareButton } from "./CopyLink";
-import { useActions } from "../context/Actions";
 import { useSocket } from "@/context/SocketProvider";
 import clsx from "clsx";
+import { useRoom } from "../context/GameRoom";
 
 export function MenuAlert() {
-  const { drawOffer, setdrawOffer } = useActions();
-
-  if (!drawOffer) return null;
+  const { drawOfferFrom, setdrawOfferFrom } = useRoom();
   const { socket } = useSocket();
   const session = useSession();
 
   function declineDrawOffer() {
-    socket.emit("chat", `${session.user?.name} declines draw offer`, true);
-    setdrawOffer(false);
+    socket.emit("draw", "decline", session.user?.id);
+    setdrawOfferFrom(false);
   }
 
   function acceptDrawOffer() {
-    socket.emit("draw:accept");
-    setdrawOffer(false);
+    socket.emit("draw", "accept", session.user?.id);
+    setdrawOfferFrom(false);
   }
 
-  return (
+  return drawOfferFrom ? (
     <div className="fixed inset-x-4 z-[93] top-3">
       <div role="alert" className="alert alert-vertical">
         <span className="pt-3">Your opponent offers a draw</span>
@@ -50,6 +48,8 @@ export function MenuAlert() {
         </div>
       </div>
     </div>
+  ) : (
+    <></>
   );
 }
 
@@ -92,21 +92,32 @@ function Template({ lobby, children }: { lobby: Lobby; children?: ReactNode }) {
               Home
             </Link>
           </li>
-          {children}
-          {lobby.endReason && (
+          {lobby.side ? (
             <>
-              <li>
-                <ShareButton className="active:opacity-25 opacity-100 duration-300">
-                  <IconShare className="size-4" />
-                  Share Game
-                </ShareButton>
-              </li>
-              <li>
-                <CopyLinkButton link={lobby.pgn || ""}>
-                  Copy Game PGN
-                </CopyLinkButton>
-              </li>
+              {children}
+              {lobby.endReason && lobby.pgn && (
+                <>
+                  <li>
+                    <ShareButton className="active:opacity-25 opacity-100 duration-300">
+                      <IconShare className="size-4" />
+                      Share Game
+                    </ShareButton>
+                  </li>
+                  <li>
+                    <CopyLinkButton link={lobby.pgn || ""}>
+                      Copy Game PGN
+                    </CopyLinkButton>
+                  </li>
+                </>
+              )}
             </>
+          ) : (
+            <li>
+              <ShareButton className="active:opacity-25 opacity-100 duration-300">
+                <IconShare className="size-4" />
+                Share Game
+              </ShareButton>
+            </li>
           )}
         </ul>
       </div>
@@ -116,31 +127,54 @@ function Template({ lobby, children }: { lobby: Lobby; children?: ReactNode }) {
 
 function Active({ lobby }: { lobby: Lobby }) {
   const { toast } = useToast();
-  const { socket, isConnected } = useSocket();
-  const { rematchOffer, rematchLoader, sendRematchOffer, acceptRematchOffer } =
-    useActions();
-
-  function abort() {
-    console.log(isConnected);
-
-    socket.emit("abort");
-  }
+  const { socket } = useSocket();
+  const {
+    rematchOffer,
+    rematchLoader,
+    drawOfferFrom,
+    sendRematchOffer,
+    acceptRematchOffer,
+    getOpponent,
+  } = useRoom();
+  const [drawsent, setDrawSent] = useState(false);
 
   function sendDrawOffer() {
-    socket.emit("offerDraw");
+    const opponent = getOpponent(lobby);
 
+    if (!opponent) return;
+    socket.emit("draw", "offer", opponent.id);
     toast("Draw offer sent", "info");
+    setDrawSent(true);
   }
 
   return (
     <Template lobby={lobby}>
+      {lobbyStatus(lobby.actualGame) === "started" && !lobby.endReason && (
+        <li>
+          <a onClick={() => socket.emit("abort")} className="text-white/50">
+            <IconProgressX className="size-4" /> Abort
+          </a>
+        </li>
+      )}
       {lobbyStatus(lobby.actualGame) === "inPlay" && !lobby.endReason && (
         <>
-          <li>
-            <a onClick={sendDrawOffer} className="text-white/50">
-              <IconMath1Divide2 className="size-4" /> Offer Draw
-            </a>
-          </li>
+          {!drawOfferFrom && (
+            <li>
+              <button
+                disabled={drawsent}
+                onClick={sendDrawOffer}
+                className="text-gray-300"
+              >
+                {drawsent ? (
+                  "Draw Offer sent"
+                ) : (
+                  <>
+                    <IconMath1Divide2 className="size-4" /> Offer Draw
+                  </>
+                )}
+              </button>
+            </li>
+          )}
 
           <li>
             <a
@@ -156,14 +190,7 @@ function Active({ lobby }: { lobby: Lobby }) {
           </li>
         </>
       )}
-      {lobbyStatus(lobby.actualGame) === "started" && !lobby.endReason && (
-        <li>
-          <a onClick={abort} className="text-white/50">
-            <IconProgressX className="size-4" /> Abort
-          </a>
-        </li>
-      )}
-      {lobby.endReason && (
+      {lobby.endReason && lobby.pgn && (
         <li>
           <button
             onClick={() =>

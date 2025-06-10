@@ -2,10 +2,10 @@
 
 import type { FormEvent } from "react";
 
-import React, { useEffect, useMemo, useReducer, useState } from "react";
+import React, { useEffect, useReducer, useState } from "react";
 import { clsx } from "clsx";
 
-import type { GameTimer, Lobby, Message, Session, Side, User } from "@/types";
+import type { GameTimer, Lobby, Message, Session } from "@/types";
 import type { Game } from "@/types";
 
 import { Chess } from "chess.js";
@@ -20,38 +20,31 @@ import { useToast } from "@/context/ToastContext";
 import MenuOptions, { EndReason, MenuAlert } from "../ui/MenuOptions";
 import { useChessSounds } from "../ui/SoundManager";
 import { useSession } from "@/context/SessionProvider";
-import GameOver from "../ui/GameOver";
 import Dock from "../ui/Dock";
-import { Disconnect, Reconnect } from "../ui/Connection";
+import { Disconnect } from "../ui/Connection";
 import { useSocket } from "@/context/SocketProvider";
 import MenuSlider from "@/app/components/MenuSlider";
 import GameNav from "../ui/GameNav";
 import { RoomProvider } from "../context/GameRoom";
 import { BoardOrientation } from "react-chessboard/dist/chessboard/types";
 import ActiveBoard from "../ui/boards/active";
+import GameOver from "../ui/GameOver";
 
-export function currentSide(lobby: Lobby | Game, session: Session) {
-  if (lobby.white?.id === session.user?.id) {
-    return { user: lobby.white as User, color: "white" };
-  } else if (lobby.black?.id === session.user?.id) {
-    return { user: lobby.black as User, color: "black" };
-  } else return null;
+export function getSide(lobby: Lobby | Game, session: Session) {
+  if (lobby.white?.id === session.user?.id) return "white";
+  else if (lobby.black?.id === session.user?.id) return "black";
+  else return null;
 }
 
 export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
   const session = useSession();
   const { socket } = useSocket();
 
-  const thisuser = currentSide(initialLobby, session);
   const [lobby, updateLobby] = useReducer(lobbyReducer, {
     ...initialLobby,
     actualGame: new Chess(),
-    side: thisuser ? (thisuser?.color[0] as Side) : "s",
+    side: getSide(initialLobby, session),
   });
-  const thisPlayer = useMemo(
-    () => currentSide(lobby, session),
-    [lobby.black, lobby.white]
-  );
 
   const [customSquares, updateCustomSquares] = useReducer(squareReducer, {
     options: {},
@@ -70,7 +63,7 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
   });
 
   const [perspective, setPerspective] = useState<BoardOrientation>(
-    thisPlayer ? (thisPlayer.color as BoardOrientation) : "white"
+    lobby.side ? lobby.side : "white"
   );
   const [chatDot, setchatDot] = useState<boolean>(false);
 
@@ -89,8 +82,10 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
       setNavIndex,
       updateClock,
       playSound,
+      setPerspective,
     });
 
+    socket.emit("game:join", lobby.code);
     return () => {
       cleanupSocket();
     };
@@ -109,9 +104,9 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
   }, [lobby]);
 
   function updateTurnTitle() {
-    if (lobby.side === "s" || !lobby.white?.id || !lobby.black?.id) return;
+    if (!lobby.side || !lobby.white?.id || !lobby.black?.id) return;
 
-    if (!lobby.endReason && lobby.side === lobby.actualGame.turn()) {
+    if (!lobby.endReason && lobby.side[0] === lobby.actualGame.turn()) {
       document.title = "(your turn) chesser";
     } else {
       document.title = "chesser";
@@ -232,40 +227,7 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
   }
 
   return (
-    <RoomProvider lobby={lobby}>
-      {thisPlayer && lobby.winner && (
-        <dialog id="gameOverModal" className="modal">
-          <GameOver
-            lobby={lobby}
-            stake={lobby.stake}
-            countStart={thisPlayer.user?.wallet as number}
-            isWinner={
-              lobby.winner === "draw"
-                ? "draw"
-                : lobby.winner === thisPlayer.color
-                ? true
-                : false
-            }
-          />
-        </dialog>
-      )}
-      <dialog id="resignModal" className="modal">
-        <div className="modal-box flex flex-col items-center gap-5">
-          <h3 className="text-lg">Resign??</h3>
-          <form method="dialog" className="flex gap-4">
-            <button className="btn w-16 rounded-2xl btn-soft btn-success">
-              No
-            </button>
-            <button
-              onClick={() => socket.emit("resign")}
-              className="btn w-16 rounded-2xl btn-error btn-soft "
-            >
-              Yes
-            </button>
-          </form>
-        </div>
-      </dialog>
-
+    <RoomProvider>
       <MenuSlider
         navClass="fixed z-10"
         nav={
@@ -277,19 +239,52 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
           />
         }
       >
-        <Reconnect lobby={lobby} />
+        {lobby.side && (
+          <>
+            <dialog id="resignModal" className="modal">
+              <div className="modal-box flex flex-col items-center gap-5">
+                <h3 className="text-lg">Resign??</h3>
+                <form method="dialog" className="flex gap-4">
+                  <button className="btn w-16 rounded-2xl btn-soft btn-success">
+                    No
+                  </button>
+                  <button
+                    onClick={() => socket.emit("resign")}
+                    className="btn w-16 rounded-2xl btn-error btn-soft "
+                  >
+                    Yes
+                  </button>
+                </form>
+              </div>
+            </dialog>
+            {lobby.winner && (
+              <dialog id="gameOverModal" className="modal">
+                <GameOver
+                  lobby={lobby}
+                  stake={lobby.stake}
+                  countStart={lobby[lobby.side]?.wallet as number}
+                  isWinner={
+                    lobby.winner === "draw"
+                      ? "draw"
+                      : lobby.winner === lobby.side
+                      ? true
+                      : false
+                  }
+                />
+              </dialog>
+            )}
+          </>
+        )}
         <div className="drawer drawer-end">
           <input id="my-drawer-45" type="checkbox" className="drawer-toggle" />
           <div className="drawer-content">
             <div className="relative flex h-screen  w-full flex-col justify-center gap-3 py-4 lg:gap-10 2xl:gap-16">
-              <>
-                {lobbyStatus(lobby.actualGame) === "inPlay" && (
-                  <>
-                    <Disconnect lobby={lobby} />
-                    <MenuAlert />
-                  </>
-                )}
-              </>
+              {lobbyStatus(lobby.actualGame) === "inPlay" && (
+                <>
+                  <Disconnect lobby={lobby} />
+                  {lobby.side && <MenuAlert />}
+                </>
+              )}
 
               <ActiveBoard
                 lobby={lobby}
@@ -305,7 +300,7 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
                 {(!lobby.white?.id || !lobby.black?.id) && !lobby.endReason && (
                   <div className="absolute bottom-0 right-0 top-0 z-10 flex h-full w-full items-center justify-center bg-black/70">
                     <div className="bg-base-200 flex w-full flex-col items-center justify-center gap-2 px-2 py-4">
-                      {!currentSide(lobby, session) ? (
+                      {!lobby.side ? (
                         <button
                           className={clsx("btn grad1", play && "btn-disabled")}
                           onClick={clickPlay}
@@ -351,6 +346,7 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
           </div>
           <Chat.Active
             id="my-drawer-45"
+            side={lobby.side}
             setChatDot={() => setchatDot(false)}
             addMessage={addMessage}
             chatMessages={chatMessages}

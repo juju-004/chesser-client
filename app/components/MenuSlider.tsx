@@ -3,7 +3,6 @@
 import { ReactElement, ReactNode, useEffect, useState } from "react";
 import Nav from "./Nav";
 import Menu from "./Menu";
-import clsx from "clsx";
 import Notifications from "./Notifications";
 import FriendStatus from "./FriendStatus";
 import Challenge from "./Challenge";
@@ -34,7 +33,7 @@ export default function MenuSlider({
       <motion.div
         initial={{ x: -width }}
         animate={{ x: isOpen ? 0 : -width }}
-        transition={{ duration: 0.1, easings: ["easeInOut"] }}
+        transition={{ duration: 0.2, ease: "anticipate" }}
         className="fixed top-0 left-0 bottom-0 z-40"
         style={{ width }}
       >
@@ -45,7 +44,7 @@ export default function MenuSlider({
       <motion.div
         initial={{ x: 0 }}
         animate={{ x: isOpen ? width : 0 }}
-        transition={{ duration: 0.1, easings: ["easeInOut"] }}
+        transition={{ duration: 0.2, ease: "anticipate" }}
         className="relative z-10 h-full"
       >
         {isOpen && (

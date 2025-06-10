@@ -2,7 +2,7 @@
 
 import Menu from "@/app/components/Menu";
 import { Lobby } from "@/types";
-import React, { ReactNode, useEffect, useRef } from "react";
+import React, { useEffect, useRef } from "react";
 import type { Chess } from "chess.js";
 
 interface Menu {

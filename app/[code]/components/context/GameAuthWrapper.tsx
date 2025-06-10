@@ -4,8 +4,7 @@ import type { Game } from "@/types";
 
 import { useSession } from "@/context/SessionProvider";
 import { usePathname, useRouter } from "next/navigation";
-import ActiveGame from "./active/Game";
-import { ActionsProvider } from "./context/Actions";
+import ActiveGame from "../active/Game";
 
 export default function GameAuthWrapper({
   initialLobby,
@@ -19,10 +18,6 @@ export default function GameAuthWrapper({
     push(`/auth?callback=${pathName}`);
     return;
   } else {
-    return (
-      <ActionsProvider>
-        <ActiveGame initialLobby={initialLobby} />
-      </ActionsProvider>
-    );
+    return <ActiveGame initialLobby={initialLobby} />;
   }
 }

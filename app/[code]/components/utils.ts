@@ -3,6 +3,7 @@ import type { Action, CustomSquares, Lobby } from "@/types";
 import type { Game, User } from "@/types";
 import { Chess } from "chess.js";
 import type { Dispatch, SetStateAction } from "react";
+import { BoardOrientation } from "react-chessboard/dist/chessboard/types";
 
 export const syncPgn = (
   latestPgn: string,
@@ -58,17 +59,24 @@ export const syncSide = (
   user: User,
   game: Game | undefined,
   lobby: Lobby,
-  actions: { updateLobby: Dispatch<Action> }
+  actions: {
+    updateLobby: Dispatch<Action>;
+    setPerspective: React.Dispatch<React.SetStateAction<BoardOrientation>>;
+  }
 ) => {
   if (!game) game = lobby;
   if (game.black?.id === user?.id) {
-    if (lobby.side !== "b")
-      actions.updateLobby({ type: "setSide", payload: "b" });
+    if (lobby.side !== "black") {
+      actions.updateLobby({ type: "setSide", payload: "black" });
+      actions.setPerspective("black");
+    }
   } else if (game.white?.id === user?.id) {
-    if (lobby.side !== "w")
-      actions.updateLobby({ type: "setSide", payload: "w" });
-  } else if (lobby.side !== "s") {
-    actions.updateLobby({ type: "setSide", payload: "s" });
+    if (lobby.side !== "white") {
+      actions.updateLobby({ type: "setSide", payload: "white" });
+      actions.setPerspective("black");
+    }
+  } else {
+    actions.updateLobby({ type: "setSide", payload: null });
   }
 };
 

@@ -48,7 +48,7 @@ export interface User {
   offersDraw?: number;
 }
 
-export type Side = "b" | "w" | "s";
+export type Side = "black" | "white" | null;
 
 export interface Lobby extends Game {
   actualGame: Chess;

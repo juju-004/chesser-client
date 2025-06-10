@@ -1,7 +1,6 @@
 import { PieceSet } from "@/app/preferences/components/Piece";
 import { GameTimer, Lobby } from "@/types";
 import React, { ReactNode } from "react";
-import { Chessboard } from "react-chessboard";
 import { BoardOrientation } from "react-chessboard/dist/chessboard/types";
 import PlayerBoard from "../PlayerBoard";
 

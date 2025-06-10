@@ -5,6 +5,7 @@ import type { Socket } from "socket.io-client";
 
 import { syncPgn, syncSide } from "./utils";
 import { SoundType } from "./ui/SoundManager";
+import { BoardOrientation } from "react-chessboard/dist/chessboard/types";
 
 export function initSocket(
   user: User,
@@ -22,6 +23,7 @@ export function initSocket(
     setNavFen: Dispatch<SetStateAction<string | null>>;
     setNavIndex: Dispatch<SetStateAction<number | null>>;
     playSound: (type: SoundType, isOpponent?: boolean) => void;
+    setPerspective: React.Dispatch<React.SetStateAction<BoardOrientation>>;
   }
 ) {
   const listeners: { event: string; handler: (...args: any[]) => void }[] = [];
@@ -50,8 +52,6 @@ export function initSocket(
   });
 
   on("lobby:update", (latestGame: Game) => {
-    console.log(latestGame);
-
     actions.updateLobby({ type: "updateLobby", payload: latestGame });
   });
 
@@ -67,7 +67,6 @@ export function initSocket(
     ) => {
       const success = actions.makeMove(m, true);
       if (timer) actions.updateClock(timer);
-      if (!success) socket.emit("game:get_game");
     }
   );
 
@@ -85,49 +84,19 @@ export function initSocket(
   on(
     "game:over",
     ({
-      winnerName,
       winnerSide,
       result,
     }: {
-      winnerName?: string;
       winnerSide?: "white" | "black" | "draw";
       result: Game;
     }) => {
       actions.playSound("notify");
-      const m = {
-        author: { name: "server" },
-      } as Message;
 
-      const reason: Game["endReason"] = result.endReason;
-
-      if (reason === "abandoned") {
-        if (!winnerSide) {
-          m.message = `${winnerName} has claimed a draw due to abandonment.`;
-        } else {
-          m.message = `${winnerName} (${winnerSide}) has claimed the win due to abandonment.`;
-        }
-      } else if (reason === "checkmate") {
-        m.message = `${winnerName} (${winnerSide}) has won by checkmate.`;
-      } else if (reason === "timeout") {
-        m.message = `${winnerName} (${winnerSide}) has won by timeout.`;
-      } else if (reason === "resigned") {
-        m.message = `${winnerSide === "white" ? "black" : "white"} resigned`;
-      } else {
-        let message = "The game has ended in a draw";
-        if (reason === "repetition") {
-          message = message.concat(" due to threefold repetition");
-        } else if (reason === "insufficient") {
-          message = message.concat(" due to insufficient material");
-        } else if (reason === "stalemate") {
-          message = "The game has been drawn due to stalemate";
-        }
-        m.message = message.concat(".");
-      }
       actions.updateLobby({
         type: "updateLobby",
         payload: {
           id: result.id,
-          endReason: reason,
+          endReason: result.endReason,
           winner: winnerSide || "draw",
           timer: {
             white: result.timer?.white || 0,
@@ -145,7 +114,6 @@ export function initSocket(
           },
         },
       });
-      actions.addMessage(m);
     }
   );
 

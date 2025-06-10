@@ -12,6 +12,7 @@ import MenuSlider from "@/app/components/MenuSlider";
 import GameNav from "../ui/GameNav";
 import { BoardOrientation } from "react-chessboard/dist/chessboard/types";
 import ArchiveBoard from "../ui/boards/archive";
+import { getSide } from "../active/Game";
 
 export default function ArchivedGame({ game }: { game: Game }) {
   const session = useSession();
@@ -21,12 +22,12 @@ export default function ArchivedGame({ game }: { game: Game }) {
   actualGame.loadPgn(game.pgn as string);
 
   const lobby: Lobby = {
-    side: session.user?.name === game.black?.name ? "b" : "w",
+    side: getSide(game, session),
     actualGame,
     ...game,
   };
   const [perspective, setPerspective] = useState<BoardOrientation>(
-    lobby.side === "b" ? "black" : "white"
+    lobby.side ? lobby.side : "white"
   );
   const [chatDotArchive, setchatDotArchive] = useState<boolean>(
     game.chat ? (game.chat.length > 0 ? true : false) : false

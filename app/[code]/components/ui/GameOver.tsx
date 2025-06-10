@@ -12,11 +12,11 @@ import Counter from "./Counter";
 import Link from "next/link";
 import clsx from "clsx";
 import { Lobby } from "@/types";
-import { useActions } from "../context/Actions";
+import { useRoom } from "../context/GameRoom";
 
 export const RematchAlert = ({ lobby }: { lobby: Lobby }) => {
   const { rematchOffer, rematchLoader, setRematchOffer, acceptRematchOffer } =
-    useActions();
+    useRoom();
 
   return (
     rematchOffer && (
@@ -63,7 +63,7 @@ export default function GameOver({
   lobby,
 }: GameOverModalProps) {
   const { rematchOffer, rematchLoader, acceptRematchOffer, sendRematchOffer } =
-    useActions();
+    useRoom();
   const wallet =
     isWinner === "draw"
       ? countStart

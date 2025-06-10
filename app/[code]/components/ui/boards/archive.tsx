@@ -1,3 +1,5 @@
+"use client";
+
 import { usePreference } from "@/context/PreferenceProvider";
 import Board, { createLocalPieceSet } from "./Board";
 import { themes } from "@/app/preferences/components/Theme";

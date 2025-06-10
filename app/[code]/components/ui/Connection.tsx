@@ -12,7 +12,7 @@ interface DisconnectProps {
 
 export function Disconnect({ lobby }: DisconnectProps) {
   const session = useSession();
-  const { connectedUsers, isUserAPlayer, isUserConnected } = useRoom();
+  const { connectedUsers, isUserConnected } = useRoom();
   const [abandonSeconds, setAbandonSeconds] = useState<number | null>(null);
   const { socket } = useSocket();
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -33,10 +33,8 @@ export function Disconnect({ lobby }: DisconnectProps) {
   };
 
   useEffect(() => {
-    const isAPlayer = isUserAPlayer(session.user?.id as string);
-
     if (
-      !isAPlayer ||
+      !lobby.side ||
       lobby.endReason ||
       lobby.winner ||
       !lobby.pgn ||
@@ -48,9 +46,10 @@ export function Disconnect({ lobby }: DisconnectProps) {
     )
       return;
 
-    const side = isAPlayer.side === "white" ? "black" : "white";
-
-    if (lobby[side]?.id && !isUserConnected(lobby[side].id as string)) {
+    if (
+      lobby[lobby.side]?.id &&
+      !isUserConnected(lobby[lobby.side]?.id as string)
+    ) {
       setAbandonSeconds(25);
       startCountdown();
     }
@@ -62,12 +61,7 @@ export function Disconnect({ lobby }: DisconnectProps) {
 
   function claimAbandoned(type: "win" | "draw") {
     if (!abandonSeconds) return;
-    if (
-      lobby.side === "s" ||
-      lobby.endReason ||
-      !lobby.pgn ||
-      abandonSeconds > 0
-    ) {
+    if (!lobby.side || lobby.endReason || !lobby.pgn || abandonSeconds > 0) {
       return;
     }
     socket.emit("claimAbandoned", type);
@@ -103,30 +97,5 @@ export function Disconnect({ lobby }: DisconnectProps) {
         </div>
       </div>
     )
-  );
-}
-
-export function Reconnect({ lobby }: DisconnectProps) {
-  const { socket, isConnected } = useSocket();
-
-  useEffect(() => {
-    socket.on("reconnect", () => {
-      socket.emit("game:join", lobby.code);
-    });
-
-    return () => {
-      socket.off("reconnect");
-    };
-  }, []);
-
-  return !isConnected && !lobby.endReason ? (
-    <div className="fixed z-[99] fx rounded-xl inset-x-0 top-5">
-      <div role="alert" className="alert bg-base-300">
-        Connecting{" "}
-        <span className="loading loading-bars loading-sm text-accent"></span>
-      </div>
-    </div>
-  ) : (
-    <></>
   );
 }

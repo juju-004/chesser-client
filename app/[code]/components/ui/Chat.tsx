@@ -4,15 +4,15 @@ import { IconMessage2, IconSend2 } from "@tabler/icons-react";
 import React, { useEffect, useRef } from "react";
 import type { FormEvent, KeyboardEvent } from "react";
 
-import type { Message } from "@/types";
+import type { Lobby, Message } from "@/types";
 import { useSession } from "@/context/SessionProvider";
 import { useSocket } from "@/context/SocketProvider";
-import { useRoom } from "../context/GameRoom";
 
 interface ActiveInterface {
   addMessage: Function;
   chatMessages: Message[];
   id: string;
+  side: Lobby["side"];
   setChatDot: Function;
 }
 interface ArchiveInterface {
@@ -21,11 +21,16 @@ interface ArchiveInterface {
   setChatDot: Function;
 }
 
-function Active({ id, addMessage, chatMessages, setChatDot }: ActiveInterface) {
+function Active({
+  id,
+  addMessage,
+  chatMessages,
+  setChatDot,
+  side,
+}: ActiveInterface) {
   const { socket } = useSocket();
   const session = useSession();
   const chatListRef = useRef<HTMLUListElement>(null);
-  const { connectedUsers, isUserAPlayer } = useRoom();
 
   useEffect(() => {
     const chatList = chatListRef.current;
@@ -109,15 +114,6 @@ function Active({ id, addMessage, chatMessages, setChatDot }: ActiveInterface) {
             })}
           </ul>
         </div>
-        {}
-        {connectedUsers && (
-          <div className="w-full px-2 text-xs md:px-0">
-            Spectators:{" "}
-            {connectedUsers.map(
-              (c) => !isUserAPlayer(c.id as string) && <>{c.name}</>
-            )}
-          </div>
-        )}
         {socket && (
           <form className="mt-5 flex px-1" onSubmit={chatClickSend}>
             <input

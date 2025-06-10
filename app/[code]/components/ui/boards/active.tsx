@@ -1,15 +1,10 @@
-import { PieceSet } from "@/app/preferences/components/Piece";
+"use client";
+
 import { themes } from "@/app/preferences/components/Theme";
 import { usePreference } from "@/context/PreferenceProvider";
 import { CustomSquares, GameTimer, Lobby } from "@/types";
 import { Chess, Move, Square } from "chess.js";
-import React, {
-  Dispatch,
-  ReactNode,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import React, { Dispatch, ReactNode, useMemo, useState } from "react";
 import { Chessboard } from "react-chessboard";
 import { BoardOrientation } from "react-chessboard/dist/chessboard/types";
 import { Socket } from "socket.io-client";
@@ -54,9 +49,9 @@ export default function ActiveBoard({
   );
 
   const premoveFen = useMemo(() => {
-    if (lobby.side === "s") return lobby.actualGame;
+    if (!lobby.side) return lobby.actualGame;
     const fenParts = lobby.actualGame.fen().split(" ");
-    fenParts[1] = lobby.side; // fake your turn
+    fenParts[1] = lobby.side[0]; // fake your turn
     const fakeFen = fenParts.join(" ");
 
     const game = new Chess();
@@ -133,7 +128,7 @@ export default function ActiveBoard({
 
   function onPieceDragBegin(_piece: string, sourceSquare: Square) {
     if (
-      lobby.side !== lobby.actualGame.turn() ||
+      (lobby.side && lobby.side[0] !== lobby.actualGame.turn()) ||
       navFen ||
       lobby.endReason ||
       lobby.winner
@@ -148,15 +143,15 @@ export default function ActiveBoard({
   }
 
   function onSquareClick(square: Square) {
-    if (navFen || lobby.endReason || lobby.winner) return;
+    if (navFen || lobby.endReason || lobby.winner || !lobby.side) return;
 
-    const isYourTurn = lobby.side === lobby.actualGame.turn();
+    const isYourTurn = lobby.side[0] === lobby.actualGame.turn();
 
     function resetFirstMove(square: Square | null) {
-      if (!square) return;
+      if (!square || !lobby.side) return;
       const piece = lobby.actualGame.get(square);
 
-      const isOwnPiece = piece && piece.color === lobby.side;
+      const isOwnPiece = piece && piece.color === lobby.side[0];
 
       if (
         isOwnPiece &&
@@ -215,12 +210,12 @@ export default function ActiveBoard({
   }
 
   function isDraggablePiece({ piece }: { piece: string }) {
-    return piece.startsWith(lobby.side) && !lobby.endReason && !lobby.winner;
+    if (!lobby.side) return false;
+    return piece.startsWith(lobby.side[0]) && !lobby.endReason && !lobby.winner;
   }
 
   function onDrop(sourceSquare: Square, targetSquare: Square) {
-    if (lobby.side === "s" || navFen || lobby.endReason || lobby.winner)
-      return false;
+    if (!lobby.side || navFen || lobby.endReason || lobby.winner) return false;
 
     const moveDetails = {
       from: sourceSquare,
@@ -229,7 +224,7 @@ export default function ActiveBoard({
     };
 
     // Not your turn? Set single premove
-    if (lobby.side !== lobby.actualGame.turn()) {
+    if (lobby.side[0] !== lobby.actualGame.turn()) {
       setPremove(premove ? [...premove, moveDetails] : [moveDetails]); // overwrites old one
       return true;
     }
