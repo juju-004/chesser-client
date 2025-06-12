@@ -72,7 +72,7 @@ export default function ArchivedGame({ game }: { game: Game }) {
       <div className="drawer drawer-end">
         <input id="my-drawer-4" type="checkbox" className="drawer-toggle" />
         <div className="drawer-content">
-          <div className="relative flex h-screen  w-full flex-col justify-center gap-3 py-4 lg:gap-10 2xl:gap-16">
+          <div className="relative flex h-screen w-full flex-col justify-center lg:gap-10 2xl:gap-16">
             <ArchiveBoard
               lobby={lobby}
               clock={game.timer as GameTimer}

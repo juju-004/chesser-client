@@ -33,6 +33,7 @@ interface BoardProps {
   perspective: BoardOrientation;
   clock: Partial<GameTimer>;
   children?: ReactNode;
+  navFen: string | null;
 }
 
 export const animationDuration = (tc: number) => {
@@ -51,16 +52,19 @@ export default function Board({
   children,
   perspective,
   clock,
+  navFen,
 }: BoardProps) {
   function getPlayerBoards(color: "black" | "white") {
     return isActive ? (
       <PlayerBoard.Active
+        navFen={navFen}
         time={Number(clock[color])}
         color={color}
         lobby={lobby}
       />
     ) : (
       <PlayerBoard.Archive
+        navFen={navFen}
         time={Number(clock[color])}
         color={color}
         lobby={lobby}
@@ -72,11 +76,12 @@ export default function Board({
     <>
       {getPlayerBoards(perspective === "white" ? "black" : "white")}
 
-      <div className="relative w-[100vw] h-[100vw] mx-auto max-w-xl rounded-xl overflow-hidden">
-        {children}
-        <div className="absolute -z-10 bg-black/30 inset-0 animate-pulse"></div>
+      <div className="py-2 bg-base-100 z-[3] rounded-xl">
+        <div className="relative w-[100vw] h-[100vw] mx-auto max-w-xl rounded-xl overflow-hidden">
+          {children}
+          <div className="absolute -z-10 bg-black/30 inset-0 animate-pulse"></div>
+        </div>
       </div>
-
       {getPlayerBoards(perspective)}
     </>
   );

@@ -74,8 +74,7 @@ button {
   align-items: center;
   padding: 0.5rem 1rem;
   font-size: 1.25rem;
-  /* transition: all 0.3s ease; */
-  @apply bg-base-300;
+  @apply bg-base-300 relative after:absolute rounded-br-xl rounded-l-xl group-first:rounded-br-none group-first:rounded-t-xl after:w-8 after:right-0 after:bg-[inherit] group-first:after:top-full after:bottom-full after:h-5;
 }
 
 .timer.active {

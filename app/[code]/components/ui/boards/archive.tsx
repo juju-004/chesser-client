@@ -47,7 +47,12 @@ export default function ArchiveBoard({
   }
 
   return (
-    <Board clock={clock} lobby={lobby} perspective={perspective}>
+    <Board
+      navFen={navFen}
+      clock={clock}
+      lobby={lobby}
+      perspective={perspective}
+    >
       {userPreference && (
         <Chessboard
           boardOrientation={perspective}

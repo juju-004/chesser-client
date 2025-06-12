@@ -1,31 +1,148 @@
 "use client";
 
 import { Lobby } from "@/types";
-import React from "react";
+import React, { ReactNode } from "react";
 import { ActiveChessTimer, ChessTimer } from "./Timer";
 import { useSocket } from "@/context/SocketProvider";
-import Link from "next/link";
+import { useRoom } from "../context/GameRoom";
+import { BoardOrientation } from "react-chessboard/dist/chessboard/types";
+import { FC } from "react";
+import {
+  IconChessQueen,
+  IconChessRook,
+  IconChessBishop,
+  IconChessKnight,
+  IconChess,
+} from "@tabler/icons-react";
+import { useRouter } from "next/navigation";
 
-interface PlayerProps {
-  color: "black" | "white";
+interface Panel {
+  color: BoardOrientation;
   lobby: Lobby;
+  navFen: string | null;
+}
+interface PlayerProps extends Panel {
   time: number;
 }
 
-function Active({ time, color, lobby }: PlayerProps) {
-  const { isConnected } = useSocket();
-  const isActive =
-    (lobby.actualGame.turn() === "b" ? "black" : "white") === color;
+type Props = {
+  fen: string;
+  color: "white" | "black"; // Which player's point of view
+};
+
+const pieceIcons: Record<string, JSX.Element> = {
+  q: <IconChessQueen size={17} stroke={1} />,
+  r: <IconChessRook size={17} stroke={1} />,
+  b: <IconChessBishop size={17} stroke={1} />,
+  n: <IconChessKnight size={17} stroke={1} />,
+  p: <IconChess size={17} stroke={1} />,
+};
+
+const piecePoints: Record<string, number> = {
+  q: 9,
+  r: 5,
+  b: 3,
+  n: 3,
+  p: 1,
+};
+
+const CapturedPiecesDisplay: FC<Props> = ({ fen, color }) => {
+  const parseCapturedDifference = (fen: string) => {
+    const board = fen.split(" ")[0];
+    const counts: Record<"w" | "b", Record<string, number>> = { w: {}, b: {} };
+
+    // Count pieces on the board
+    for (const char of board) {
+      if (char === "/" || /\d/.test(char)) continue;
+      const isWhite = char === char.toUpperCase();
+      const piece = char.toLowerCase();
+      const side = isWhite ? "w" : "b";
+      counts[side][piece] = (counts[side][piece] || 0) + 1;
+    }
+
+    // Starting position piece counts
+    const starting: Record<string, number> = {
+      p: 8,
+      r: 2,
+      n: 2,
+      b: 2,
+      q: 1,
+    };
+
+    const whiteCaptured: Record<string, number> = {};
+    const blackCaptured: Record<string, number> = {};
+
+    for (const piece of Object.keys(starting)) {
+      whiteCaptured[piece] = starting[piece] - (counts["b"][piece] || 0);
+      blackCaptured[piece] = starting[piece] - (counts["w"][piece] || 0);
+    }
+
+    return { whiteCaptured, blackCaptured };
+  };
+
+  const getDisplayData = () => {
+    const { whiteCaptured, blackCaptured } = parseCapturedDifference(fen);
+    const self = color === "white" ? whiteCaptured : blackCaptured;
+    const opponent = color === "white" ? blackCaptured : whiteCaptured;
+
+    const diff: { piece: string; count: number }[] = [];
+    let pointDiff = 0;
+
+    for (const piece of Object.keys(piecePoints)) {
+      const netCount = (self[piece] || 0) - (opponent[piece] || 0);
+      if (netCount > 0) {
+        diff.push({ piece, count: netCount });
+        pointDiff += netCount * piecePoints[piece];
+      } else if (netCount < 0) {
+        pointDiff += netCount * piecePoints[piece]; // still subtract
+      }
+    }
+
+    return { diff, pointDiff };
+  };
+
+  const { diff, pointDiff } = getDisplayData();
+
+  if (diff.length === 0 && pointDiff <= 0) return null;
 
   return (
-    <div className="relative ml-3 flex items-center justify-between gap-4">
-      <div className="flex w-full flex-col justify-center">
-        <Link
-          className={lobby[color]?.id ? "click link-hover" : " cursor-default"}
-          href={lobby[color]?.id ? `/u/${lobby[color]?.name}` : "#"}
-        >
-          {lobby[color]?.name || "(no one)"}
-        </Link>
+    <div className="flex items-center flex-1">
+      <div className="flex flex-wrap">
+        {diff.map(({ piece, count }) =>
+          Array.from({ length: count }).map((_, i) => (
+            <span key={`${piece}-${i}`} className="">
+              {pieceIcons[piece]}
+            </span>
+          ))
+        )}
+      </div>
+      {pointDiff > 0 && (
+        <span className="text-sm text-secondary">+{pointDiff}</span>
+      )}
+    </div>
+  );
+};
+
+function UserPanel({
+  lobby,
+  color,
+  children,
+  navFen,
+}: Panel & { children?: ReactNode }) {
+  const router = useRouter();
+
+  const onClick = () => {
+    if (lobby[color]) {
+      router.push(`/u/${lobby[color]?.name}`);
+    }
+  };
+  return (
+    <>
+      <button
+        onClick={onClick}
+        className="flex click flex-col bg-white/5 px-3 py-0.5 items-start rounded-xl justify-center"
+      >
+        {lobby[color] ? lobby[color]?.name : "(no one)"}
         <span className="flex items-center gap-1 text-xs">
           <span className="opacity-65">{color}</span>
           {lobby?.winner && lobby.winner === color && (
@@ -33,49 +150,47 @@ function Active({ time, color, lobby }: PlayerProps) {
               winner
             </span>
           )}
-          {lobby[color]?.name && !isConnected && (
+          {children}
+        </span>
+      </button>
+      <CapturedPiecesDisplay
+        color={color}
+        fen={navFen || lobby.actualGame.fen()}
+      />
+    </>
+  );
+}
+
+function Active({ time, color, navFen, lobby }: PlayerProps) {
+  const { connectedUsers } = useRoom();
+  const isActive =
+    (lobby.actualGame.turn() === "b" ? "black" : "white") === color;
+
+  return (
+    <div className="relative ml-3 flex items-center justify-between gap-4">
+      <UserPanel navFen={navFen} color={color} lobby={lobby}>
+        {lobby[color]?.name &&
+          connectedUsers.some((c) => c.name === lobby[color]?.name) && (
             <span className="badge badge-xs badge-error">disconnected</span>
           )}
-        </span>
-      </div>
-      {lobby.endReason ? (
-        <ChessTimer color={color} time={time} isActive={isActive} />
-      ) : (
-        <ActiveChessTimer
-          isActive={isActive}
-          timerStarted={(lobby.actualGame.history().length || 0) >= 2}
-          color={color}
-          time={time}
-        />
-      )}
+      </UserPanel>
+      <ActiveChessTimer
+        isActive={isActive}
+        timerStarted={(lobby.actualGame.history().length || 0) >= 2}
+        color={color}
+        time={time}
+      />
     </div>
   );
 }
 
-function Archive({ time, color, lobby }: PlayerProps) {
+function Archive({ time, color, navFen, lobby }: PlayerProps) {
   const isActive =
     (lobby.actualGame.turn() === "b" ? "black" : "white") === color;
 
   return (
-    <div className="relative ml-3 flex items-center justify-between gap-4">
-      <div className="flex w-full flex-col justify-center">
-        <Link
-          className={lobby[color]?.id ? "click link-hover" : " cursor-default"}
-          href={lobby[color]?.id ? `/user/${lobby[color]?.name}` : "#"}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          {lobby[color]?.name}
-        </Link>
-        <span className="flex items-center gap-1 text-xs">
-          <span className="opacity-65">{color}</span>
-          {lobby?.winner && lobby.winner === color && (
-            <span className="badge badge-xs badge-success text-white">
-              winner
-            </span>
-          )}
-        </span>
-      </div>
+    <div className="relative group ml-3 flex items-center gap-4">
+      <UserPanel navFen={navFen} color={color} lobby={lobby} />
       <ChessTimer color={color} time={time} isActive={isActive} />
     </div>
   );

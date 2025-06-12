@@ -238,7 +238,13 @@ export default function ActiveBoard({
   }
 
   return (
-    <Board isActive clock={clock} lobby={lobby} perspective={perspective}>
+    <Board
+      isActive
+      navFen={navFen}
+      clock={clock}
+      lobby={lobby}
+      perspective={perspective}
+    >
       {children}
 
       {userPreference && (

@@ -94,6 +94,8 @@ export const RoomProvider = ({ children }: { children: ReactNode }) => {
       replace(code);
     });
     socket.on("update_users", (users: Partial<User>[]) => {
+      console.log(users);
+
       setConnectedUsers(users);
     });
     socket.on("rematch:received", () => {
