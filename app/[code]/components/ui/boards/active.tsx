@@ -4,11 +4,33 @@ import { themes } from "@/app/preferences/components/Theme";
 import { usePreference } from "@/context/PreferenceProvider";
 import { CustomSquares, GameTimer, Lobby } from "@/types";
 import { Chess, Move, Square } from "chess.js";
-import React, { Dispatch, ReactNode, useMemo, useState } from "react";
-import { Chessboard } from "react-chessboard";
+import React, {
+  Dispatch,
+  ReactElement,
+  ReactNode,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import { Chessboard, ClearPremoves } from "react-chessboard";
 import { BoardOrientation } from "react-chessboard/dist/chessboard/types";
 import { Socket } from "socket.io-client";
 import Board, { animationDuration, createLocalPieceSet } from "./Board";
+
+type Pice = {
+  wP: ReactElement;
+  wN: ReactElement;
+  wB: ReactElement;
+  wR: ReactElement;
+  wQ: ReactElement;
+  wK: ReactElement;
+  bP: ReactElement;
+  bN: ReactElement;
+  bB: ReactElement;
+  bR: ReactElement;
+  bQ: ReactElement;
+  bK: ReactElement;
+};
 
 interface ActiveBoardProps {
   lobby: Lobby;
@@ -47,6 +69,8 @@ export default function ActiveBoard({
   const [premove, setPremove] = useState<{ from: Square; to: Square }[] | null>(
     null
   );
+
+  const chessboardRef = useRef<ClearPremoves>(null);
 
   const premoveFen = useMemo(() => {
     if (!lobby.side) return lobby.actualGame;
@@ -236,7 +260,8 @@ export default function ActiveBoard({
     socket.emit("sendMove", moveDetails);
     return true;
   }
-
+  // dark rgb(164, 35, 35)
+  // light rgb(189, 40, 40);
   return (
     <Board
       isActive
@@ -250,15 +275,17 @@ export default function ActiveBoard({
       {userPreference && (
         <Chessboard
           customDarkSquareStyle={{
-            backgroundColor: themes[userPreference?.theme][0],
-          }}
-          customLightSquareStyle={{
             backgroundColor: themes[userPreference?.theme][1],
           }}
+          customLightSquareStyle={{
+            backgroundColor: themes[userPreference?.theme][0],
+          }}
           position={navFen || lobby.actualGame.fen()}
+          arePremovesAllowed
           boardOrientation={perspective}
           isDraggablePiece={isDraggablePiece}
           onPieceDragBegin={onPieceDragBegin}
+          ref={chessboardRef}
           onPieceDragEnd={onPieceDragEnd}
           onPieceDrop={onDrop}
           onSquareClick={onSquareClick}

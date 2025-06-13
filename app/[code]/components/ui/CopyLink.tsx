@@ -84,3 +84,5 @@ export const CopyLinkButton = ({
     </button>
   );
 };
+
+// promotion: piece[1].toLowerCase() ?? "q",

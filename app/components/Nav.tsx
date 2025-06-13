@@ -6,32 +6,18 @@ import Notifications from "./Notifications";
 import FriendStatus from "./FriendStatus";
 import Challenge from "./Challenge";
 
-function Nav({
-  clicked,
-  navClass,
-  nav,
-}: {
-  clicked: () => void;
-  navClass?: string;
-  nav?: ReactElement;
-}) {
+function Nav({ navClass, nav }: { navClass?: string; nav?: ReactElement }) {
   return (
     <div
       className={clsx(
-        "w-screen flex navbar",
+        "w-screen flex fixed top-0 navbar",
         navClass || " bg-base-100 shadow-sm"
       )}
     >
       <div className={clsx("navbar-start", nav && "w-auto")}>
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            clicked();
-          }}
-          className="btn btn-ghost btn-circle"
-        >
+        <label htmlFor="menuslider" className="btn btn-ghost btn-circle">
           <IconMenuDeep />
-        </button>
+        </label>
       </div>
       <div
         className={clsx(

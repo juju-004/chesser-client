@@ -2,7 +2,7 @@
 
 import type { FormEvent } from "react";
 
-import React, { useEffect, useReducer, useState } from "react";
+import React, { useEffect, useReducer, useRef, useState } from "react";
 import { clsx } from "clsx";
 
 import type { GameTimer, Lobby, Message, Session } from "@/types";
@@ -61,6 +61,7 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
     white: initialLobby.timeControl * 60 * 1000,
     black: initialLobby.timeControl * 60 * 1000,
   });
+  // const lastUpdate = useRef<number>(0);
 
   const [perspective, setPerspective] = useState<BoardOrientation>(
     lobby.side ? lobby.side : "white"
@@ -92,9 +93,14 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
   }, []);
 
   useEffect(() => {
+    if (clock.lastUpdate && lobbyStatus(lobby.actualGame) !== "inPlay")
+      socket.emit("game:refresh", lobby.code);
+  }, [clock]);
+
+  useEffect(() => {
     updateTurnTitle();
 
-    if (lobby.endReason && lobby.endReason !== "aborted") {
+    if (lobby.endReason && lobby.endReason !== "aborted" && lobby.side) {
       (
         document.getElementById("gameOverModal") as HTMLDialogElement
       )?.showModal();
@@ -113,8 +119,8 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
     }
   }
 
-  function updateClock(clock: GameTimer) {
-    setClock(clock);
+  function updateClock(cloc: GameTimer) {
+    setClock(cloc);
   }
   // Chat
   function addMessage(message: Message) {
@@ -278,71 +284,67 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
         <div className="drawer drawer-end">
           <input id="my-drawer-45" type="checkbox" className="drawer-toggle" />
           <div className="drawer-content">
-            <div className="relative flex h-screen  w-full flex-col justify-center gap-3 py-4 lg:gap-10 2xl:gap-16">
-              {lobbyStatus(lobby.actualGame) === "inPlay" && (
-                <>
-                  <Disconnect lobby={lobby} />
-                  {lobby.side && <MenuAlert />}
-                </>
-              )}
+            {lobbyStatus(lobby.actualGame) === "inPlay" && !lobby.endReason && (
+              <>
+                <Disconnect lobby={lobby} />
+                {lobby.side && <MenuAlert />}
+              </>
+            )}
 
-              <ActiveBoard
-                lobby={lobby}
-                socket={socket}
-                clock={clock}
-                customSquares={customSquares}
-                navIndex={navIndex}
-                navFen={navFen}
-                makeMove={makeMove}
-                perspective={perspective}
-                updateCustomSquares={updateCustomSquares}
-              >
-                {(!lobby.white?.id || !lobby.black?.id) && !lobby.endReason && (
-                  <div className="absolute bottom-0 right-0 top-0 z-10 flex h-full w-full items-center justify-center bg-black/70">
-                    <div className="bg-base-200 flex w-full flex-col items-center justify-center gap-2 px-2 py-4">
-                      {!lobby.side ? (
-                        <button
-                          className={clsx("btn grad1", play && "btn-disabled")}
-                          onClick={clickPlay}
-                        >
-                          Play as {lobby.white?.id ? "black" : "white"}{" "}
-                          {play && (
-                            <span className="loading-spinner loading loading-xs"></span>
-                          )}
-                        </button>
-                      ) : (
-                        <>
-                          <span className="opacity-50">
-                            Waiting for opponent...
-                          </span>
-                          <div className="bg-base-300 fx text-base-content h-8 gap-2 rounded-2xl pl-3 pr-1 text-xs active:opacity-60 sm:h-5 sm:text-sm">
-                            <CopyLinkButton
-                              className="fx gap-2 "
-                              link={`${CLIENT_URL}/${initialLobby.code}`}
-                            />
-                            <ShareButton />
-                          </div>
-                        </>
-                      )}
-                    </div>
+            <ActiveBoard
+              lobby={lobby}
+              socket={socket}
+              clock={clock}
+              customSquares={customSquares}
+              navIndex={navIndex}
+              navFen={navFen}
+              makeMove={makeMove}
+              perspective={perspective}
+              updateCustomSquares={updateCustomSquares}
+            >
+              {(!lobby.white?.id || !lobby.black?.id) && !lobby.endReason && (
+                <div className="absolute bottom-0 right-0 top-0 z-10 flex h-full w-full items-center justify-center bg-black/70">
+                  <div className="bg-base-200 flex w-full flex-col items-center justify-center gap-2 px-2 py-4">
+                    {!lobby.side ? (
+                      <button
+                        className={clsx("btn grad1", play && "btn-disabled")}
+                        onClick={clickPlay}
+                      >
+                        Play as {lobby.white?.id ? "black" : "white"}{" "}
+                        {play && (
+                          <span className="loading-spinner loading loading-xs"></span>
+                        )}
+                      </button>
+                    ) : (
+                      <>
+                        <span className="opacity-50">
+                          Waiting for opponent...
+                        </span>
+                        <div className="bg-base-300 fx text-base-content h-8 gap-2 rounded-2xl pl-3 pr-1 text-xs active:opacity-60 sm:h-5 sm:text-sm">
+                          <CopyLinkButton
+                            className="fx gap-2 "
+                            link={`${CLIENT_URL}/${initialLobby.code}`}
+                          />
+                          <ShareButton />
+                        </div>
+                      </>
+                    )}
                   </div>
-                )}
-              </ActiveBoard>
-
-              <EndReason reason={lobby.endReason} winner={lobby.winner} />
-              <Dock
-                actualGame={lobby.actualGame}
-                navIndex={navIndex}
-                perspective={perspective}
-                chatDot={chatDot}
-                htmlFor="my-drawer-45"
-                navigateMove={(m: number | null | "prev") => navigateMove(m)}
-                setPerspective={(m: BoardOrientation) => setPerspective(m)}
-                setchatDot={() => setchatDot(false)}
-              >
-                <MenuOptions.Active lobby={lobby} />
-              </Dock>
-            </div>
+                </div>
+              )}
+            </ActiveBoard>
+            <Dock
+              actualGame={lobby.actualGame}
+              navIndex={navIndex}
+              perspective={perspective}
+              chatDot={chatDot}
+              htmlFor="my-drawer-45"
+              navigateMove={(m: number | null | "prev") => navigateMove(m)}
+              setPerspective={(m: BoardOrientation) => setPerspective(m)}
+              setchatDot={() => setchatDot(false)}
+            >
+              <MenuOptions.Active lobby={lobby} />
+            </Dock>
           </div>
           <Chat.Active
             id="my-drawer-45"

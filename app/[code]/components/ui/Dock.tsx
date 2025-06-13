@@ -32,7 +32,7 @@ function Dock({
   htmlFor,
 }: DockType) {
   return (
-    <div className="dock dock-sm z-30">
+    <div className="dock z-10 dock-sm">
       {children}
 
       <button>

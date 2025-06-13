@@ -71,29 +71,26 @@ export default function ArchivedGame({ game }: { game: Game }) {
     >
       <div className="drawer drawer-end">
         <input id="my-drawer-4" type="checkbox" className="drawer-toggle" />
-        <div className="drawer-content">
-          <div className="relative flex h-screen w-full flex-col justify-center lg:gap-10 2xl:gap-16">
-            <ArchiveBoard
-              lobby={lobby}
-              clock={game.timer as GameTimer}
-              navIndex={navIndex}
-              perspective={perspective}
-              navFen={navFen}
-            />
-            <EndReason reason={game.endReason} winner={game.winner} />
-            <Dock
-              actualGame={actualGame}
-              navIndex={navIndex}
-              chatDot={chatDotArchive}
-              setchatDot={() => setchatDotArchive(false)}
-              perspective={perspective}
-              htmlFor="my-drawer-4"
-              navigateMove={(m: number | null | "prev") => navigateMove(m)}
-              setPerspective={(m: "black" | "white") => setPerspective(m)}
-            >
-              <MenuOptions.Template lobby={lobby} />
-            </Dock>
-          </div>
+        <div className="drawer-content relative">
+          <ArchiveBoard
+            lobby={lobby}
+            clock={game.timer as GameTimer}
+            navIndex={navIndex}
+            perspective={perspective}
+            navFen={navFen}
+          />
+          <Dock
+            actualGame={actualGame}
+            navIndex={navIndex}
+            chatDot={chatDotArchive}
+            setchatDot={() => setchatDotArchive(false)}
+            perspective={perspective}
+            htmlFor="my-drawer-4"
+            navigateMove={(m: number | null | "prev") => navigateMove(m)}
+            setPerspective={(m: "black" | "white") => setPerspective(m)}
+          >
+            <MenuOptions.Template lobby={lobby} />
+          </Dock>
         </div>
 
         <Chat.Archive

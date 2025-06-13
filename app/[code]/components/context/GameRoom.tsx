@@ -15,7 +15,6 @@ import { useToast } from "@/context/ToastContext";
 
 type RoomContextType = {
   connectedUsers: Partial<User>[];
-  isUserConnected: (id: string) => boolean;
   setConnectedUsers: React.Dispatch<React.SetStateAction<Partial<User>[]>>;
   getOpponent: (lobby: Lobby) => User | null;
   sendRematchOffer: (lobby: Lobby) => void;
@@ -63,6 +62,7 @@ export const RoomProvider = ({ children }: { children: ReactNode }) => {
     }
 
     socket.emit("rematch", {
+      code: lobby.code,
       stake: lobby.stake,
       timeControl: lobby.timeControl,
       white: lobby.white,
@@ -81,10 +81,6 @@ export const RoomProvider = ({ children }: { children: ReactNode }) => {
     }
 
     return null;
-  };
-
-  const isUserConnected = (id: string) => {
-    return connectedUsers.some((user) => user.id === id);
   };
 
   useEffect(() => {
@@ -125,7 +121,6 @@ export const RoomProvider = ({ children }: { children: ReactNode }) => {
         connectedUsers,
         getOpponent,
         setConnectedUsers,
-        isUserConnected,
         drawOfferFrom,
         rematchLoader,
         rematchOffer,

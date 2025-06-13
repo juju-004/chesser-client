@@ -1,18 +1,17 @@
 "use client";
 
-import { useSession } from "@/context/SessionProvider";
 import { useSocket } from "@/context/SocketProvider";
 import { Lobby } from "@/types";
 import React, { useEffect, useRef, useState } from "react";
 import { useRoom } from "../context/GameRoom";
+import { lobbyStatus } from "../utils";
 
 interface DisconnectProps {
   lobby: Lobby;
 }
 
 export function Disconnect({ lobby }: DisconnectProps) {
-  const session = useSession();
-  const { connectedUsers, isUserConnected } = useRoom();
+  const { connectedUsers, getOpponent } = useRoom();
   const [abandonSeconds, setAbandonSeconds] = useState<number | null>(null);
   const { socket } = useSocket();
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -37,26 +36,22 @@ export function Disconnect({ lobby }: DisconnectProps) {
       !lobby.side ||
       lobby.endReason ||
       lobby.winner ||
-      !lobby.pgn ||
-      lobby.pgn === "" ||
+      lobbyStatus(lobby.actualGame) !== "inPlay" ||
       !lobby.white ||
-      !lobby.black ||
-      (lobby.white.id !== session?.user?.id &&
-        lobby.black.id !== session?.user?.id)
+      !lobby.black
     )
       return;
+    const opponent = getOpponent(lobby);
+    if (!opponent) return;
 
-    if (
-      lobby[lobby.side]?.id &&
-      !isUserConnected(lobby[lobby.side]?.id as string)
-    ) {
+    if (!connectedUsers.some((c) => c.id === opponent.id)) {
       setAbandonSeconds(25);
       startCountdown();
+    } else if (connectedUsers.some((c) => c.id === opponent.id)) {
+      if (abandonSeconds) {
+        cancelCountdown();
+      }
     }
-
-    return () => {
-      cancelCountdown();
-    };
   }, [connectedUsers]);
 
   function claimAbandoned(type: "win" | "draw") {

@@ -176,8 +176,8 @@ function Archive({ id, chatMessages, setChatDot }: ArchiveInterface) {
                     <div
                       className={`chat  ${
                         m.author.name === session?.user?.name
-                          ? "chat-start "
-                          : "chat-end"
+                          ? "chat-end "
+                          : "chat-start"
                       }`}
                     >
                       <div

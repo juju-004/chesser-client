@@ -58,10 +58,10 @@ export default function ArchiveBoard({
           boardOrientation={perspective}
           isDraggablePiece={() => false}
           customDarkSquareStyle={{
-            backgroundColor: themes[userPreference?.theme][0],
+            backgroundColor: themes[userPreference?.theme][1],
           }}
           customLightSquareStyle={{
-            backgroundColor: themes[userPreference?.theme][1],
+            backgroundColor: themes[userPreference?.theme][0],
           }}
           position={navFen || lobby.actualGame.fen()}
           customSquareStyles={{

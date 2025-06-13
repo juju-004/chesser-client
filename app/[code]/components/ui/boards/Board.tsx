@@ -3,21 +3,32 @@ import { GameTimer, Lobby } from "@/types";
 import React, { ReactNode } from "react";
 import { BoardOrientation } from "react-chessboard/dist/chessboard/types";
 import PlayerBoard from "../PlayerBoard";
+import { EndReason } from "../MenuOptions";
 
 const pieceTypes = ["K", "Q", "R", "B", "N", "P"];
 const colors = ["w", "b"];
 
 export const createLocalPieceSet = (style: PieceSet) => {
-  const pieces: { [key: string]: () => JSX.Element } = {};
+  const pieces: {
+    [key: string]: ({
+      squareWidth,
+    }: {
+      squareWidth: "string" | number | undefined;
+    }) => JSX.Element;
+  } = {};
 
   for (const color of colors) {
     for (const type of pieceTypes) {
       const id = `${color}${type}`;
-      pieces[id] = () => (
+      pieces[id] = ({
+        squareWidth,
+      }: {
+        squareWidth: "string" | number | undefined;
+      }) => (
         <img
           src={`/piece/${style}/${id}.svg`} // Assumes public folder
           alt={id}
-          style={{ width: "100%", height: "100%" }}
+          style={{ width: squareWidth, height: squareWidth }}
           draggable={false}
         />
       );
@@ -73,7 +84,7 @@ export default function Board({
   }
 
   return (
-    <>
+    <div className="flex-col flex w-full h-[calc(100vh-7rem)] justify-center overflow-hidden ">
       {getPlayerBoards(perspective === "white" ? "black" : "white")}
 
       <div className="py-2 bg-base-100 z-[3] rounded-xl">
@@ -83,6 +94,7 @@ export default function Board({
         </div>
       </div>
       {getPlayerBoards(perspective)}
-    </>
+      <EndReason reason={lobby.endReason} winner={lobby.winner} />
+    </div>
   );
 }

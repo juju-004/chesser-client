@@ -7,7 +7,6 @@ import Notifications from "./Notifications";
 import FriendStatus from "./FriendStatus";
 import Challenge from "./Challenge";
 import { motion } from "motion/react";
-import Loading from "./Loading";
 
 export default function MenuSlider({
   children,
@@ -18,52 +17,28 @@ export default function MenuSlider({
   navClass?: string;
   nav?: ReactElement;
 }) {
-  const [isOpen, setIsOpen] = useState(true);
-  const [width, setWidth] = useState<null | number>(null);
+  return (
+    <div className="drawer lg:drawer-open">
+      <input id="menuslider" type="checkbox" className="drawer-toggle" />
+      <div className="drawer-content  flex pt-16 flex-col items-center justify-center">
+        <Nav nav={nav} navClass={navClass} />
 
-  useEffect(() => {
-    if (!width) setWidth((85 * window.innerWidth) / 100);
-
-    if (width) isOpen && setIsOpen(false);
-  }, [width]);
-
-  return width ? (
-    <div className="relative h-screen w-full overflow-hidden ">
-      {/* Sliding Panel */}
-      <motion.div
-        initial={{ x: -width }}
-        animate={{ x: isOpen ? 0 : -width }}
-        transition={{ duration: 0.2, ease: "anticipate" }}
-        className="fixed top-0 left-0 bottom-0 z-40"
-        style={{ width }}
-      >
-        <Menu />
-      </motion.div>
-
-      {/* ===== MAIN CONTENT (Pushes on menu open) ===== */}
-      <motion.div
-        initial={{ x: 0 }}
-        animate={{ x: isOpen ? width : 0 }}
-        transition={{ duration: 0.2, ease: "anticipate" }}
-        className="relative z-10 h-full"
-      >
-        {isOpen && (
-          <div
-            onClick={() => setIsOpen(false)}
-            className="inset-0 z-50 absolute bg-black/10"
-          ></div>
-        )}
-        <Nav nav={nav} clicked={() => setIsOpen(!isOpen)} navClass={navClass} />
-        <div className="flex h-screen w-[100vw] flex-col gap-4 overflow-x-hidden overflow-y-scroll">
-          {children}
-        </div>
-      </motion.div>
+        <div className="w-full flex flex-col">{children}</div>
+      </div>
+      <div className="drawer-side z-10">
+        <label
+          htmlFor="menuslider"
+          aria-label="close sidebar"
+          className="drawer-overlay"
+        ></label>
+        <ul className="bg-base-200 min-h-full w-80">
+          <Menu />
+        </ul>
+      </div>
       <Notifications.Modal />
       <FriendStatus.Modal />
       <Challenge.Modal />
       <Challenge.ModalMain />
     </div>
-  ) : (
-    <Loading />
   );
 }

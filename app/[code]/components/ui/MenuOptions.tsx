@@ -63,7 +63,7 @@ export function EndReason({
   return (
     <>
       {reason && (
-        <div className="fixed inset-x-0 top-12 text-center text-4xl opacity-15">
+        <div className="fixed inset-x-0 top-14 text-center text-4xl opacity-15">
           {reason === "resigned" || reason === "timeout"
             ? `${winner === "white" ? "black" : "white"} ${reason}`
             : reason === "abandoned"

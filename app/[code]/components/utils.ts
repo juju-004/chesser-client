@@ -73,7 +73,7 @@ export const syncSide = (
   } else if (game.white?.id === user?.id) {
     if (lobby.side !== "white") {
       actions.updateLobby({ type: "setSide", payload: "white" });
-      actions.setPerspective("black");
+      actions.setPerspective("white");
     }
   } else {
     actions.updateLobby({ type: "setSide", payload: null });
