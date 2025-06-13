@@ -8,7 +8,7 @@ import { clsx } from "clsx";
 import type { GameTimer, Lobby, Message, Session } from "@/types";
 import type { Game } from "@/types";
 
-import { Chess } from "chess.js";
+import { Chess, Square } from "chess.js";
 import { CLIENT_URL } from "@/config";
 
 import { lobbyReducer, squareReducer } from "../reducers";
@@ -130,7 +130,7 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
   }
 
   function makeMove(
-    m: { from: string; to: string; promotion?: string },
+    m: { from: Square; to: Square; promotion?: string },
     opponent?: boolean
   ) {
     try {

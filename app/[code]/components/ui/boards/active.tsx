@@ -8,6 +8,7 @@ import React, {
   Dispatch,
   ReactElement,
   ReactNode,
+  useEffect,
   useMemo,
   useRef,
   useState,
@@ -42,12 +43,19 @@ interface ActiveBoardProps {
   customSquares: CustomSquares;
   children: ReactNode;
   updateCustomSquares: Dispatch<Partial<CustomSquares>>;
-  makeMove: (m: {
-    from: string | Square;
-    to: string | Square;
-    promotion: string;
-  }) => boolean;
+  makeMove: (m: { from: Square; to: Square; promotion?: string }) => boolean;
 }
+
+const getFakeFen = (lobby: Lobby, side: BoardOrientation) => {
+  const fenParts = lobby.actualGame.fen().split(" ");
+  fenParts[1] = side[0]; // Fake your turn
+  const fakeFen = fenParts.join(" ");
+
+  const game = new Chess();
+  game.load(fakeFen);
+
+  return game;
+};
 
 export default function ActiveBoard({
   lobby,
@@ -65,37 +73,49 @@ export default function ActiveBoard({
   const pieces = userPreference && createLocalPieceSet(userPreference.pieceset);
 
   // Premove logic
-  const [moveFrom, setMoveFrom] = useState<string | Square | null>(null);
-  const [premove, setPremove] = useState<{ from: Square; to: Square }[] | null>(
-    null
-  );
-
-  const chessboardRef = useRef<ClearPremoves>(null);
+  const [moveFrom, setMoveFrom] = useState<Square | null>(null);
+  const [premove, setPremove] = useState<
+    { from: Square; to: Square; promotion?: string }[]
+  >([]);
 
   const premoveFen = useMemo(() => {
-    if (!lobby.side) return lobby.actualGame;
+    if (!lobby.side) return;
+
+    // Force turn to user
     const fenParts = lobby.actualGame.fen().split(" ");
-    fenParts[1] = lobby.side[0]; // fake your turn
+    fenParts[1] = lobby.side[0];
     const fakeFen = fenParts.join(" ");
 
     const game = new Chess();
     game.load(fakeFen);
-    return game;
-  }, [lobby.actualGame.fen(), lobby.side]);
 
-  const preFen = useMemo(() => {
-    const game = new Chess();
-  }, [premove]);
+    for (const move of premove) {
+      const piece = game.get(move.from);
+      if (!piece || piece.color !== lobby.side[0]) break;
 
-  // useEffect(() => {
-  //   if (premove && lobby.side === lobby.actualGame.turn()) {
-  //     const move = makeMove({ ...premove, promotion: "q" });
-  //     if (move) {
-  //       socket.emit("sendMove", { ...premove, promotion: "q" });
-  //     }
-  //     setPremove(null); // Clear after attempting
-  //   }
-  // }, [lobby.actualGame.turn()]);
+      game.remove(move.to); // remove any piece at destination
+      game.remove(move.from); // remove from current square
+      game.put(piece, move.to); // place at destination
+    }
+
+    return game; // Return final FEN
+  }, [lobby.actualGame.fen(), lobby.side, premove]);
+
+  useEffect(() => {
+    if (!lobby.side || !premove.length) return;
+
+    if (lobby.side[0] === lobby.actualGame.turn()) {
+      const [nextMove, ...rest] = premove;
+
+      const move = makeMove({ ...nextMove });
+      if (move) {
+        setPremove(rest);
+        socket.emit("sendMove", { ...nextMove });
+        return;
+      }
+      setPremove([]); // Clear after attempting
+    }
+  }, [lobby.actualGame.turn()]);
 
   // Normal game logic
 
@@ -120,7 +140,9 @@ export default function ActiveBoard({
   }
 
   function getMoveOptions(square: Square, isYourTurn?: boolean) {
-    const mainLobby = isYourTurn ? lobby.actualGame : premoveFen;
+    const mainLobby = isYourTurn
+      ? lobby.actualGame
+      : premoveFen || lobby.actualGame;
     const moves = mainLobby.moves({
       square,
       verbose: true,
@@ -166,6 +188,73 @@ export default function ActiveBoard({
     updateCustomSquares({ options: {} });
   }
 
+  function makePremove(m: { from: string; to: string; promotion?: string }) {
+    const fileToIndex = (f: string) => f.charCodeAt(0) - "a".charCodeAt(0);
+    const rankToIndex = (r: string) => parseInt(r, 10) - 1;
+
+    if (!premoveFen) return false;
+    const piece = premoveFen.get(moveFrom as Square);
+    if (!piece) return false;
+
+    // Normalize positions
+    const [fFile, fRank] = m.from!;
+    const [tFile, tRank] = m.to!;
+    const from = { x: fileToIndex(fFile), y: rankToIndex(fRank) };
+    const to = { x: fileToIndex(tFile), y: rankToIndex(tRank) };
+
+    const dx = to.x - from.x;
+    const dy = to.y - from.y;
+
+    switch (piece.type) {
+      case "p": {
+        const forward = piece.color === "w" ? 1 : -1;
+
+        // Forward move (1 or 2 squares from base rank)
+        if (
+          dx === 0 &&
+          (dy === forward ||
+            (dy === 2 * forward && (fRank === "2" || fRank === "7")))
+        ) {
+          return true;
+        }
+
+        // Diagonal capture
+        if (Math.abs(dx) === 1 && dy === forward) {
+          return true;
+        }
+
+        return false;
+      }
+
+      case "n": {
+        // Knight L-shape
+        const valid =
+          (Math.abs(dx) === 1 && Math.abs(dy) === 2) ||
+          (Math.abs(dx) === 2 && Math.abs(dy) === 1);
+        return valid;
+      }
+
+      case "b": {
+        return Math.abs(dx) === Math.abs(dy);
+      }
+
+      case "r": {
+        return dx === 0 || dy === 0;
+      }
+
+      case "q": {
+        return dx === 0 || dy === 0 || Math.abs(dx) === Math.abs(dy);
+      }
+
+      case "k": {
+        return Math.abs(dx) <= 1 && Math.abs(dy) <= 1;
+      }
+
+      default:
+        return false;
+    }
+  }
+
   function onSquareClick(square: Square) {
     if (navFen || lobby.endReason || lobby.winner || !lobby.side) return;
 
@@ -173,7 +262,9 @@ export default function ActiveBoard({
 
     function resetFirstMove(square: Square | null) {
       if (!square || !lobby.side) return;
-      const piece = lobby.actualGame.get(square);
+      const piece = isYourTurn
+        ? lobby.actualGame.get(square)
+        : premoveFen?.get(square);
 
       const isOwnPiece = piece && piece.color === lobby.side[0];
 
@@ -186,7 +277,7 @@ export default function ActiveBoard({
         setMoveFrom(square);
         getMoveOptions(square, isYourTurn);
       } else {
-        setPremove(null);
+        setPremove([]);
         updateCustomSquares({ options: {} });
       }
     }
@@ -203,18 +294,7 @@ export default function ActiveBoard({
       promotion: "q",
     };
 
-    const makePremove = () => {
-      const legalMoves = premoveFen.moves({
-        square: moveFrom as Square,
-        verbose: true,
-      });
-
-      const isLegal = legalMoves.some(
-        (mo) => mo.from === moveFrom && mo.to === square
-      );
-      return isLegal;
-    };
-    const move = isYourTurn ? makeMove(moveDetails) : makePremove();
+    const move = isYourTurn ? makeMove(moveDetails) : makePremove(moveDetails);
 
     if (!move) {
       resetFirstMove(square);
@@ -223,14 +303,10 @@ export default function ActiveBoard({
     setMoveFrom(null);
     isYourTurn
       ? socket.emit("sendMove", moveDetails)
-      : setPremove(
-          premove
-            ? [
-                ...premove,
-                { from: moveDetails.from as Square, to: moveDetails.to },
-              ]
-            : [{ from: moveDetails.from as Square, to: moveDetails.to }]
-        );
+      : setPremove((prev) => [
+          ...prev,
+          { from: moveDetails.from as Square, to: moveDetails.to },
+        ]);
   }
 
   function isDraggablePiece({ piece }: { piece: string }) {
@@ -249,14 +325,20 @@ export default function ActiveBoard({
 
     // Not your turn? Set single premove
     if (lobby.side[0] !== lobby.actualGame.turn()) {
-      setPremove(premove ? [...premove, moveDetails] : [moveDetails]); // overwrites old one
-      return true;
+      const prem = makePremove(moveDetails);
+
+      if (premove)
+        setPremove((prev) => [
+          ...prev,
+          { from: moveDetails.from as Square, to: moveDetails.to },
+        ]);
+      return prem;
     }
 
     const move = makeMove(moveDetails);
     if (!move) return false;
 
-    setPremove(null); // Clear premove just in case
+    setPremove([]); // Clear premove just in case
     socket.emit("sendMove", moveDetails);
     return true;
   }
@@ -280,12 +362,14 @@ export default function ActiveBoard({
           customLightSquareStyle={{
             backgroundColor: themes[userPreference?.theme][0],
           }}
-          position={navFen || lobby.actualGame.fen()}
-          arePremovesAllowed
+          position={
+            navFen ||
+            (premove.length && premoveFen?.fen()) ||
+            lobby.actualGame.fen()
+          }
           boardOrientation={perspective}
           isDraggablePiece={isDraggablePiece}
           onPieceDragBegin={onPieceDragBegin}
-          ref={chessboardRef}
           onPieceDragEnd={onPieceDragEnd}
           onPieceDrop={onDrop}
           onSquareClick={onSquareClick}
@@ -296,6 +380,16 @@ export default function ActiveBoard({
               ? customSquares.lastMove
               : getNavMoveSquares()),
             ...(navIndex === null ? customSquares.options : {}),
+            ...(premove.length
+              ? Object.fromEntries(
+                  premove.flatMap((m) => [
+                    [m.from, { backgroundColor: "rgba(255, 55, 0, 0.6)" }],
+                    [m.to, { backgroundColor: "rgba(255, 55, 0, 0.6)" }],
+                  ])
+                )
+              : {
+                  ...(navIndex === null ? customSquares.check : {}),
+                }),
           }}
         />
       )}

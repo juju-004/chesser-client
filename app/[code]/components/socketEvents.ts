@@ -6,6 +6,7 @@ import type { Socket } from "socket.io-client";
 import { syncPgn, syncSide } from "./utils";
 import { SoundType } from "./ui/SoundManager";
 import { BoardOrientation } from "react-chessboard/dist/chessboard/types";
+import { Square } from "chess.js";
 
 export function initSocket(
   user: User,
@@ -17,7 +18,7 @@ export function initSocket(
     updateClock: (c: GameTimer) => void;
     updateCustomSquares: Dispatch<Partial<CustomSquares>>;
     makeMove: (
-      m: { from: string; to: string; promotion?: string },
+      m: { from: Square; to: Square; promotion?: string },
       opponent?: boolean
     ) => boolean;
     setNavFen: Dispatch<SetStateAction<string | null>>;
@@ -62,7 +63,7 @@ export function initSocket(
   on(
     "move:update",
     (
-      m: { from: string; to: string; promotion?: string },
+      m: { from: Square; to: Square; promotion?: string },
       timer?: GameTimer
     ) => {
       const success = actions.makeMove(m, true);
