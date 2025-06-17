@@ -6,13 +6,13 @@ import { Chess } from "chess.js";
 import { useState } from "react";
 import { useSession } from "@/context/SessionProvider";
 import Chat from "../ui/Chat";
-import MenuOptions, { EndReason } from "../ui/MenuOptions";
+import MenuOptions from "../ui/MenuOptions";
 import Dock from "../ui/Dock";
-import MenuSlider from "@/app/components/MenuSlider";
 import GameNav from "../ui/GameNav";
 import { BoardOrientation } from "react-chessboard/dist/chessboard/types";
 import ArchiveBoard from "../ui/boards/archive";
 import { getSide } from "../active/Game";
+import MenuSlider from "@/app/(user)/components/MenuSlider";
 
 export default function ArchivedGame({ game }: { game: Game }) {
   const session = useSession();

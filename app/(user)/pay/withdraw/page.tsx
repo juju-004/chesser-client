@@ -6,8 +6,8 @@ import axios from "axios";
 import { API_URL } from "@/config";
 import { useSession } from "@/context/SessionProvider";
 import { useToast } from "@/context/ToastContext";
-import MenuSlider from "@/app/components/MenuSlider";
 import { getWallet } from "@/lib/user";
+import MenuSlider from "../../components/MenuSlider";
 
 export default function Withdraw() {
   const [amount, setAmount] = useState("");

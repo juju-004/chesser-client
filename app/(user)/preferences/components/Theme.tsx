@@ -1,15 +1,4 @@
-export type ThemeType =
-  | "default"
-  | "classic"
-  | "blue"
-  | "brown"
-  | "dark"
-  | "green"
-  | "gray"
-  | "purple"
-  | "red"
-  | "ocean"
-  | "solarized";
+import { ThemeType } from "@/types";
 
 export const themes = {
   default: ["#eae9d2", "#4b7399"],

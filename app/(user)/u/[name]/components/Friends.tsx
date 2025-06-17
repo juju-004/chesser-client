@@ -5,12 +5,12 @@ import { useToast } from "@/context/ToastContext";
 import { unFriend } from "@/lib/user";
 import { FriendRequest, ProfileData } from "@/types";
 import React, { useEffect, useRef, useState } from "react";
-import Subnav from "@/app/components/Subnav";
 import { IconUserMinus, IconUserPlus } from "@tabler/icons-react";
 import clsx from "clsx";
 import Link from "next/link";
 import { useSocket } from "@/context/SocketProvider";
 import { useFriends } from "@/context/FriendsContext";
+import Subnav from "@/app/(user)/components/Subnav";
 
 function Page({ setIsOpen }: { setIsOpen: () => void }) {
   const { toast } = useToast();

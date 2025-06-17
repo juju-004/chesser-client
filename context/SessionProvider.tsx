@@ -5,7 +5,7 @@ import { createContext, useContext, useEffect, useState } from "react";
 
 import { fetchSession } from "@/lib/auth";
 import { User } from "@/types";
-import Loading from "@/app/components/Loading";
+import Loading from "@/app/Loading";
 
 type SessionContextType = {
   user: User | null;

@@ -2,8 +2,6 @@
 
 import { useState } from "react";
 import { ProfileData } from "@/types";
-import MenuSlider from "@/app/components/MenuSlider";
-import Slider from "@/app/components/Slider";
 import { useSession } from "@/context/SessionProvider";
 import {
   IconChevronRight,
@@ -21,6 +19,8 @@ import Image from "next/image";
 import Friends from "./components/Friends";
 import { useFriends } from "@/context/FriendsContext";
 import clsx from "clsx";
+import MenuSlider from "../../components/MenuSlider";
+import Slider from "../../components/Slider";
 
 export default function Profile({ data }: { data: ProfileData }) {
   const session = useSession();

@@ -1,12 +1,11 @@
 "use client";
 
-import { ReactElement, ReactNode, useEffect, useState } from "react";
+import { ReactElement, ReactNode } from "react";
 import Nav from "./Nav";
 import Menu from "./Menu";
 import Notifications from "./Notifications";
 import FriendStatus from "./FriendStatus";
 import Challenge from "./Challenge";
-import { motion } from "motion/react";
 
 export default function MenuSlider({
   children,

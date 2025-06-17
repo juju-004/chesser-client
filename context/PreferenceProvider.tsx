@@ -2,9 +2,8 @@
 
 import type { Dispatch, ReactNode, SetStateAction } from "react";
 import { createContext, useContext, useEffect, useState } from "react";
-import { ThemeType } from "@/app/preferences/components/Theme";
-import { PieceSet } from "@/app/preferences/components/Piece";
-import { fetchPref, updatePref } from "@/lib/user";
+import { fetchPref } from "@/lib/user";
+import { PieceSet, ThemeType } from "@/types";
 
 type PreferenceContextType = {
   userPreference: Preference | undefined;

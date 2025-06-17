@@ -92,6 +92,17 @@ button {
   text-align: center;
 }
 
+.animate-color {
+  animation: colorChange 2s infinite !important;
+}
+@keyframes colorChange {
+  0% {
+    color: "#00e6f4";
+  }
+  100% {
+    color: "#c23a84";
+  }
+}
 @keyframes pulse {
   0% {
     opacity: 1;

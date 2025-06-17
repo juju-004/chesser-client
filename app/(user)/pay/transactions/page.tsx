@@ -10,8 +10,8 @@ import {
   IconClock,
 } from "@tabler/icons-react";
 import { API_URL } from "@/config";
-import MenuSlider from "@/app/components/MenuSlider";
 import clsx from "clsx";
+import MenuSlider from "../../components/MenuSlider";
 
 export type Transaction = {
   _id?: string;

@@ -6,10 +6,10 @@ import BottomModal from "../components/BottomModal";
 import ChessThemeSelector, { ThemePreview, themes } from "./components/Theme";
 import ChessPieceSelector from "./components/Piece";
 import { usePreference } from "@/context/PreferenceProvider";
-import Loading from "../components/Loading";
 import { updatePref } from "@/lib/user";
 import { IconUpload } from "@tabler/icons-react";
 import clsx from "clsx";
+import Loading from "@/app/Loading";
 
 function Page() {
   const [open, setOpen] = useState(false);

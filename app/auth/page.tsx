@@ -18,8 +18,7 @@ function Login() {
   const { push } = useRouter();
   const searchParams = useSearchParams();
   const [disabled, setDisabled] = useState(false);
-  const [mail, setMail] = useState<string | null>(null);
-  const [checked, setChecked] = useState(false);
+  const [mail, setMail] = useState<{ mail: string; nv: boolean } | null>(null);
   const [userNameExists, setuserNameExists] = useState(false);
   const [userfieldLoading, setUserfieldLoading] = useState(false);
   let debounceTimeout: ReturnType<typeof setTimeout>;
@@ -34,6 +33,8 @@ function Login() {
       if (typeof user === "string") {
         toast(user, "error");
         setDisabled(false);
+      } else if (user?.notVerified) {
+        setMail({ mail: user.email, nv: true });
       } else if (user?.id) {
         session?.setUser(user);
 
@@ -57,8 +58,10 @@ function Login() {
 
       if (typeof user === "string") {
         toast(user, "error");
+      } else if (user?.notVerified) {
+        setMail({ mail: user.email, nv: true });
       } else if (user?.email) {
-        setMail(user.email);
+        setMail({ mail: user.email, nv: false });
       }
       setDisabled(false);
     }, 700);
@@ -73,12 +76,17 @@ function Login() {
     const data = await fetchUsername(v);
 
     if (typeof data === "string") {
-      toast(data, "error");
+      if ((document.getElementById("regis") as HTMLInputElement)?.checked) {
+        toast(data, "error");
+      }
+
       setuserNameExists(true);
     } else if (data?.isAvail) setuserNameExists(false);
     else {
-      (document.getElementById("regis") as HTMLInputElement).checked &&
+      if ((document.getElementById("regis") as HTMLInputElement)?.checked) {
         toast("This username has already been taken", "error");
+      }
+
       setuserNameExists(true);
     }
   }
@@ -95,84 +103,88 @@ function Login() {
   }
 
   return (
-    <>
-      <div className="mb-20 px-4">
-        <ForgotPass checked={checked} onCheck={() => setChecked(!checked)} />
-        <Logo />
-        {mail ? (
-          <Mailsend email={mail} />
-        ) : (
-          <div className="tabs max-w-lg mx-auto tabs-border justify-center">
-            <input
-              type="radio"
-              defaultChecked
-              name="my_tabs_6"
-              className="tab text-md w-1/3"
-              aria-label="Login"
-            />
-            <div className="tab-content bg-base-100 border-base-300 rounded-3xl px-6 pb-6">
-              <form action={signin} className="flex w-full flex-col pt-8">
-                <FormInput
-                  type="text"
-                  name={"nameoremail"}
-                  placeholder={"Your username or email"}
-                />
-                <FormInput name={"password"} placeholder={"Your pasword"} />
-                <FormButton text={"Sign in"} disabled={disabled} />
-                <div className="mt-4 px-5 text-center opacity-70">
-                  Forgotten password?{" "}
-                  <label
-                    htmlFor="my_modal_7"
-                    onClick={() => setChecked(true)}
-                    className="text-secondary"
-                  >
-                    Reset
-                  </label>
-                </div>
-              </form>
-            </div>
-
-            <input
-              type="radio"
-              name="my_tabs_6"
-              id="regis"
-              className="tab text-md w-1/3"
-              aria-label="Register"
-              disabled={disabled}
-            />
-            <div className="tab-content bg-base-100  border-base-300 rounded-3xl px-6 pb-6">
-              <form action={signup} className="flex w-full flex-col pt-8">
-                <div className="relative mb-6">
-                  <FormInput
-                    onChange={(e) => checkUsernameDebounced(e.target.value)}
-                    name={"username"}
-                    placeholder={"Your username"}
-                  />
-                  <span className="absolute z-20 right-3 top-1/2 -translate-y-1/2">
-                    {userfieldLoading ? (
-                      <span className="loading loading-bars"></span>
-                    ) : userNameExists ? (
-                      <></>
-                    ) : (
-                      <IconCircleCheckFilled className="text-success" />
-                    )}
-                  </span>
-                </div>
-                <FormInput name={"email"} placeholder={"Your email"} />
-                <FormInput name={"password"} placeholder={"Your pasword"} />
-                <span className="mb-6 text-center">
-                  <span className="opacity-70">
-                    By signing up you do consent to our
-                  </span>{" "}
-                  <span className="text-secondary">terms of service</span>{" "}
+    <div className="mb-20 px-4">
+      <ForgotPass />
+      <Logo />
+      {mail ? (
+        <Mailsend email={mail} />
+      ) : (
+        <div className="tabs max-w-lg mx-auto tabs-border justify-center">
+          <input
+            type="radio"
+            defaultChecked
+            name="my_tabs_6"
+            className="tab text-md w-1/3"
+            aria-label="Login"
+          />
+          <div className="tab-content bg-base-100 border-base-300 rounded-3xl px-6 pb-6">
+            <form action={signin} className="flex w-full flex-col pt-8">
+              <FormInput
+                type="text"
+                name={"nameoremail"}
+                placeholder={"Your username or email"}
+              />
+              <FormInput name={"password"} placeholder={"Your pasword"} />
+              <FormButton text={"Sign in"} disabled={disabled} />
+              <div className="mt-4 px-5 text-center opacity-70">
+                Forgotten password?{" "}
+                <span
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    (
+                      document.getElementById(
+                        "forgotPassModal"
+                      ) as HTMLDialogElement
+                    ).showModal();
+                  }}
+                  className="text-secondary cursor-pointer"
+                >
+                  Reset
                 </span>
-                <FormButton disabled={disabled} text={"Register"} />
-              </form>
-            </div>
+              </div>
+            </form>
           </div>
-        )}
-      </div>
-    </>
+
+          <input
+            type="radio"
+            name="my_tabs_6"
+            id="regis"
+            className="tab text-md w-1/3"
+            aria-label="Register"
+            disabled={disabled}
+          />
+          <div className="tab-content bg-base-100  border-base-300 rounded-3xl px-6 pb-6">
+            <form action={signup} className="flex w-full flex-col pt-8">
+              <div className="relative mb-6">
+                <FormInput
+                  onChange={(e) => checkUsernameDebounced(e.target.value)}
+                  name={"username"}
+                  placeholder={"Your username"}
+                />
+                <span className="absolute z-20 right-3 top-1/2 -translate-y-1/2">
+                  {userfieldLoading ? (
+                    <span className="loading loading-bars"></span>
+                  ) : userNameExists ? (
+                    <></>
+                  ) : (
+                    <IconCircleCheckFilled className="text-success" />
+                  )}
+                </span>
+              </div>
+              <FormInput name={"email"} placeholder={"Your email"} />
+              <FormInput name={"password"} placeholder={"Your pasword"} />
+              <span className="mb-6 text-center">
+                <span className="opacity-70">
+                  By signing up you do consent to our
+                </span>{" "}
+                <span className="text-secondary">terms of service</span>{" "}
+              </span>
+              <FormButton disabled={disabled} text={"Register"} />
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
 

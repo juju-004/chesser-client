@@ -5,8 +5,8 @@ import { sendMail } from "@/lib/auth";
 import { IconSend } from "@tabler/icons-react";
 import React, { useEffect, useState } from "react";
 
-function Mailsend({ email }: { email: string | null }) {
-  const [time, setTime] = useState<number>(60);
+function Mailsend({ email }: { email: { mail: string; nv: boolean } }) {
+  const [time, setTime] = useState<number>(email.nv ? 0 : 60);
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
 
@@ -25,7 +25,7 @@ function Mailsend({ email }: { email: string | null }) {
     setLoading(true);
 
     setTimeout(async () => {
-      const mail = email as string;
+      const { mail } = email;
       const data = await sendMail(mail);
       if (typeof data === "string") {
         toast(data, "error");
@@ -52,14 +52,13 @@ function Mailsend({ email }: { email: string | null }) {
           rel="noopener noreferrer"
           className="link text-sky-400"
         >
-          {email}
+          {email.mail}
         </a>{" "}
         to activate your account
       </div>
-      <span className="mb-5 mt-2 text-white/50">Didnt get one?</span>
       <button
         disabled={loading ? true : time ? true : false}
-        className={`btn btn-soft btn-secondary fx disabled:btn-neutral mt-1 disabled:text-white/40`}
+        className={`btn btn-soft btn-secondary fx disabled:btn-neutral mt-3 disabled:text-white/40`}
         onClick={submitAction}
       >
         {loading && (

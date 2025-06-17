@@ -1,11 +1,8 @@
-// components/AlphaPieces.tsx or similar
-
+import { PieceSet } from "@/types";
 import clsx from "clsx";
 
 const pieceTypes = ["K", "Q", "R", "B", "N", "P"];
 const colors = ["w", "b"];
-
-export type PieceSet = "alpha" | "cburnett" | "merida" | "maestro";
 
 const pieceSets: PieceSet[] = ["alpha", "maestro", "cburnett", "merida"];
 
@@ -49,7 +46,7 @@ export default function ChessPieceSelector({
             onClick={() => setPiceSet(set)}
           >
             <span className="pl-3 capitalize">{set}</span>
-            <div className="fx gap-3 bg-black/10 px-3 py-1">
+            <div className="fx gap-1 px-3 py-1">
               <img
                 src={`/piece/${set}/wK.svg`}
                 alt={`${set} wk`}

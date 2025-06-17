@@ -102,3 +102,18 @@ export interface FriendRequest {
   createdAt?: string;
   updatedAt?: string;
 }
+
+export type PieceSet = "alpha" | "cburnett" | "merida" | "maestro";
+
+export type ThemeType =
+  | "default"
+  | "classic"
+  | "blue"
+  | "brown"
+  | "dark"
+  | "green"
+  | "gray"
+  | "purple"
+  | "red"
+  | "ocean"
+  | "solarized";

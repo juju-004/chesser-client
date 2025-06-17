@@ -17,18 +17,18 @@ import { lobbyStatus, userWalletCheck } from "../utils";
 import { CopyLinkButton, ShareButton } from "../ui/CopyLink";
 import Chat from "../ui/Chat";
 import { useToast } from "@/context/ToastContext";
-import MenuOptions, { EndReason, MenuAlert } from "../ui/MenuOptions";
+import MenuOptions, { MenuAlert } from "../ui/MenuOptions";
 import { useChessSounds } from "../ui/SoundManager";
 import { useSession } from "@/context/SessionProvider";
 import Dock from "../ui/Dock";
 import { Disconnect } from "../ui/Connection";
 import { useSocket } from "@/context/SocketProvider";
-import MenuSlider from "@/app/components/MenuSlider";
 import GameNav from "../ui/GameNav";
 import { RoomProvider } from "../context/GameRoom";
 import { BoardOrientation } from "react-chessboard/dist/chessboard/types";
 import ActiveBoard from "../ui/boards/active";
 import GameOver from "../ui/GameOver";
+import MenuSlider from "@/app/(user)/components/MenuSlider";
 
 export function getSide(lobby: Lobby | Game, session: Session) {
   if (lobby.white?.id === session.user?.id) return "white";

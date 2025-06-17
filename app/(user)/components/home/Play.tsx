@@ -6,7 +6,7 @@ import {
 import React, { useState } from "react";
 import CreateGame from "./game/createGame";
 import JoinGame from "./game/JoinGame";
-import BottomModal from "@/app/components/BottomModal";
+import BottomModal from "../BottomModal";
 
 function Play() {
   const [createOpen, setCreateOpen] = useState<boolean>(false);

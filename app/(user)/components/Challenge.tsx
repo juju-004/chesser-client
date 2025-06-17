@@ -2,12 +2,12 @@ import { useSocket } from "@/context/SocketProvider";
 import { IconClock, IconX } from "@tabler/icons-react";
 import { IconSwords } from "@tabler/icons-react";
 import React, { useEffect, useState } from "react";
-import CreateForm from "../(home)/components/game/createForm";
 import { User } from "@/types";
 import { useRouter } from "next/navigation";
 import { CLIENT_URL } from "@/config";
 import { useToast } from "@/context/ToastContext";
 import { useChessSounds } from "../[code]/components/ui/SoundManager";
+import CreateForm from "./home/game/createForm";
 
 export type ChallengeData = {
   id: string;

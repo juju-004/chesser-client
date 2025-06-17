@@ -1,6 +1,5 @@
 "use client";
 
-import Menu from "@/app/components/Menu";
 import { Lobby } from "@/types";
 import React, { useEffect, useRef } from "react";
 import type { Chess } from "chess.js";

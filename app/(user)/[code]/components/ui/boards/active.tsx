@@ -1,6 +1,5 @@
 "use client";
 
-import { themes } from "@/app/preferences/components/Theme";
 import { usePreference } from "@/context/PreferenceProvider";
 import { CustomSquares, GameTimer, Lobby } from "@/types";
 import { Chess, Move, Square } from "chess.js";
@@ -10,28 +9,13 @@ import React, {
   ReactNode,
   useEffect,
   useMemo,
-  useRef,
   useState,
 } from "react";
-import { Chessboard, ClearPremoves } from "react-chessboard";
+import { Chessboard } from "react-chessboard";
 import { BoardOrientation } from "react-chessboard/dist/chessboard/types";
 import { Socket } from "socket.io-client";
 import Board, { animationDuration, createLocalPieceSet } from "./Board";
-
-type Pice = {
-  wP: ReactElement;
-  wN: ReactElement;
-  wB: ReactElement;
-  wR: ReactElement;
-  wQ: ReactElement;
-  wK: ReactElement;
-  bP: ReactElement;
-  bN: ReactElement;
-  bB: ReactElement;
-  bR: ReactElement;
-  bQ: ReactElement;
-  bK: ReactElement;
-};
+import { themes } from "@/app/(user)/preferences/components/Theme";
 
 interface ActiveBoardProps {
   lobby: Lobby;
@@ -45,17 +29,6 @@ interface ActiveBoardProps {
   updateCustomSquares: Dispatch<Partial<CustomSquares>>;
   makeMove: (m: { from: Square; to: Square; promotion?: string }) => boolean;
 }
-
-const getFakeFen = (lobby: Lobby, side: BoardOrientation) => {
-  const fenParts = lobby.actualGame.fen().split(" ");
-  fenParts[1] = side[0]; // Fake your turn
-  const fakeFen = fenParts.join(" ");
-
-  const game = new Chess();
-  game.load(fakeFen);
-
-  return game;
-};
 
 export default function ActiveBoard({
   lobby,

@@ -1,15 +1,15 @@
 "use client";
 
-import Subnav from "@/app/components/Subnav";
-import { createLocalPieceSet } from "@/app/preferences/components/Piece";
-import { themes } from "@/app/preferences/components/Theme";
+import Subnav from "@/app/(user)/components/Subnav";
+import { createLocalPieceSet } from "@/app/(user)/preferences/components/Piece";
+import { themes } from "@/app/(user)/preferences/components/Theme";
 import { CLIENT_URL } from "@/config";
 import { usePreference } from "@/context/PreferenceProvider";
 import { useSession } from "@/context/SessionProvider";
 import { useToast } from "@/context/ToastContext";
 import { fetchUserGames } from "@/lib/user";
 import { Game } from "@/types";
-import { IconChess, IconCircle, IconClock } from "@tabler/icons-react";
+import { IconCircle, IconClock } from "@tabler/icons-react";
 import { Chess } from "chess.js";
 import clsx from "clsx";
 import Link from "next/link";
