@@ -26,8 +26,6 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
   const { toast } = useToast();
 
   useEffect(() => {
-    if (!session?.user?.id) return;
-
     if (!socket.connected) socket.connect();
 
     socket.on("connect", () => setIsConnected(true));
@@ -35,14 +33,6 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
       toast(err, "error");
     });
     socket.on("disconnect", (reason) => {
-      console.log(reason);
-
-      if (reason === "io server disconnect") {
-        // the disconnection was initiated by the server, you need to manually reconnect
-        console.log(socket.active); // false
-      }
-      // else the socket will automatically try to reconnect
-      console.log(socket.active); // true
       setIsConnected(false);
     });
 
