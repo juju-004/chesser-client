@@ -1,6 +1,7 @@
 "use client";
 
 import { useSession } from "@/context/SessionProvider";
+import { useSocket } from "@/context/SocketProvider";
 import { useToast } from "@/context/ToastContext";
 import { logout } from "@/lib/auth";
 import {
@@ -22,6 +23,7 @@ function Menu({ className }: { className?: string }) {
   const session = useSession();
   const { push, replace } = useRouter();
   const { toast } = useToast();
+  const { socket } = useSocket();
   const [logoutLoader, setlogoutLoader] = useState(false);
 
   const signOut = () => {
@@ -35,7 +37,8 @@ function Menu({ className }: { className?: string }) {
         return;
       }
 
-      session?.setUser(null);
+      socket.disconnect();
+      session.setUser(null);
       setTimeout(() => {
         replace("/auth");
       }, 200);

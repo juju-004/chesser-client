@@ -26,20 +26,27 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
   const { toast } = useToast();
 
   useEffect(() => {
-    if (!socket.connected) socket.connect();
+    if (!session?.user?.id) {
+      socket.disconnect();
+      return;
+    }
 
-    socket.on("connect", () => setIsConnected(true));
-    socket.on("error", (err: string) => {
-      toast(err, "error");
-    });
-    socket.on("disconnect", (reason) => {
-      setIsConnected(false);
-    });
+    if (!socket.connected) {
+      socket.connect();
+    }
+
+    const handleConnect = () => setIsConnected(true);
+    const handleDisconnect = () => setIsConnected(false);
+    const handleError = (err: string) => toast(err, "error");
+
+    socket.on("connect", handleConnect);
+    socket.on("disconnect", handleDisconnect);
+    socket.on("error", handleError);
 
     return () => {
-      socket.off("connect");
-      socket.off("disconnect");
-      socket.off("error");
+      socket.off("connect", handleConnect);
+      socket.off("disconnect", handleDisconnect);
+      socket.off("error", handleError);
     };
   }, [session?.user?.id]);
 
