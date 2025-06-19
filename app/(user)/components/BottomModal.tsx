@@ -1,6 +1,6 @@
 "use client";
 import { motion, AnimatePresence } from "framer-motion";
-import { useRef } from "react";
+import { useRef, useEffect, useState } from "react";
 
 type Props = {
   isOpen: boolean;
@@ -18,10 +18,15 @@ export default function BottomModal({
   className,
 }: Props) {
   const modalRef = useRef<HTMLDivElement>(null);
+  const [viewportHeight, setViewportHeight] = useState(1000); // default
+
+  useEffect(() => {
+    setViewportHeight(window.innerHeight);
+  }, []);
 
   const handleDragEnd = (_: any, info: { offset: { y: number } }) => {
     if (Math.abs(info.offset.y) > 50) {
-      onClose(); // close modal if dragged down far enough
+      onClose();
     }
   };
 
@@ -35,6 +40,7 @@ export default function BottomModal({
             initial={{ opacity: 0 }}
             animate={{ opacity: 0.5 }}
             exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
             style={{
               position: "fixed",
               inset: 0,
@@ -46,10 +52,10 @@ export default function BottomModal({
           {/* Bottom Modal */}
           <motion.div
             ref={modalRef}
-            initial={{ y: "100%" }}
+            initial={{ y: viewportHeight }}
             animate={{ y: 0 }}
-            exit={{ y: "100%" }}
-            transition={{ type: "tween", duration: 0.2 }}
+            exit={{ y: viewportHeight }}
+            transition={{ type: "tween", ease: "easeInOut", duration: 0.25 }}
             drag="y"
             dragConstraints={{ top: 0, bottom: 0 }}
             onDragEnd={handleDragEnd}
@@ -64,9 +70,9 @@ export default function BottomModal({
               padding: "1rem",
               zIndex: 20,
               touchAction: "none",
+              willChange: "transform",
             }}
           >
-            {/* Grab Bar */}
             {withBar && (
               <div style={{ textAlign: "center", marginBottom: "0.5rem" }}>
                 <div
@@ -80,7 +86,6 @@ export default function BottomModal({
                 />
               </div>
             )}
-
             {children}
           </motion.div>
         </>
