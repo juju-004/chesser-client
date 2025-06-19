@@ -8,6 +8,9 @@ import { SocketProvider } from "@/context/SocketProvider";
 import { useRouter } from "next/navigation";
 import React from "react";
 import type { ReactNode } from "react";
+import Notifications from "./components/Notifications";
+import FriendStatus from "./components/FriendStatus";
+import Challenge from "./components/Challenge";
 
 function Layout({ children }: { children: ReactNode }) {
   const session = useSession();
@@ -24,7 +27,14 @@ function Layout({ children }: { children: ReactNode }) {
     <SocketProvider>
       <PreferenceProvider>
         <FriendsProvider>
-          <NotificationsProvider>{children}</NotificationsProvider>
+          <NotificationsProvider>
+            {children}
+
+            <Notifications.Modal />
+            <FriendStatus.Modal />
+            <Challenge.Modal />
+            <Challenge.ModalMain />
+          </NotificationsProvider>
         </FriendsProvider>
       </PreferenceProvider>
     </SocketProvider>

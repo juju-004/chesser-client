@@ -42,7 +42,7 @@ export default function MenuSlider({
         <motion.div
           initial={false}
           animate={{ x: menuOpen ? 0 : menuWidth ? -menuWidth : -500 }}
-          transition={{ type: "tween", ease: "easeInOut", duration: 0.15 }}
+          transition={{ type: "tween", ease: "easeInOut", duration: 0.07 }}
           className="fixed top-0 left-0 bg-base-300 h-full z-40"
           style={{ width: `${menuWidth}px` }}
         >
@@ -53,7 +53,7 @@ export default function MenuSlider({
         <motion.div
           initial={false}
           animate={{ x: menuOpen ? menuWidth : 0 }}
-          transition={{ type: "tween", ease: "easeInOut", duration: 0.15 }}
+          transition={{ type: "tween", ease: "easeInOut", duration: 0.07 }}
           className="relative z-10 min-h-screen"
         >
           {menuOpen && (
@@ -73,10 +73,6 @@ export default function MenuSlider({
           </div>
         </motion.div>
       </div>
-      <Notifications.Modal />
-      <FriendStatus.Modal />
-      <Challenge.Modal />
-      <Challenge.ModalMain />
     </>
   );
 }

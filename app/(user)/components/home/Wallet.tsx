@@ -30,7 +30,7 @@ function Wallet() {
 
   return (
     <>
-      <div className="bg-base-300 mx-auto rounded-2xl pb-11 flex w-[90%] flex-col items-end px-5 pt-3">
+      <div className="bg-base-300 mx-auto rounded-2xl pb-11 flex w-[90%] flex-col items-start px-5 pt-3">
         {balance === null ? (
           <span className="loading loading-spinner opacity-40"></span>
         ) : (
