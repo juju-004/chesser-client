@@ -3,12 +3,12 @@ import React from "react";
 
 function Header({ text }: { text: string }) {
   return (
-    <div className="mt-4 flex relative w-full pl-7 items-center gap-2 text-sm ">
+    <div className="mt-4 flex relative px-8 items-center text-sm ">
       <Image
-        className="absolute -z-10 left-0 size-24 opacity-15"
+        className="absolute -z-10 -left-2 size-36 opacity-15"
         alt=""
-        width={50}
-        height={50}
+        width={80}
+        height={80}
         src={"/svg/swipe.svg"}
       />
       {text}

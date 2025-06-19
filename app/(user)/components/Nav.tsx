@@ -6,7 +6,15 @@ import Notifications from "./Notifications";
 import FriendStatus from "./FriendStatus";
 import Challenge from "./Challenge";
 
-function Nav({ navClass, nav }: { navClass?: string; nav?: ReactElement }) {
+function Nav({
+  navClass,
+  nav,
+  onClick,
+}: {
+  navClass?: string;
+  nav?: ReactElement;
+  onClick: () => void;
+}) {
   return (
     <div
       className={clsx(
@@ -15,9 +23,9 @@ function Nav({ navClass, nav }: { navClass?: string; nav?: ReactElement }) {
       )}
     >
       <div className={clsx("navbar-start", nav && "w-auto")}>
-        <label htmlFor="menuslider" className="btn btn-ghost btn-circle">
+        <button onClick={onClick} className="btn btn-ghost btn-circle">
           <IconMenuDeep />
-        </label>
+        </button>
       </div>
       <div
         className={clsx(

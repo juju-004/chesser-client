@@ -19,7 +19,7 @@ import {
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
 
-function Menu({ className }: { className?: string }) {
+function Menu() {
   const session = useSession();
   const { push, replace } = useRouter();
   const { toast } = useToast();
@@ -106,8 +106,8 @@ function Menu({ className }: { className?: string }) {
   ];
 
   return (
-    <div className={`flex h-screen flex-col items-center ${className}`}>
-      <details className="collapse-arrow w-full bg-black/10 pt-5 collapse">
+    <>
+      <details className="collapse-arrow w-full pt-5 collapse">
         <summary className="collapse-title rounded-3xl border-0 !p-0 after:opacity-60">
           <div className="px-5 pb-1 pt-4">
             <h3 className="ml-3 text-lg">{session?.user?.name}</h3>
@@ -192,7 +192,7 @@ function Menu({ className }: { className?: string }) {
       <div className="py-1.5 text-center text-sm opacity-25">
         &copy;2025 Chesser
       </div>
-    </div>
+    </>
   );
 }
 
