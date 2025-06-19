@@ -66,7 +66,7 @@ export default function MenuSlider({
           {menuOpen && (
             <button
               onClick={() => setMenuOpen(false)}
-              className=" inset-0 absolute"
+              className=" inset-0 z-[99] absolute"
             ></button>
           )}
           <Nav
