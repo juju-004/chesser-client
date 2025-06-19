@@ -27,7 +27,8 @@ export default function MenuSlider({
   // Update width on load and resize
   useEffect(() => {
     const updateWidth = () => {
-      setMenuWidth(window.innerWidth * 0.85); // 80vw
+      const width = Math.round(window.innerWidth * 0.8);
+      setMenuWidth(width);
     };
 
     updateWidth();
@@ -42,9 +43,12 @@ export default function MenuSlider({
         <motion.div
           initial={false}
           animate={{ x: menuOpen ? 0 : menuWidth ? -menuWidth : -500 }}
-          transition={{ type: "tween", ease: "easeInOut", duration: 0.07 }}
+          transition={{ type: "tween", ease: "easeInOut", duration: 0.1 }}
           className="fixed top-0 left-0 bg-base-300 h-full z-40"
-          style={{ width: `${menuWidth}px` }}
+          style={{
+            width: `${menuWidth}px`,
+            willChange: "transform",
+          }}
         >
           <Menu />
         </motion.div>
@@ -53,8 +57,11 @@ export default function MenuSlider({
         <motion.div
           initial={false}
           animate={{ x: menuOpen ? menuWidth : 0 }}
-          transition={{ type: "tween", ease: "easeInOut", duration: 0.07 }}
+          transition={{ type: "tween", ease: "easeInOut", duration: 0.1 }}
           className="relative z-10 min-h-screen"
+          style={{
+            willChange: "transform",
+          }}
         >
           {menuOpen && (
             <button
