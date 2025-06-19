@@ -2,10 +2,10 @@
 
 import { usePreference } from "@/context/PreferenceProvider";
 import Board, { createLocalPieceSet } from "./Board";
-import { themes } from "@/app/preferences/components/Theme";
 import { Chessboard } from "react-chessboard";
 import { GameTimer, Lobby } from "@/types";
 import { BoardOrientation } from "react-chessboard/dist/chessboard/types";
+import { themes } from "@/app/(user)/preferences/components/Theme";
 
 interface ArchiveBoardProps {
   lobby: Lobby;
