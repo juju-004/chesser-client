@@ -5,17 +5,16 @@ import { CustomSquares, GameTimer, Lobby } from "@/types";
 import { Chess, Move, Square } from "chess.js";
 import React, {
   Dispatch,
-  ReactElement,
   ReactNode,
   useEffect,
   useMemo,
   useState,
 } from "react";
-import { Chessboard } from "react-chessboard";
 import { BoardOrientation } from "react-chessboard/dist/chessboard/types";
 import { Socket } from "socket.io-client";
 import Board, { animationDuration, createLocalPieceSet } from "./Board";
 import { themes } from "@/app/(user)/preferences/components/Theme";
+import { Chessboard } from "react-chessboard";
 
 interface ActiveBoardProps {
   lobby: Lobby;
@@ -315,8 +314,7 @@ export default function ActiveBoard({
     socket.emit("sendMove", moveDetails);
     return true;
   }
-  // dark rgb(164, 35, 35)
-  // light rgb(189, 40, 40);
+
   return (
     <Board
       isActive

@@ -14,7 +14,7 @@ import { lobbyStatus } from "../utils";
 import { CopyLinkButton, ShareButton } from "./CopyLink";
 import { useSocket } from "@/context/SocketProvider";
 import clsx from "clsx";
-import { useRoom } from "../context/GameRoom";
+import { useRoom } from "../GameRoom";
 
 export function MenuAlert() {
   const { drawOfferFrom, setdrawOfferFrom } = useRoom();

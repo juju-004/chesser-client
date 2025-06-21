@@ -6,8 +6,8 @@ import { User } from "@/types";
 import { useRouter } from "next/navigation";
 import { CLIENT_URL } from "@/config";
 import { useToast } from "@/context/ToastContext";
-import { useChessSounds } from "../[code]/components/ui/SoundManager";
-import CreateForm from "./home/game/createForm";
+import { useChessSounds } from "../(user)/[code]/components/ui/SoundManager";
+import CreateForm from "../(user)/components/game/createForm";
 
 export type ChallengeData = {
   id: string;

@@ -88,7 +88,7 @@ export default function Board({
 
       <div className="py-2 bg-base-100 z-[3] rounded-xl">
         <div className="relative w-[100vw] h-[100vw] mx-auto max-w-xl rounded-xl overflow-hidden">
-          {/* {children} */}
+          {children}
           <div className="absolute -z-10 bg-black/30 inset-0 animate-pulse"></div>
         </div>
       </div>

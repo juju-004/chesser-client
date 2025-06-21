@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 import { IconSearch } from "@tabler/icons-react";
-import MenuSlider from "../components/MenuSlider";
 import { IconCircleFilled } from "@tabler/icons-react";
 import { fetchPlayersByName } from "@/lib/user";
 import { ProfileData } from "@/types";
@@ -32,55 +31,51 @@ export default function PlayerSearch() {
   }, [search]);
 
   return (
-    <MenuSlider>
-      <div className=" max-w-2xl py-4 w-full mx-auto">
-        {/* Search bar */}
-        <div className="px-6 form-control mb-6 w-full">
-          <label
-            ref={input}
-            className="w-full focus-within:outline-0 focus-within:border-accent input flex items-center gap-2"
-          >
-            <IconSearch className="w-5  h-5 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Search players"
-              className=""
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-          </label>
-        </div>
-
-        {/* Player Cards */}
-        <div className="grid ">
-          {filteredPlayers.length ? (
-            filteredPlayers.map((player, key) => (
-              <Link
-                href={`/u/${player.name}`}
-                key={key}
-                className="card click odd:bg-base-200 rounded-none"
-              >
-                <div className="card-body py-5 flex flex-row items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <h2 className="card-title font-normal text-base">
-                      <IconCircleFilled
-                        className={`w-3 rotate-45 h-3 ${
-                          player.online ? "text-green-500" : "text-gray-600"
-                        }`}
-                      />
-                      {player.name}
-                    </h2>
-                  </div>
-                </div>
-              </Link>
-            ))
-          ) : (
-            <div className="text-center mt-1.5 opacity-40">
-              No results found
-            </div>
-          )}
-        </div>
+    <div className=" max-w-2xl py-4 w-full mx-auto">
+      {/* Search bar */}
+      <div className="px-6 form-control mb-6 w-full">
+        <label
+          ref={input}
+          className="w-full focus-within:outline-0 focus-within:border-accent input flex items-center gap-2"
+        >
+          <IconSearch className="w-5  h-5 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Search players"
+            className=""
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </label>
       </div>
-    </MenuSlider>
+
+      {/* Player Cards */}
+      <div className="grid ">
+        {filteredPlayers.length ? (
+          filteredPlayers.map((player, key) => (
+            <Link
+              href={`/u/${player.name}`}
+              key={key}
+              className="card click odd:bg-base-200 rounded-none"
+            >
+              <div className="card-body py-5 flex flex-row items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <h2 className="card-title font-normal text-base">
+                    <IconCircleFilled
+                      className={`w-3 rotate-45 h-3 ${
+                        player.online ? "text-green-500" : "text-gray-600"
+                      }`}
+                    />
+                    {player.name}
+                  </h2>
+                </div>
+              </div>
+            </Link>
+          ))
+        ) : (
+          <div className="text-center mt-1.5 opacity-40">No results found</div>
+        )}
+      </div>
+    </div>
   );
 }

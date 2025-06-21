@@ -1,6 +1,6 @@
 "use client";
 
-import Subnav from "@/app/(user)/components/Subnav";
+import Subnav from "@/app/components/Subnav";
 import { createLocalPieceSet } from "@/app/(user)/preferences/components/Piece";
 import { themes } from "@/app/(user)/preferences/components/Theme";
 import { CLIENT_URL } from "@/config";

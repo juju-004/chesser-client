@@ -3,7 +3,7 @@
 import { Lobby } from "@/types";
 import React from "react";
 import { ActiveChessTimer, ChessTimer } from "./Timer";
-import { useRoom } from "../context/GameRoom";
+import { useRoom } from "../GameRoom";
 import { BoardOrientation } from "react-chessboard/dist/chessboard/types";
 import { FC } from "react";
 import {

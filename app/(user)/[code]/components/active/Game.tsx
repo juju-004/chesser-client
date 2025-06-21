@@ -2,7 +2,7 @@
 
 import type { FormEvent } from "react";
 
-import React, { useEffect, useReducer, useRef, useState } from "react";
+import React, { useEffect, useReducer, useState } from "react";
 import { clsx } from "clsx";
 
 import type { GameTimer, Lobby, Message, Session } from "@/types";
@@ -10,25 +10,40 @@ import type { Game } from "@/types";
 
 import { Chess, Square } from "chess.js";
 import { CLIENT_URL } from "@/config";
-
 import { lobbyReducer, squareReducer } from "../reducers";
 import { initSocket } from "../socketEvents";
 import { lobbyStatus, userWalletCheck } from "../utils";
 import { CopyLinkButton, ShareButton } from "../ui/CopyLink";
-import Chat from "../ui/Chat";
+import { MenuAlert } from "../ui/MenuOptions";
 import { useToast } from "@/context/ToastContext";
-import MenuOptions, { MenuAlert } from "../ui/MenuOptions";
 import { useChessSounds } from "../ui/SoundManager";
 import { useSession } from "@/context/SessionProvider";
-import Dock from "../ui/Dock";
 import { Disconnect } from "../ui/Connection";
 import { useSocket } from "@/context/SocketProvider";
-import GameNav from "../ui/GameNav";
-import { RoomProvider } from "../context/GameRoom";
+import { RoomProvider } from "../GameRoom";
 import { BoardOrientation } from "react-chessboard/dist/chessboard/types";
-import ActiveBoard from "../ui/boards/active";
-import GameOver from "../ui/GameOver";
-import MenuSlider from "@/app/(user)/components/MenuSlider";
+import { useNav } from "@/app/components/Nav";
+import GameNav from "../ui/GameNav";
+import Dock from "../ui/Dock";
+import dynamic from "next/dynamic";
+
+const Chat = dynamic(
+  () => import("../ui/Chat").then((mod) => mod.default.Active),
+  { ssr: false }
+);
+const GameOver = dynamic(() => import("../ui/GameOver"), {
+  ssr: false,
+});
+const MenuOptions = dynamic(
+  () => import("../ui/MenuOptions").then((mod) => mod.default.Active),
+  { ssr: false }
+);
+const Board = dynamic(() => import("../ui/boards/active"), {
+  ssr: false,
+  loading: () => (
+    <div className="w-[100vw] h-[100vw] bg-black/30 animate-pulse"></div>
+  ),
+});
 
 export function getSide(lobby: Lobby | Game, session: Session) {
   if (lobby.white?.id === session.user?.id) return "white";
@@ -61,7 +76,6 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
     white: initialLobby.timeControl * 60 * 1000,
     black: initialLobby.timeControl * 60 * 1000,
   });
-  // const lastUpdate = useRef<number>(0);
 
   const [perspective, setPerspective] = useState<BoardOrientation>(
     lobby.side ? lobby.side : "white"
@@ -70,6 +84,7 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
 
   const { playSound } = useChessSounds();
   const { toast } = useToast();
+  const { setCustomTitle } = useNav();
 
   useEffect(() => {
     if (!socket || !session?.user?.id) return;
@@ -85,10 +100,19 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
       playSound,
       setPerspective,
     });
+    setCustomTitle(
+      <GameNav
+        actualGame={lobby.actualGame}
+        navIndex={navIndex}
+        lobby={lobby}
+        navigateMove={(m: number | null | "prev") => navigateMove(m)}
+      />
+    );
 
     socket.emit("game:join", lobby.code);
     return () => {
       cleanupSocket();
+      setCustomTitle(null);
     };
   }, []);
 
@@ -234,127 +258,114 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
 
   return (
     <RoomProvider>
-      <MenuSlider
-        navClass="fixed z-10"
-        nav={
-          <GameNav
+      {lobby.side && (
+        <>
+          <dialog id="resignModal" className="modal">
+            <div className="modal-box flex flex-col items-center gap-5">
+              <h3 className="text-lg">Resign??</h3>
+              <form method="dialog" className="flex gap-4">
+                <button className="btn w-16 rounded-2xl btn-soft btn-success">
+                  No
+                </button>
+                <button
+                  onClick={() => socket.emit("resign")}
+                  className="btn w-16 rounded-2xl btn-error btn-soft "
+                >
+                  Yes
+                </button>
+              </form>
+            </div>
+          </dialog>
+          {lobby.winner && (
+            <dialog id="gameOverModal" className="modal">
+              <GameOver
+                lobby={lobby}
+                stake={lobby.stake}
+                countStart={lobby[lobby.side]?.wallet as number}
+                isWinner={
+                  lobby.winner === "draw"
+                    ? "draw"
+                    : lobby.winner === lobby.side
+                    ? true
+                    : false
+                }
+              />
+            </dialog>
+          )}
+        </>
+      )}
+      <div className="drawer drawer-end">
+        <input id="my-drawer-45" type="checkbox" className="drawer-toggle" />
+        <div className="drawer-content">
+          {lobbyStatus(lobby.actualGame) === "inPlay" && !lobby.endReason && (
+            <>
+              <Disconnect lobby={lobby} />
+              {lobby.side && <MenuAlert />}
+            </>
+          )}
+          <Board
+            lobby={lobby}
+            socket={socket}
+            clock={clock}
+            customSquares={customSquares}
+            navIndex={navIndex}
+            navFen={navFen}
+            makeMove={makeMove}
+            perspective={perspective}
+            updateCustomSquares={updateCustomSquares}
+          >
+            {(!lobby.white?.id || !lobby.black?.id) && !lobby.endReason && (
+              <div className="absolute bottom-0 right-0 top-0 z-10 flex h-full w-full items-center justify-center bg-black/70">
+                <div className="bg-base-200 flex w-full flex-col items-center justify-center gap-2 px-2 py-4">
+                  {!lobby.side ? (
+                    <button
+                      className={clsx("btn grad1", play && "btn-disabled")}
+                      onClick={clickPlay}
+                    >
+                      Play as {lobby.white?.id ? "black" : "white"}{" "}
+                      {play && (
+                        <span className="loading-spinner loading loading-xs"></span>
+                      )}
+                    </button>
+                  ) : (
+                    <>
+                      <span className="opacity-50">
+                        Waiting for opponent...
+                      </span>
+                      <div className="bg-base-300 fx text-base-content h-8 gap-2 rounded-2xl pl-3 pr-1 text-xs active:opacity-60 sm:h-5 sm:text-sm">
+                        <CopyLinkButton
+                          className="fx gap-2 "
+                          link={`${CLIENT_URL}/${initialLobby.code}`}
+                        />
+                        <ShareButton />
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
+          </Board>
+          <Dock
             actualGame={lobby.actualGame}
             navIndex={navIndex}
-            lobby={lobby}
+            perspective={perspective}
+            chatDot={chatDot}
+            htmlFor="my-drawer-45"
             navigateMove={(m: number | null | "prev") => navigateMove(m)}
-          />
-        }
-      >
-        {lobby.side && (
-          <>
-            <dialog id="resignModal" className="modal">
-              <div className="modal-box flex flex-col items-center gap-5">
-                <h3 className="text-lg">Resign??</h3>
-                <form method="dialog" className="flex gap-4">
-                  <button className="btn w-16 rounded-2xl btn-soft btn-success">
-                    No
-                  </button>
-                  <button
-                    onClick={() => socket.emit("resign")}
-                    className="btn w-16 rounded-2xl btn-error btn-soft "
-                  >
-                    Yes
-                  </button>
-                </form>
-              </div>
-            </dialog>
-            {lobby.winner && (
-              <dialog id="gameOverModal" className="modal">
-                <GameOver
-                  lobby={lobby}
-                  stake={lobby.stake}
-                  countStart={lobby[lobby.side]?.wallet as number}
-                  isWinner={
-                    lobby.winner === "draw"
-                      ? "draw"
-                      : lobby.winner === lobby.side
-                      ? true
-                      : false
-                  }
-                />
-              </dialog>
-            )}
-          </>
-        )}
-        <div className="drawer drawer-end">
-          <input id="my-drawer-45" type="checkbox" className="drawer-toggle" />
-          <div className="drawer-content">
-            {lobbyStatus(lobby.actualGame) === "inPlay" && !lobby.endReason && (
-              <>
-                <Disconnect lobby={lobby} />
-                {lobby.side && <MenuAlert />}
-              </>
-            )}
-
-            <ActiveBoard
-              lobby={lobby}
-              socket={socket}
-              clock={clock}
-              customSquares={customSquares}
-              navIndex={navIndex}
-              navFen={navFen}
-              makeMove={makeMove}
-              perspective={perspective}
-              updateCustomSquares={updateCustomSquares}
-            >
-              {(!lobby.white?.id || !lobby.black?.id) && !lobby.endReason && (
-                <div className="absolute bottom-0 right-0 top-0 z-10 flex h-full w-full items-center justify-center bg-black/70">
-                  <div className="bg-base-200 flex w-full flex-col items-center justify-center gap-2 px-2 py-4">
-                    {!lobby.side ? (
-                      <button
-                        className={clsx("btn grad1", play && "btn-disabled")}
-                        onClick={clickPlay}
-                      >
-                        Play as {lobby.white?.id ? "black" : "white"}{" "}
-                        {play && (
-                          <span className="loading-spinner loading loading-xs"></span>
-                        )}
-                      </button>
-                    ) : (
-                      <>
-                        <span className="opacity-50">
-                          Waiting for opponent...
-                        </span>
-                        <div className="bg-base-300 fx text-base-content h-8 gap-2 rounded-2xl pl-3 pr-1 text-xs active:opacity-60 sm:h-5 sm:text-sm">
-                          <CopyLinkButton
-                            className="fx gap-2 "
-                            link={`${CLIENT_URL}/${initialLobby.code}`}
-                          />
-                          <ShareButton />
-                        </div>
-                      </>
-                    )}
-                  </div>
-                </div>
-              )}
-            </ActiveBoard>
-            <Dock
-              actualGame={lobby.actualGame}
-              navIndex={navIndex}
-              perspective={perspective}
-              chatDot={chatDot}
-              htmlFor="my-drawer-45"
-              navigateMove={(m: number | null | "prev") => navigateMove(m)}
-              setPerspective={(m: BoardOrientation) => setPerspective(m)}
-              setchatDot={() => setchatDot(false)}
-            >
-              <MenuOptions.Active lobby={lobby} />
-            </Dock>
-          </div>
-          <Chat.Active
-            id="my-drawer-45"
-            side={lobby.side}
-            setChatDot={() => setchatDot(false)}
-            addMessage={addMessage}
-            chatMessages={chatMessages}
-          />
+            setPerspective={(m: BoardOrientation) => setPerspective(m)}
+            setchatDot={() => setchatDot(false)}
+          >
+            <MenuOptions lobby={lobby} />
+          </Dock>
         </div>
-      </MenuSlider>
+        <Chat
+          id="my-drawer-45"
+          side={lobby.side}
+          setChatDot={() => setchatDot(false)}
+          addMessage={addMessage}
+          chatMessages={chatMessages}
+        />
+      </div>
     </RoomProvider>
   );
 }

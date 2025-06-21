@@ -17,23 +17,20 @@ import {
   IconHome2,
 } from "@tabler/icons-react";
 import { useRouter } from "next/navigation";
-import React, { useState } from "react";
+import React, { useTransition } from "react";
 
-function Menu() {
+function Menu({ onClick }: { onClick: () => void }) {
   const session = useSession();
   const { push, replace } = useRouter();
   const { toast } = useToast();
   const { socket } = useSocket();
-  const [logoutLoader, setlogoutLoader] = useState(false);
+  const [isPending, startTransition] = useTransition();
 
   const signOut = () => {
-    setlogoutLoader(true);
-
-    setTimeout(async () => {
+    startTransition(async () => {
       const user = await logout();
       if (typeof user === "string") {
         toast(user, "error");
-        setlogoutLoader(false);
         return;
       }
 
@@ -42,7 +39,7 @@ function Menu() {
       setTimeout(() => {
         replace("/auth");
       }, 200);
-    }, 300);
+    });
   };
 
   const items = [
@@ -105,6 +102,11 @@ function Menu() {
     },
   ];
 
+  const clicked = (action: () => void) => {
+    action();
+    onClick();
+  };
+
   return (
     <>
       <details className="collapse-arrow w-full pt-5 collapse">
@@ -125,8 +127,8 @@ function Menu() {
           <ul className="menu w-full gap-1 px-1">
             {userItems.map((item, key) => (
               <li key={key}>
-                <a onClick={item.action}>
-                  {key && logoutLoader ? (
+                <a onClick={() => clicked(item.action)}>
+                  {key && isPending ? (
                     <span className="fill-error size-4 loading loading-spinner"></span>
                   ) : (
                     <span
@@ -146,7 +148,7 @@ function Menu() {
         <ul className="menu w-full gap-4 px-5">
           {items.map((item, key) => (
             <li className="" key={key}>
-              <a onClick={item.action} className="">
+              <a onClick={() => clicked(item.action)} className="">
                 <span
                   className={`size-6 rotate-6 rounded-lg px-1.5 ${item.color}`}
                 >
@@ -162,7 +164,7 @@ function Menu() {
               <ul>
                 {paymentItems.map((item, key) => (
                   <li className="" key={key}>
-                    <a onClick={item.action} className="">
+                    <a onClick={() => clicked(item.action)} className="">
                       <span
                         className={`bg-base-100 size-6 rotate-6 rounded-lg px-1.5 text-white/70`}
                       >
@@ -177,7 +179,7 @@ function Menu() {
           </li>
           <li>
             <details open>
-              <summary className="opacity-40">Customer</summary>
+              <summary className="opacity-40">User</summary>
               <ul>
                 {customerItems.map((item, key) => (
                   <li className="" key={key}>

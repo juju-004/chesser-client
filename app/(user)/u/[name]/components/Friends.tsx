@@ -10,7 +10,7 @@ import clsx from "clsx";
 import Link from "next/link";
 import { useSocket } from "@/context/SocketProvider";
 import { useFriends } from "@/context/FriendsContext";
-import Subnav from "@/app/(user)/components/Subnav";
+import Subnav from "@/app/components/Subnav";
 
 function Page({ setIsOpen }: { setIsOpen: () => void }) {
   const { toast } = useToast();

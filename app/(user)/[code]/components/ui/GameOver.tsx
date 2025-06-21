@@ -12,7 +12,7 @@ import Counter from "./Counter";
 import Link from "next/link";
 import clsx from "clsx";
 import { Lobby } from "@/types";
-import { useRoom } from "../context/GameRoom";
+import { useRoom } from "../GameRoom";
 
 export const RematchAlert = ({ lobby }: { lobby: Lobby }) => {
   const { rematchOffer, rematchLoader, setRematchOffer, acceptRematchOffer } =

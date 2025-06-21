@@ -1,9 +1,9 @@
-import GameAuthWrapper from "./components/context/GameAuthWrapper";
 import { fetchGame } from "@/lib/game";
 import { notFound } from "next/navigation";
-import ArchivedGame from "./components/archive/Game";
 import { CLIENT_URL } from "@/config";
 import { isHost } from "@/lib/helpers";
+import ArchivedGame from "./components/archive/Game";
+import ActiveGame from "./components/active/Game";
 
 export async function generateMetadata({
   params,
@@ -41,7 +41,7 @@ export async function generateMetadata({
         type: "website",
       },
     };
-  } else {
+  } else if (!game.black || !game.white) {
     return {
       title: `Challenge from ${host?.name} | chesser`,
       description: `${game.timeControl} mins - ₦${game.stake} | Play or watch a game with ${host?.name}`,
@@ -50,6 +50,21 @@ export async function generateMetadata({
       openGraph: {
         title: "chesser",
         description: `${game.timeControl} mins - ₦${game.stake} | Play or watch a game with ${host?.name}`,
+        url: `${CLIENT_URL}/${game.code}`,
+        siteName: "chesser",
+        locale: "en_US",
+        type: "website",
+      },
+    };
+  } else {
+    return {
+      title: `${game.white?.name} vs ${game.black?.name} | chesser`,
+      description: `${game.timeControl} mins - ₦${game.stake} | Watch the game of ${game.white?.name} vs ${game.black?.name} live`,
+      type: "website",
+      url: `${CLIENT_URL}/${game.code}`,
+      openGraph: {
+        title: "chesser",
+        description: `${game.timeControl} mins - ₦${game.stake} | Watch the game of ${game.white?.name} vs ${game.black?.name} live`,
         url: `${CLIENT_URL}/${game.code}`,
         siteName: "chesser",
         locale: "en_US",
@@ -67,6 +82,6 @@ export default async function Game({ params }: { params: { code: string } }) {
   return game.endReason ? (
     <ArchivedGame game={game} />
   ) : (
-    <GameAuthWrapper initialLobby={game} />
+    <ActiveGame initialLobby={game} />
   );
 }

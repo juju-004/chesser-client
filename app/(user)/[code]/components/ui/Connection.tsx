@@ -3,7 +3,7 @@
 import { useSocket } from "@/context/SocketProvider";
 import { Lobby } from "@/types";
 import React, { useEffect, useRef, useState } from "react";
-import { useRoom } from "../context/GameRoom";
+import { useRoom } from "../GameRoom";
 import { lobbyStatus } from "../utils";
 
 interface DisconnectProps {

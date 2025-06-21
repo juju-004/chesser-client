@@ -1,17 +1,16 @@
 "use client";
 
-import Header from "./components/home/Header";
-import Play from "./components/home/Play";
-import Wallet from "./components/home/Wallet";
-import MenuSlider from "./components/MenuSlider";
+import Header from "./components/Header";
+import Play from "./components/Play";
+import Wallet from "./components/Wallet";
 
 export default function Home() {
   return (
-    <MenuSlider className="gap-3 items-center">
+    <div className="flex flex-col gap-3 ">
       <Header text="Wallet" />
       <Wallet />
       <Header text="Play" />
       <Play />
-    </MenuSlider>
+    </div>
   );
 }

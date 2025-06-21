@@ -1,12 +1,16 @@
-import {
-  IconChessBishopFilled,
-  IconChessKing,
-  IconX,
-} from "@tabler/icons-react";
+import { IconChessBishopFilled, IconChessKing } from "@tabler/icons-react";
+import dynamic from "next/dynamic";
 import React, { useState } from "react";
-import CreateGame from "./game/createGame";
-import JoinGame from "./game/JoinGame";
-import BottomModal from "../BottomModal";
+
+const BottomModal = dynamic(() => import("@/app/components/BottomModal"), {
+  ssr: false,
+});
+const CreateGame = dynamic(() => import("./game/createGame"), {
+  ssr: false,
+});
+const JoinGame = dynamic(() => import("./game/JoinGame"), {
+  ssr: false,
+});
 
 function Play() {
   const [createOpen, setCreateOpen] = useState<boolean>(false);
