@@ -15,7 +15,6 @@ import { initSocket } from "../socketEvents";
 import { lobbyStatus, userWalletCheck } from "../utils";
 import { CopyLinkButton, ShareButton } from "../ui/CopyLink";
 import { MenuAlert } from "../ui/MenuOptions";
-import { useToast } from "@/context/ToastContext";
 import { useChessSounds } from "../ui/SoundManager";
 import { useSession } from "@/context/SessionProvider";
 import { Disconnect } from "../ui/Connection";
@@ -26,6 +25,7 @@ import { useNav } from "@/app/components/Nav";
 import GameNav from "../ui/GameNav";
 import Dock from "../ui/Dock";
 import dynamic from "next/dynamic";
+import { toast } from "sonner";
 
 const Chat = dynamic(
   () => import("../ui/Chat").then((mod) => mod.default.Active),
@@ -83,7 +83,6 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
   const [chatDot, setchatDot] = useState<boolean>(false);
 
   const { playSound } = useChessSounds();
-  const { toast } = useToast();
   const { setCustomTitle } = useNav();
 
   useEffect(() => {
@@ -224,7 +223,7 @@ export default function ActiveGame({ initialLobby }: { initialLobby: Game }) {
     const data = await userWalletCheck(initialLobby.stake);
 
     if (data.type === "e") {
-      toast(data.message as string, "error");
+      toast.error(data.message as string);
       setPlay(false);
       return;
     }

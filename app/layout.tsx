@@ -2,7 +2,7 @@ import "@/styles/globals.css";
 
 import type { ReactNode } from "react";
 import SessionProvider from "@/context/SessionProvider";
-import ToastProvider from "@/context/ToastContext";
+import { Toaster } from "sonner";
 
 export const metadata = {
   description: "Play Chess online.",
@@ -36,7 +36,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html lang="en" data-theme="dark" className="overflow-x-hidden">
       <body className="overflow-x-hidden">
         <SessionProvider>
-          <ToastProvider>{children}</ToastProvider>
+          <Toaster />
+          {children}
         </SessionProvider>
       </body>
     </html>

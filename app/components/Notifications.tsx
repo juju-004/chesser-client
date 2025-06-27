@@ -1,12 +1,12 @@
 import { useNotifications } from "@/context/NotificationsContext";
 import { useSocket } from "@/context/SocketProvider";
-import { useToast } from "@/context/ToastContext";
 import { clearNotifications } from "@/lib/user";
 import { FriendRequest } from "@/types";
 import { IconTrash } from "@tabler/icons-react";
 import { IconBell } from "@tabler/icons-react";
 import Link from "next/link";
 import React, { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 function formatChatTime(dateString: string): string {
   const now = new Date();
@@ -71,7 +71,6 @@ function Button() {
 function Modal() {
   const { notifications, setNotifications } = useNotifications();
   const { socket } = useSocket();
-  const { toast } = useToast();
   const [disabled, setDisabled] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -95,7 +94,7 @@ function Modal() {
       setNotifications(updated);
       setDisabled(false);
     } catch (error) {
-      toast("Could'nt complete request");
+      toast.error("Could'nt complete request");
       setDisabled(false);
     }
   };
@@ -105,7 +104,7 @@ function Modal() {
     const c = await clearNotifications();
 
     if (typeof c === "string") {
-      toast(c, "error");
+      toast.error(c);
       return;
     }
     setNotifications([]);

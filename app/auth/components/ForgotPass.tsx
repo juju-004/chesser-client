@@ -3,14 +3,13 @@
 import React, { useState } from "react";
 import FormInput from "./form-input";
 import FormButton from "./form-button";
-import { useToast } from "@/context/ToastContext";
 import { IconSend } from "@tabler/icons-react";
 import { sendMail } from "@/lib/auth";
+import { toast } from "sonner";
 
 const ForgotPass = () => {
   const [disabled, setDisabled] = useState<boolean>(false);
   const [email, setEmail] = useState<string | null>(null);
-  const { toast } = useToast();
 
   const submitAction = (formData: any) => {
     setDisabled(true);
@@ -24,7 +23,7 @@ const ForgotPass = () => {
           document.getElementById("forgotPassModal") as HTMLDialogElement
         ).close();
         setTimeout(() => {
-          toast(user, "error");
+          toast.error(user);
         }, 500);
       } else if (user?.email) {
         setEmail(user.email);

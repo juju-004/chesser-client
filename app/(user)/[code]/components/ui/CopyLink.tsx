@@ -4,7 +4,7 @@ import React, { ReactNode, useState } from "react";
 import { IconCopy } from "@tabler/icons-react";
 import { IconChecks } from "@tabler/icons-react";
 import clsx from "clsx";
-import { useToast } from "@/context/ToastContext";
+import { toast } from "sonner";
 
 interface CopyLinkButtonProps {
   link: string;
@@ -20,7 +20,6 @@ export function ShareButton({
   children?: ReactNode;
   className?: string;
 }) {
-  const { toast } = useToast();
   const handleNativeShare = async () => {
     try {
       await navigator.share({
@@ -29,7 +28,7 @@ export function ShareButton({
       });
     } catch (e) {
       // Fallback to custom panel if Web Share API isn't supported
-      toast("Cannot open share", "error");
+      toast("Cannot open share");
     }
   };
 

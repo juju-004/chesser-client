@@ -11,7 +11,7 @@ import { Game, Lobby, User } from "@/types";
 import { useSocket } from "@/context/SocketProvider";
 import { BoardOrientation } from "react-chessboard/dist/chessboard/types";
 import { useRouter } from "next/navigation";
-import { useToast } from "@/context/ToastContext";
+import { toast } from "sonner";
 
 type RoomContextType = {
   connectedUsers: Partial<User>[];
@@ -35,7 +35,6 @@ export const RoomProvider = ({ children }: { children: ReactNode }) => {
   const [rematchOffer, setRematchOffer] = useState<boolean>(false);
   const [rematchLoader, setRematchLoader] = useState<boolean>(false);
   const [drawOfferFrom, setdrawOfferFrom] = useState<string | false>(false);
-  const { toast } = useToast();
 
   const sendRematchOffer = (lobby: Lobby) => {
     if (!lobby.side) return;
@@ -43,7 +42,7 @@ export const RoomProvider = ({ children }: { children: ReactNode }) => {
     const wallet = lobby[lobby.side]?.wallet || 0;
 
     if (Math.sign(wallet - lobby.stake) === -1) {
-      toast("Insufficient funds", "error");
+      toast.error("Insufficient funds");
       setRematchLoader(false);
     }
 
@@ -56,7 +55,7 @@ export const RoomProvider = ({ children }: { children: ReactNode }) => {
     const wallet = lobby[lobby.side]?.wallet || 0;
 
     if (Math.sign(wallet - lobby.stake) === -1) {
-      toast("Insufficient funds", "error");
+      toast.error("Insufficient funds");
       setRematchLoader(false);
       return false;
     }

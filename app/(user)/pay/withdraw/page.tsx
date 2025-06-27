@@ -3,14 +3,13 @@
 import { useEffect, useRef, useState } from "react";
 import { IconCreditCard } from "@tabler/icons-react";
 import { useSession } from "@/context/SessionProvider";
-import { useToast } from "@/context/ToastContext";
 import { getWallet } from "@/lib/user";
+import { toast } from "sonner";
 
 export default function Withdraw() {
   const [amount, setAmount] = useState("");
   const [loading, setLoading] = useState(false);
   const session = useSession();
-  const { toast } = useToast();
   const [balance, setBalance] = useState<number | null | false>(null);
 
   const input = useRef<HTMLInputElement | null>(null);
@@ -25,7 +24,7 @@ export default function Withdraw() {
         const data = await getWallet();
 
         if (typeof data === "string") {
-          toast("failed to fetch wallet", "error");
+          toast.error("failed to fetch wallet");
           return;
         }
         setBalance(data?.wallet);

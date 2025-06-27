@@ -1,13 +1,13 @@
 "use client";
 
-import { useToast } from "@/context/ToastContext";
+import {  } from "@/context/ToastContext";
 import { sendMail } from "@/lib/auth";
 import { IconSend } from "@tabler/icons-react";
 import React, { useEffect, useState } from "react";
 
 function Mailsend({ email }: { email: { mail: string; nv: boolean } }) {
   const [time, setTime] = useState<number>(email.nv ? 0 : 60);
-  const { toast } = useToast();
+  const { toast } = ();
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {

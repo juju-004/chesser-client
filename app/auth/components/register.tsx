@@ -1,15 +1,11 @@
 "use client";
 
-import React, { useActionState, useState, useTransition } from "react";
+import React, { useState, useTransition } from "react";
 import FormInput from "./form-input";
 import { fetchUsername, register } from "@/lib/auth";
-import { useToast } from "@/context/ToastContext";
-import {
-  IconCircleCheckFilled,
-  IconCircleXFilled,
-  IconX,
-} from "@tabler/icons-react";
+import { IconCircleCheckFilled, IconCircleXFilled } from "@tabler/icons-react";
 import FormButton from "./form-button";
+import { toast } from "sonner";
 
 function Register({
   setMail,
@@ -19,7 +15,6 @@ function Register({
   const [userNameExists, setuserNameExists] = useState(false);
   const [userfieldLoading, setUserfieldLoading] = useState(false);
   let debounceTimeout: ReturnType<typeof setTimeout>;
-  const { toast } = useToast();
 
   const [isPending, startTransition] = useTransition();
   const [isUnamePending, startUnameTransition] = useTransition();
@@ -33,7 +28,7 @@ function Register({
       const user = await register(username, password, email);
 
       if (typeof user === "string") {
-        toast(user, "error");
+        toast.error(user);
         return;
       } else if (user?.notVerified) {
         setMail({ mail: user.email, nv: true });

@@ -6,7 +6,6 @@ import { themes } from "@/app/(user)/preferences/components/Theme";
 import { CLIENT_URL } from "@/config";
 import { usePreference } from "@/context/PreferenceProvider";
 import { useSession } from "@/context/SessionProvider";
-import { useToast } from "@/context/ToastContext";
 import { fetchUserGames } from "@/lib/user";
 import { Game } from "@/types";
 import { IconCircle, IconClock } from "@tabler/icons-react";
@@ -15,6 +14,7 @@ import clsx from "clsx";
 import Link from "next/link";
 import React, { useEffect, useRef, useState } from "react";
 import { Chessboard } from "react-chessboard";
+import { toast } from "sonner";
 
 const gameEndText = (winner: Game["winner"], reason?: string) => {
   switch (reason) {
@@ -71,7 +71,6 @@ function Games({ setIsOpen, name }: { setIsOpen: () => void; name: string }) {
   const [games, setGames] = useState<null | Game[] | undefined>(null);
   const { userPreference } = usePreference();
   const pieces = userPreference && createLocalPieceSet(userPreference.pieceset);
-  const { toast } = useToast();
   const session = useSession();
   const [gameCount, setGameCount] = useState<number | null>(null);
   const scrollRef = useRef<HTMLUListElement>(null);
@@ -86,7 +85,7 @@ function Games({ setIsOpen, name }: { setIsOpen: () => void; name: string }) {
     );
 
     if (typeof g === "string") {
-      toast(g, "error");
+      toast.error(g);
       return;
     }
 

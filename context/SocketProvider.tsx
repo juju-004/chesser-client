@@ -10,8 +10,8 @@ import React, {
 import { Socket } from "socket.io-client";
 import { useSession } from "./SessionProvider";
 import { socket } from "./socket";
-import { useToast } from "./ToastContext";
 import { IconWifi } from "@tabler/icons-react";
+import { toast } from "sonner";
 
 type SocketContextType = {
   socket: Socket;
@@ -23,7 +23,6 @@ const SocketContext = createContext<SocketContextType | undefined>(undefined);
 export const SocketProvider = ({ children }: { children: ReactNode }) => {
   const session = useSession();
   const [isConnected, setIsConnected] = useState(false);
-  const { toast } = useToast();
 
   useEffect(() => {
     if (!session?.user?.id) {
@@ -37,7 +36,7 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
 
     const handleConnect = () => setIsConnected(true);
     const handleDisconnect = () => setIsConnected(false);
-    const handleError = (err: string) => toast(err, "error");
+    const handleError = (err: string) => toast.error(err);
 
     socket.on("connect", handleConnect);
     socket.on("disconnect", handleDisconnect);

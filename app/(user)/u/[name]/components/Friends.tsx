@@ -1,7 +1,6 @@
 "use client";
 
 import { useSession } from "@/context/SessionProvider";
-import { useToast } from "@/context/ToastContext";
 import { unFriend } from "@/lib/user";
 import { FriendRequest, ProfileData } from "@/types";
 import React, { useEffect, useRef, useState } from "react";
@@ -11,9 +10,9 @@ import Link from "next/link";
 import { useSocket } from "@/context/SocketProvider";
 import { useFriends } from "@/context/FriendsContext";
 import Subnav from "@/app/components/Subnav";
+import { toast } from "sonner";
 
 function Page({ setIsOpen }: { setIsOpen: () => void }) {
-  const { toast } = useToast();
   const session = useSession();
   const [isLoading, setisLoading] = useState(false);
   const { friends, removeFriend } = useFriends();
@@ -23,9 +22,9 @@ function Page({ setIsOpen }: { setIsOpen: () => void }) {
     const g = await unFriend(id);
 
     if (typeof g === "string") {
-      toast(g, "error");
+      toast.error(g);
     } else {
-      toast(g.message, "info");
+      toast.info(g.message);
       removeFriend(id);
     }
     setisLoading(false);
@@ -80,7 +79,6 @@ function Page({ setIsOpen }: { setIsOpen: () => void }) {
 }
 
 function AddButton({ isFriend, id }: { isFriend?: boolean; id: string }) {
-  const { toast } = useToast();
   const [disabled, setDisabled] = useState(false);
   const session = useSession();
   const { socket } = useSocket();
@@ -98,7 +96,7 @@ function AddButton({ isFriend, id }: { isFriend?: boolean; id: string }) {
       });
     } catch (error) {
       setDisabled(false);
-      toast("Could'nt send request", "error");
+      toast.error("Could'nt send request");
     }
   };
 
@@ -106,9 +104,8 @@ function AddButton({ isFriend, id }: { isFriend?: boolean; id: string }) {
     if (request.status === "accepted") {
       await getUserFriends();
     }
-    toast(
-      `${request.to.name} ${request.status} your friend request`,
-      request.status === "accepted" ? "success" : "error"
+    toast[request.status === "accepted" ? "success" : "error"](
+      `${request.to.name} ${request.status} your friend request`
     );
   });
 
@@ -117,9 +114,9 @@ function AddButton({ isFriend, id }: { isFriend?: boolean; id: string }) {
     const g = await unFriend(id);
 
     if (typeof g === "string") {
-      toast("Something went wrong", "error");
+      toast.error("Something went wrong");
     } else {
-      toast(g.message, "info");
+      toast.info(g.message);
       removeFriend(id);
     }
     setUnFriendLoading(false);

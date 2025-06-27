@@ -5,9 +5,9 @@ import React, { useEffect, useState } from "react";
 import { User } from "@/types";
 import { useRouter } from "next/navigation";
 import { CLIENT_URL } from "@/config";
-import { useToast } from "@/context/ToastContext";
 import { useChessSounds } from "../(user)/[code]/components/ui/SoundManager";
 import CreateForm from "../(user)/components/game/createForm";
+import { toast } from "sonner";
 
 export type ChallengeData = {
   id: string;
@@ -126,7 +126,6 @@ function ModalMain() {
   const to = localStorage.getItem("c:to");
   const [disabled, setDisabled] = useState(false);
   const [text, setText] = useState("Send");
-  const { toast } = useToast();
 
   if (!to) return;
 
@@ -148,7 +147,7 @@ function ModalMain() {
       setText("Send");
       setDisabled(false);
       closeModal();
-      toast("Challlenge request declined", "error");
+      toast.error("Challlenge request declined");
     });
 
     return () => {

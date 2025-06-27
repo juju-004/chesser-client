@@ -6,9 +6,9 @@ import FormInput from "./components/form-input";
 import FormButton from "./components/form-button";
 import { login } from "@/lib/auth";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useToast } from "@/context/ToastContext";
 import { useSession } from "@/context/SessionProvider";
 import dynamic from "next/dynamic";
+import { toast } from "sonner";
 
 const ForgotPass = dynamic(() => import("./components/ForgotPass"), {
   ssr: false,
@@ -22,7 +22,6 @@ const Mailsend = dynamic(() => import("./components/mailsend"), {
 
 function Login() {
   const session = useSession();
-  const { toast } = useToast();
   const { push } = useRouter();
   const searchParams = useSearchParams();
   const [mail, setMail] = useState<{ mail: string; nv: boolean } | null>(null);
@@ -37,7 +36,7 @@ function Login() {
       const user = await login(nameoremail, password);
 
       if (typeof user === "string") {
-        toast(user, "error");
+        toast.error(user);
         return;
       } else if (user?.notVerified) {
         setMail({ mail: user.email, nv: true });

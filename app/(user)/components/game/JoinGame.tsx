@@ -4,14 +4,13 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { fetchGame } from "@/lib/game";
-import { useToast } from "@/context/ToastContext";
 import Button from "./button";
 import { useSession } from "@/context/SessionProvider";
+import { toast } from "sonner";
 
 export default function JoinGame() {
   const session = useSession();
   const [disabled, setDisabled] = useState(false);
-  const { toast } = useToast();
 
   const router = useRouter();
 
@@ -36,7 +35,7 @@ export default function JoinGame() {
       if (game && game.code) {
         router.push(`/${game.code}`);
       } else {
-        toast("No games found", "error");
+        toast.error("No games found");
         setDisabled(false);
       }
     }, 500);

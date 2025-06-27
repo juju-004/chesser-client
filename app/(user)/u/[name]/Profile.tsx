@@ -11,13 +11,13 @@ import {
   IconSwords,
   IconUsers,
 } from "@tabler/icons-react";
-import { useToast } from "@/context/ToastContext";
 import { logout } from "@/lib/auth";
 import { useRouter } from "next/navigation";
 import { useFriends } from "@/context/FriendsContext";
 import Slider from "../../../components/Slider";
 import dynamic from "next/dynamic";
 import { useSocket } from "@/context/SocketProvider";
+import { toast } from "sonner";
 
 const Games = dynamic(() => import("./components/Games"), {
   ssr: false,
@@ -40,7 +40,6 @@ export default function Profile({ data }: { data: ProfileData }) {
   const [isOpen, setisOpen] = useState<boolean | "game" | "friends">(false);
   const [isPending, startTransition] = useTransition();
   const { socket } = useSocket();
-  const { toast } = useToast();
   const { replace } = useRouter();
   const { isFriend, isFriendOnline } = useFriends();
 
@@ -51,7 +50,7 @@ export default function Profile({ data }: { data: ProfileData }) {
     startTransition(async () => {
       const user = await logout();
       if (typeof user === "string") {
-        toast(user, "error");
+        toast.error(user);
         return;
       }
 

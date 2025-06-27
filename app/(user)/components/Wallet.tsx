@@ -1,16 +1,14 @@
 "use client";
 
-import { useToast } from "@/context/ToastContext";
 import { getWallet } from "@/lib/user";
 import { IconEye } from "@tabler/icons-react";
 import { IconEyeCancel } from "@tabler/icons-react";
-import Link from "next/link";
 import React, { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 function Wallet() {
   const [balance, setBalance] = useState<number | null>(null);
   const [see, setSee] = useState(true);
-  const { toast } = useToast();
 
   useEffect(() => {
     const getW = async () => {
@@ -18,7 +16,7 @@ function Wallet() {
         const data = await getWallet();
 
         if (typeof data === "string") {
-          toast("failed to fetch wallet", "error");
+          toast.error("failed to fetch wallet");
           return;
         }
         setBalance(data?.wallet);

@@ -1,7 +1,6 @@
 "use client";
 
 import { useSession } from "@/context/SessionProvider";
-import { useToast } from "@/context/ToastContext";
 import { Lobby } from "@/types";
 import { IconHome, IconReload, IconShare } from "@tabler/icons-react";
 import { IconProgressX } from "@tabler/icons-react";
@@ -15,6 +14,7 @@ import { CopyLinkButton, ShareButton } from "./CopyLink";
 import { useSocket } from "@/context/SocketProvider";
 import clsx from "clsx";
 import { useRoom } from "../GameRoom";
+import { toast } from "sonner";
 
 export function MenuAlert() {
   const { drawOfferFrom, setdrawOfferFrom } = useRoom();
@@ -126,7 +126,6 @@ function Template({ lobby, children }: { lobby: Lobby; children?: ReactNode }) {
 }
 
 function Active({ lobby }: { lobby: Lobby }) {
-  const { toast } = useToast();
   const { socket } = useSocket();
   const {
     rematchOffer,
@@ -143,7 +142,7 @@ function Active({ lobby }: { lobby: Lobby }) {
 
     if (!opponent) return;
     socket.emit("draw", "offer", opponent.id);
-    toast("Draw offer sent", "info");
+    toast.info("Draw offer sent");
     setDrawSent(true);
   }
 

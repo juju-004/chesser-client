@@ -5,13 +5,12 @@ import { IconCreditCard } from "@tabler/icons-react";
 import axios from "axios";
 import { API_URL } from "@/config";
 import { useSession } from "@/context/SessionProvider";
-import { useToast } from "@/context/ToastContext";
+import { toast } from "sonner";
 
 export default function PaystackForm() {
   const [amount, setAmount] = useState("");
   const [loading, startTransition] = useTransition();
   const session = useSession();
-  const { toast } = useToast();
 
   const input = useRef<HTMLInputElement | null>(null);
 
@@ -30,7 +29,7 @@ export default function PaystackForm() {
         window.location.href = res.data.authorization_url;
         return;
       } catch (err) {
-        toast("Payment initiation failed.", "error");
+        toast.error("Payment initiation failed.");
         return;
       }
     });

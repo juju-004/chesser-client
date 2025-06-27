@@ -5,7 +5,7 @@ import React, { createContext, useState, useContext, useEffect } from "react";
 import { useSession } from "./SessionProvider";
 import { ProfileData } from "@/types";
 import { fetchUserFriends } from "@/lib/user";
-import { useToast } from "./ToastContext";
+import { toast } from "sonner";
 
 // Define the shape of the context value
 type FriendsContextValue = {
@@ -27,13 +27,12 @@ export const FriendsContext = createContext<FriendsContextValue | undefined>(
 export default function FriendsProvider({ children }: { children: ReactNode }) {
   const [friends, setFriends] = useState<ProfileData[]>([]);
   const session = useSession();
-  const { toast } = useToast();
 
   const getUserFriends = async () => {
     const g = await fetchUserFriends(session.user?.id as string);
 
     if (typeof g === "string") {
-      toast("Couldn't get friends", "error");
+      toast.error("Couldn't get friends");
       return;
     }
 

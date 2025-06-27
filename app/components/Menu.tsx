@@ -2,7 +2,6 @@
 
 import { useSession } from "@/context/SessionProvider";
 import { useSocket } from "@/context/SocketProvider";
-import { useToast } from "@/context/ToastContext";
 import { logout } from "@/lib/auth";
 import {
   IconCoin,
@@ -18,11 +17,11 @@ import {
 } from "@tabler/icons-react";
 import { useRouter } from "next/navigation";
 import React, { useTransition } from "react";
+import { toast } from "sonner";
 
 function Menu({ onClick }: { onClick: () => void }) {
   const session = useSession();
   const { push, replace } = useRouter();
-  const { toast } = useToast();
   const { socket } = useSocket();
   const [isPending, startTransition] = useTransition();
 
@@ -30,7 +29,7 @@ function Menu({ onClick }: { onClick: () => void }) {
     startTransition(async () => {
       const user = await logout();
       if (typeof user === "string") {
-        toast(user, "error");
+        toast.error(user);
         return;
       }
 
