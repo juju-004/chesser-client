@@ -1,13 +1,12 @@
 "use client";
 
-import {  } from "@/context/ToastContext";
 import { sendMail } from "@/lib/auth";
 import { IconSend } from "@tabler/icons-react";
 import React, { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 function Mailsend({ email }: { email: { mail: string; nv: boolean } }) {
   const [time, setTime] = useState<number>(email.nv ? 0 : 60);
-  const { toast } = ();
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -28,9 +27,9 @@ function Mailsend({ email }: { email: { mail: string; nv: boolean } }) {
       const { mail } = email;
       const data = await sendMail(mail);
       if (typeof data === "string") {
-        toast(data, "error");
+        toast.error(data);
       } else if (data?.email) {
-        toast("Mail sent successfully", "success");
+        toast.success("Mail sent successfully");
 
         setTime(60);
       }
