@@ -78,7 +78,7 @@ function Login() {
               <FormInput name={"password"} placeholder={"Your pasword"} />
               <FormButton text={"Sign in"} disabled={isPending} />
               <div className="mt-4 px-5 text-center opacity-70">
-                Forgotten password?{" "}
+                Forgotten password?
                 <span
                   onClick={(e) => {
                     e.stopPropagation();

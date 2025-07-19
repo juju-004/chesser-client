@@ -49,6 +49,12 @@ function Menu({ onClick }: { onClick: () => void }) {
       action: () => push("/"),
     },
     {
+      text: "Profile",
+      icon: <IconUser className="size-4" />,
+      action: () => push(`/u/${session.user?.name}`),
+      color: "bg-gray-600",
+    },
+    {
       text: "Players",
       icon: <IconAt className="size-4" />,
       color: "bg-red-600",
@@ -59,18 +65,6 @@ function Menu({ onClick }: { onClick: () => void }) {
       icon: <IconSettings className="size-4" />,
       color: "bg-accent",
       action: () => push("/preferences"),
-    },
-  ];
-  const userItems = [
-    {
-      text: "Profile",
-      icon: <IconUser className="size-4" />,
-      action: () => push(`/u/${session.user?.name}`),
-    },
-    {
-      text: "Logout",
-      icon: <IconPower className="size-4 text-red-600" />,
-      action: signOut,
     },
   ];
 
@@ -95,9 +89,11 @@ function Menu({ onClick }: { onClick: () => void }) {
   const customerItems = [
     {
       text: "Make Complaint",
+      action: () => push("/terms"),
     },
     {
       text: "Terms & conditions",
+      action: () => push("/terms"),
     },
   ];
 
@@ -108,41 +104,17 @@ function Menu({ onClick }: { onClick: () => void }) {
 
   return (
     <>
-      <details className="collapse-arrow w-full pt-5 collapse">
-        <summary className="collapse-title rounded-3xl border-0 !p-0 after:opacity-60">
-          <div className="px-5 pb-1 pt-4">
-            <h3 className="ml-3 text-lg">{session?.user?.name}</h3>
-            <div className="bg-base-100 mb-4 flex w-full shadow-2xl items-center gap-2 rounded-3xl px-2 py-1">
-              <span className="fx bg-base-300 size-5 rounded-full">
-                {session?.user?.email && session?.user?.email[0]}
-              </span>
-              <span className="w-[70%] flex-1 overflow-hidden text-ellipsis text-sm text-white/80">
-                {session?.user?.email}
-              </span>
-            </div>
-          </div>
-        </summary>
-        <div className="collapse-content py-0 text-sm">
-          <ul className="menu w-full gap-1 px-1">
-            {userItems.map((item, key) => (
-              <li key={key}>
-                <a onClick={() => clicked(item.action)}>
-                  {key && isPending ? (
-                    <span className="fill-error size-4 loading loading-spinner"></span>
-                  ) : (
-                    <span
-                      className={`bg-base-100 size-6 rotate-6 rounded-lg px-1.5 text-white/70`}
-                    >
-                      {item.icon}
-                    </span>
-                  )}
-                  <span className="opacity-60">{item.text}</span>
-                </a>
-              </li>
-            ))}
-          </ul>
+      <div className="px-5 pb-1 w-full pt-16">
+        <h3 className="ml-3 text-lg">{session?.user?.name}</h3>
+        <div className="bg-base-100 mb-4 flex shadow-2xl items-center gap-2 rounded-3xl px-2 py-1">
+          <span className="fx bg-base-300 size-5 rounded-full">
+            {session?.user?.email && session?.user?.email[0]}
+          </span>
+          <span className="flex-1 overflow-hidden text-ellipsis text-sm text-white/80">
+            {session?.user?.email}
+          </span>
         </div>
-      </details>
+      </div>
       <div className="flex-1 w-full overflow-x-hidden overflow-y-scroll">
         <ul className="menu w-full gap-4 px-5">
           {items.map((item, key) => (
@@ -157,6 +129,20 @@ function Menu({ onClick }: { onClick: () => void }) {
               </a>
             </li>
           ))}
+          <li>
+            <a onClick={signOut}>
+              {isPending ? (
+                <span className="fill-error size-4 loading loading-spinner"></span>
+              ) : (
+                <span
+                  className={`bg-base-100 size-6 rotate-6 rounded-lg px-1.5 text-white/70`}
+                >
+                  <IconPower className="size-4 text-red-600" />
+                </span>
+              )}
+              <span className="opacity-60">Logout</span>
+            </a>
+          </li>
           <li>
             <details open>
               <summary className="opacity-40">Payment</summary>
@@ -182,7 +168,9 @@ function Menu({ onClick }: { onClick: () => void }) {
               <ul>
                 {customerItems.map((item, key) => (
                   <li className="" key={key}>
-                    <a className="">{item.text}</a>
+                    <a onClick={() => clicked(item.action)} className="">
+                      {item.text}
+                    </a>
                   </li>
                 ))}
               </ul>

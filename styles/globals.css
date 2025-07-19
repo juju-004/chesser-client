@@ -10,9 +10,6 @@
 }
 
 @theme {
-  --font-jose-reg: "JoseR";
-  --font-jose-bold: "JoseB";
-
   --color-primary: #c23a84;
   --color-primary-content: oklch(98% 0.01 240);
   --color-secondary: #00e6f4;
@@ -21,21 +18,15 @@
   --color-accent-content: oklch(98% 0.01 160);
 }
 
-@font-face {
-  font-family: "JoseR";
-  src: url("../fonts/JosefinSans-Regular.ttf");
-}
-@font-face {
-  font-family: "JoseB";
-  src: url("../fonts/JosefinSans-SemiBold.ttf");
-}
 button {
   @apply font-light;
 }
 
 * {
   scrollbar-width: thin;
-  font-family: "JoseR";
+}
+.container {
+  @apply px-4;
 }
 .grad1 {
   @apply bg-gradient-to-r from-accent to-secondary disabled:from-gray-700 disabled:to-gray-700 hover:opacity-100 scale-100 opacity-85 active:scale-95 duration-300;
@@ -65,7 +56,7 @@ button {
   display: none; /* Chrome, Safari, and Opera */
 }
 
-.fx {
+@utility fx {
   @apply flex items-center justify-center;
 }
 /* styles/Timer.module.css */
