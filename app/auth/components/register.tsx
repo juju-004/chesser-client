@@ -35,7 +35,10 @@ function Register({
         toast.error(user);
       } else if (user) {
         session.setUser(user);
-        router.push("/");
+
+        setTimeout(() => {
+          router.push("/");
+        }, 200);
       }
 
       // else if (user?.notVerified) {
