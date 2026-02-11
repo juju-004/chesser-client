@@ -2,17 +2,18 @@
 
 import { useSession } from "@/context/SessionProvider";
 import { useRouter } from "next/navigation";
-import React from "react";
+import React, { useEffect } from "react";
 import type { ReactNode } from "react";
 
 function Layout({ children }: { children: ReactNode }) {
   const session = useSession();
-  const { replace } = useRouter();
+  const router = useRouter();
 
-  if (session?.user) {
-    replace("/");
-    return;
-  }
+  useEffect(() => {
+    if (session?.user) {
+      router.replace("/");
+    }
+  }, [session, router]);
 
   return <div>{children}</div>;
 }

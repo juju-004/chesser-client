@@ -27,7 +27,7 @@ export default function TermsOfService() {
         </h2>
         <p>
           When participating in a match with monetary stakes, a service fee of{" "}
-          <strong>X%</strong> will be deducted from the total prize pool. This
+          <strong>5%</strong> will be deducted from the total prize pool. This
           fee supports server maintenance, security, and platform development.
         </p>
 

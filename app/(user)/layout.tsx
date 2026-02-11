@@ -14,19 +14,19 @@ import MenuSlider from "../components/MenuSlider";
 
 const ChallengeModalMain = dynamic(
   () => import("../components/Challenge").then((mod) => mod.default.ModalMain),
-  { ssr: false }
+  { ssr: false },
 );
 const ChallengeModal = dynamic(
   () => import("../components/Challenge").then((mod) => mod.default.Modal),
-  { ssr: false }
+  { ssr: false },
 );
 const NotificationsModal = dynamic(
   () => import("../components/Notifications").then((mod) => mod.default.Modal),
-  { ssr: false }
+  { ssr: false },
 );
 const FriendStatusModal = dynamic(
   () => import("../components/FriendStatus").then((mod) => mod.default.Modal),
-  { ssr: false }
+  { ssr: false },
 );
 
 function Layout({ children }: { children: ReactNode }) {
@@ -40,12 +40,8 @@ function Layout({ children }: { children: ReactNode }) {
     }
   }, [session.user, router]);
 
-  if (session.user === undefined) {
+  if (!session.user) {
     return <Loading />; // Or any spinner
-  }
-
-  if (session.user === null) {
-    return null; // Already redirecting
   }
 
   return (
