@@ -4,8 +4,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import React from "react";
 
-async function VerifyToken({ params }: { params: { token: string } }) {
-  const data = await verifyMail(params.token.trim());
+async function VerifyToken({ params }: { params: Promise<{ token: string }> }) {
+  const { token } = await params;
+  const data = await verifyMail(token.trim());
 
   if (!data.message) notFound();
 

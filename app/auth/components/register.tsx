@@ -6,12 +6,16 @@ import { fetchUsername, register } from "@/lib/auth";
 import { IconCircleCheckFilled, IconCircleXFilled } from "@tabler/icons-react";
 import FormButton from "./form-button";
 import { toast } from "sonner";
+import { useSession } from "@/context/SessionProvider";
+import { useRouter } from "next/navigation";
 
 function Register({
   setMail,
 }: {
   setMail: ({ mail, nv }: { mail: string; nv: boolean }) => void;
 }) {
+  const session = useSession();
+  const router = useRouter();
   const [userNameExists, setuserNameExists] = useState(false);
   const [userfieldLoading, setUserfieldLoading] = useState(false);
   let debounceTimeout: ReturnType<typeof setTimeout>;
@@ -29,13 +33,15 @@ function Register({
 
       if (typeof user === "string") {
         toast.error(user);
-        return;
-      } else if (user?.notVerified) {
-        setMail({ mail: user.email, nv: true });
-        return;
+      } else if (user) {
+        session.setUser(user);
+        router.push("/");
       }
 
-      setMail({ mail: user.email, nv: false });
+      // else if (user?.notVerified) {
+      //   setMail({ mail: user.email, nv: true });
+      // }
+      // else setMail({ mail: user.email, nv: false });
       return;
     });
   };

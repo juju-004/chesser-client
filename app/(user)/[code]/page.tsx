@@ -8,9 +8,10 @@ import ActiveGame from "./components/active/Game";
 export async function generateMetadata({
   params,
 }: {
-  params: { code: string };
+  params: Promise<{ code: string }>;
 }) {
-  const game = await fetchGame(params.code);
+  const { code } = await params;
+  const game = await fetchGame(code);
 
   if (!game) {
     return {
@@ -74,8 +75,14 @@ export async function generateMetadata({
   }
 }
 
-export default async function Game({ params }: { params: { code: string } }) {
-  const game = await fetchGame(params.code);
+export default async function Game({
+  params,
+}: {
+  params: Promise<{ code: string }>;
+}) {
+  const { code } = await params;
+
+  const game = await fetchGame(code);
 
   if (!game) notFound();
 

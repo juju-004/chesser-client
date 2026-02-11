@@ -84,7 +84,7 @@ function Login() {
                     e.stopPropagation();
                     (
                       document.getElementById(
-                        "forgotPassModal"
+                        "forgotPassModal",
                       ) as HTMLDialogElement
                     ).showModal();
                   }}

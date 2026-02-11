@@ -6,9 +6,10 @@ import Profile from "./Profile";
 export async function generateMetadata({
   params,
 }: {
-  params: { name: string };
+  params: Promise<{ name: string }>;
 }) {
-  const data = await fetchUserData(params.name);
+  const { name } = await params;
+  const data = await fetchUserData(name);
   if (!data) {
     return {
       description: "User not found",
@@ -39,8 +40,9 @@ export async function generateMetadata({
   };
 }
 
-export default async function Page({ params }: { params: { name: string } }) {
-  const data = await fetchUserData(params.name);
+export default async function Page({ params }: { params: Promise<{ name: string }> }) {
+   const { name } = await params;
+   const data = await fetchUserData(name);
 
   if (!data?.id) notFound();
 
