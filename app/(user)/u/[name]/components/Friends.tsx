@@ -2,8 +2,8 @@
 
 import { useSession } from "@/context/SessionProvider";
 import { unFriend } from "@/lib/user";
-import { FriendRequest, ProfileData } from "@/types";
-import React, { useEffect, useRef, useState } from "react";
+import { FriendRequest } from "@/types";
+import { useEffect, useState } from "react";
 import { IconUserMinus, IconUserPlus } from "@tabler/icons-react";
 import clsx from "clsx";
 import Link from "next/link";
@@ -11,9 +11,9 @@ import { useSocket } from "@/context/SocketProvider";
 import { useFriends } from "@/context/FriendsContext";
 import Subnav from "@/app/components/Subnav";
 import { toast } from "sonner";
+import NothingToShow from "@/app/components/NothingToShow";
 
 function Page({ setIsOpen }: { setIsOpen: () => void }) {
-  const session = useSession();
   const [isLoading, setisLoading] = useState(false);
   const { friends, removeFriend } = useFriends();
 
@@ -35,7 +35,7 @@ function Page({ setIsOpen }: { setIsOpen: () => void }) {
       <Subnav onClick={setIsOpen} text={`My Friends`} />
       <ul className="flex overflow-y-scroll flex-col flex-1 w-full">
         {friends.length === 0 ? (
-          <li>No user friends</li>
+          <NothingToShow title="No friends yet"></NothingToShow>
         ) : (
           friends.map((friend, index) => (
             <li
@@ -49,7 +49,7 @@ function Page({ setIsOpen }: { setIsOpen: () => void }) {
                 <span
                   className={clsx(
                     "w-3 h-3 rounded-full fx",
-                    friend.online ? "bg-green-500" : "bg-gray-600"
+                    friend.online ? "bg-green-500" : "bg-gray-600",
                   )}
                 ></span>
                 {friend.name}
@@ -105,7 +105,7 @@ function AddButton({ isFriend, id }: { isFriend?: boolean; id: string }) {
       await getUserFriends();
     }
     toast[request.status === "accepted" ? "success" : "error"](
-      `${request.to.name} ${request.status} your friend request`
+      `${request.to.name} ${request.status} your friend request`,
     );
   });
 
@@ -132,8 +132,8 @@ function AddButton({ isFriend, id }: { isFriend?: boolean; id: string }) {
     <button
       onClick={isFriend ? updateFriend : addFriend}
       className={clsx(
-        "bg-base-200 px-6 flex click justify-between py-4 gap-2",
-        isFriend || disabled ? "text-gray-400" : "text-secondary"
+        "bg-base-300 px-6 flex click justify-between py-4 gap-2",
+        isFriend || disabled ? "text-gray-400" : "text-secondary",
       )}
       disabled={disabled || unFriendLoading}
     >

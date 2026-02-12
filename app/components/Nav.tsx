@@ -10,15 +10,15 @@ import dynamic from "next/dynamic";
 
 const FButton = dynamic(
   () => import("./FriendStatus").then((mod) => mod.default.Button),
-  { ssr: false }
+  { ssr: false },
 );
 const NButton = dynamic(
   () => import("./Notifications").then((mod) => mod.default.Button),
-  { ssr: false }
+  { ssr: false },
 );
 const CButton = dynamic(
   () => import("./Challenge").then((mod) => mod.default.Button),
-  { ssr: false }
+  { ssr: false },
 );
 
 type NavContextType = {
@@ -46,7 +46,7 @@ export const useNav = () => useContext(NavContext);
 function Nav({ onClick }: { onClick: () => void }) {
   const { customTitle } = useNav();
   return (
-    <div className={"w-screen flex fixed top-0 navbar"}>
+    <div className={"w-screen flex navbar"}>
       <div className={clsx("navbar-start", customTitle && "w-auto")}>
         <button onClick={onClick} className="btn btn-ghost btn-circle">
           <IconMenuDeep />
@@ -55,7 +55,7 @@ function Nav({ onClick }: { onClick: () => void }) {
       <div
         className={clsx(
           "overflow-hidden navbar-center ",
-          customTitle ? "!flex-1 w-auto" : ""
+          customTitle ? "!flex-1 w-auto" : "",
         )}
       >
         {customTitle ? (

@@ -53,7 +53,7 @@ export default function MenuSlider({
         initial={false}
         animate={{ x: menuOpen ? menuWidth : 0 }}
         transition={{ type: "tween", ease: "easeInOut", duration: 0.08 }}
-        className="relative z-10 pt-16 min-h-screen"
+        className="z-10 fx flex-col h-screen"
         style={{
           willChange: "transform",
         }}
@@ -61,12 +61,14 @@ export default function MenuSlider({
         {menuOpen && (
           <button
             onClick={() => setMenuOpen(false)}
-            className=" inset-0 z-[99] absolute"
+            className=" inset-0 z-[99] fixed"
           ></button>
         )}
         <NavProvider>
           <Nav onClick={() => setMenuOpen(!menuOpen)} />
-          {children}
+          <div className="flex-1 overflow-y-scroll overflow-x-hidden w-full">
+            {children}
+          </div>
         </NavProvider>
       </motion.div>
     </div>

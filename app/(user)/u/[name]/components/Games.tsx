@@ -15,6 +15,7 @@ import Link from "next/link";
 import React, { useEffect, useRef, useState } from "react";
 import { Chessboard } from "react-chessboard";
 import { toast } from "sonner";
+import NothingToShow from "@/app/components/NothingToShow";
 
 const gameEndText = (winner: Game["winner"], reason?: string) => {
   switch (reason) {
@@ -81,7 +82,7 @@ function Games({ setIsOpen, name }: { setIsOpen: () => void; name: string }) {
     setLoading(true);
     const g: { count: number; games: Game[] } | string = await fetchUserGames(
       name,
-      gameCount ? gameCount / 10 - 1 : 0
+      gameCount ? gameCount / 10 - 1 : 0,
     );
 
     if (typeof g === "string") {
@@ -115,11 +116,11 @@ function Games({ setIsOpen, name }: { setIsOpen: () => void; name: string }) {
           games ? "(" + gameCount + ")" : ""
         }`}
       />
-      <div className="flex h overflow-y-scroll flex-1 w-full justify-center">
+      <div className="flex overflow-y-scroll flex-1 w-full justify-center">
         {!games ? (
           <span className="loading loading-dots text-info"></span>
         ) : games.length === 0 ? (
-          <p className="text-gray-500 mt-2 text-base">No recent games.</p>
+          <NothingToShow title="No Games found" />
         ) : (
           <ul
             ref={scrollRef}
@@ -176,12 +177,12 @@ function Games({ setIsOpen, name }: { setIsOpen: () => void; name: string }) {
                         game.winner === "draw"
                           ? "text-gray-400"
                           : (game.white?.name === name &&
-                              game.winner === "white") ||
-                            (game.black?.name === name &&
-                              game.winner === "black")
-                          ? "text-success"
-                          : "text-error",
-                        "text-xs mt-2 font-bold"
+                                game.winner === "white") ||
+                              (game.black?.name === name &&
+                                game.winner === "black")
+                            ? "text-success"
+                            : "text-error",
+                        "text-xs mt-2 font-bold",
                       )}
                     >
                       {gameEndText(game.winner, game.endReason)}
